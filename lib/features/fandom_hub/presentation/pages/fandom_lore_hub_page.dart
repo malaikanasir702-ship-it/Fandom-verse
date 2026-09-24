@@ -298,7 +298,6 @@ class _MediaTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return BlocBuilder<FandomHubBloc, FandomHubState>(
       builder: (context, state) {
         if (state is! FandomHubLoaded) return const Center(child: CircularProgressIndicator());
@@ -448,8 +447,11 @@ class _DeepDiveTabState extends State<_DeepDiveTab> {
         ...List.generate(options.length, (i) {
           Color? bg;
           if (_answered) {
-            if (i == correctIndex) bg = AppColors.success.withValues(alpha: 0.15);
-            else if (i == _selectedAnswer) bg = AppColors.error.withValues(alpha: 0.15);
+            if (i == correctIndex) {
+              bg = AppColors.success.withValues(alpha: 0.15);
+            } else if (i == _selectedAnswer) {
+              bg = AppColors.error.withValues(alpha: 0.15);
+            }
           }
 
           return Padding(

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../../domain/entities/star_profile.dart';
 

@@ -21,6 +21,11 @@ class StarProfile {
     this.isBookmarked = false,
   });
 
+  String get avatarUrl => imageUrl;
+  String get role => roleTitle;
+  String get knownFor => famousWorks.join(', ');
+  int get followersCount => 12500;
+
   StarProfile copyWith({
     String? id,
     String? name,

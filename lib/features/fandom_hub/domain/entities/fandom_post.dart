@@ -27,6 +27,8 @@ class FandomPost {
     this.isBookmarked = false,
   });
 
+  String get summary => contentBody.length > 120 ? '${contentBody.substring(0, 117)}...' : contentBody;
+
   FandomPost copyWith({
     String? id,
     String? category,

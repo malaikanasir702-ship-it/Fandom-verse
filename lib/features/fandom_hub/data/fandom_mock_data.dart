@@ -4,6 +4,9 @@ import '../domain/entities/glossary_term.dart';
 class FandomMockData {
   FandomMockData._();
 
+  static List<FandomPost> get trendingPosts => [...trendingBanners, ...latestNews];
+  static List<GlossaryTerm> get glossaryTerms => glossaryList;
+
   static final List<FandomPost> trendingBanners = [
     FandomPost(
       id: 'trend-01',

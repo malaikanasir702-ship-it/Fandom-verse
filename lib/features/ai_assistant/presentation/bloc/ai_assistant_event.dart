@@ -1,5 +1,3 @@
-import '../../domain/entities/chat_message.dart';
-
 abstract class AIAssistantEvent {
   const AIAssistantEvent();
 }

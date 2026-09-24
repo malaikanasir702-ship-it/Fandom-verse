@@ -3,6 +3,8 @@ import '../domain/entities/event_entity.dart';
 class EventMockData {
   EventMockData._();
 
+  static List<EventEntity> get events => sampleEvents;
+
   static final List<EventEntity> sampleEvents = [
     EventEntity(
       id: 'ev-01',

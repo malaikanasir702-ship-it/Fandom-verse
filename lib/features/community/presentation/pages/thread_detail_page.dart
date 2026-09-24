@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/glass_container.dart';
 import '../bloc/community_bloc.dart';
 import '../bloc/community_event.dart';
 import '../../domain/entities/discussion_thread.dart';

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'fan_routes.dart';
+import 'admin_routes.dart';
 
 class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -7,6 +8,12 @@ class AppRouter {
     final fanRoute = FanRoutes.onGenerateRoute(settings);
     if (fanRoute != null) {
       return fanRoute;
+    }
+
+    // 2. Check Developer B (Admin & Store & Cart) Routes
+    final adminRoute = AdminRoutes.onGenerateRoute(settings);
+    if (adminRoute != null) {
+      return adminRoute;
     }
 
     // 2. Default Fallback Route

@@ -159,6 +159,30 @@ class FanProfilePage extends StatelessWidget {
             // Quick Nav Links
             _buildProfileNavTile(
               context,
+              icon: Icons.history_rounded,
+              title: 'Simulated Order History',
+              subtitle: 'Track simulated merch invoices & bills',
+              route: '/order-history',
+              color: AppColors.darkSecondary,
+            ),
+            _buildProfileNavTile(
+              context,
+              icon: Icons.favorite_border_rounded,
+              title: 'Saved Merch Wishlist',
+              subtitle: 'Exclusive figures, katanas & hoodies',
+              route: '/wishlist',
+              color: AppColors.marvelRed,
+            ),
+            _buildProfileNavTile(
+              context,
+              icon: Icons.storefront_rounded,
+              title: 'Official Merch Store',
+              subtitle: 'Limited edition drops & anime replicas',
+              route: '/store',
+              color: AppColors.darkAccentGold,
+            ),
+            _buildProfileNavTile(
+              context,
               icon: Icons.military_tech_rounded,
               title: 'Achievements & Badges',
               subtitle: '14 Unlocked • 3 In Progress',

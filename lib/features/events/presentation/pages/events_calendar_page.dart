@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/constants/app_constants.dart';
@@ -45,7 +46,7 @@ class _EventsContent extends StatelessWidget {
             title: const Text('Event Radar', style: TextStyle(fontWeight: FontWeight.w800)),
             actions: [
               IconButton(
-                icon: const Icon(Icons.map_rounded),
+                icon: const Icon(Iconsax.map_1),
                 onPressed: () => Navigator.of(context).pushNamed('/events-map'),
               ),
             ],
@@ -147,7 +148,7 @@ class _EventCard extends StatelessWidget {
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Container(
                   color: AppColors.darkSurface,
-                  child: const Icon(Icons.event_rounded, size: 48, color: Colors.white30),
+                  child: const Icon(Iconsax.calendar_2, size: 48, color: Colors.white30),
                 ),
               ),
             ),
@@ -213,7 +214,7 @@ class _EventCard extends StatelessWidget {
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              const Icon(Icons.location_on_outlined, size: 13, color: Colors.white70),
+                              const Icon(Iconsax.location, size: 13, color: Colors.white70),
                               const SizedBox(width: 4),
                               Text(
                                 '${event.cityName}  •  $dateStr',
@@ -224,7 +225,7 @@ class _EventCard extends StatelessWidget {
                           const SizedBox(height: 3),
                           Row(
                             children: [
-                              const Icon(Icons.people_outline_rounded, size: 13, color: Colors.white70),
+                              const Icon(Iconsax.people, size: 13, color: Colors.white70),
                               const SizedBox(width: 4),
                               Text(
                                 '${NumberFormat.compact().format(event.attendeesCount)} attendees',
@@ -240,7 +241,7 @@ class _EventCard extends StatelessWidget {
                       children: [
                         IconButton(
                           icon: Icon(
-                            event.isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
+                            event.isBookmarked ? Iconsax.bookmark : Iconsax.bookmark,
                             color: event.isBookmarked ? AppColors.darkAccentGold : Colors.white70,
                           ),
                           onPressed: onBookmark,
@@ -257,3 +258,4 @@ class _EventCard extends StatelessWidget {
     );
   }
 }
+

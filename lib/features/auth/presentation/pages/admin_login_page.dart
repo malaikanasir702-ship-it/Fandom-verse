@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -50,7 +51,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white70, size: 20),
+              icon: const Icon(Iconsax.arrow_left, color: Colors.white70, size: 20),
               onPressed: () => Navigator.of(context).pop(),
             ),
             actions: [
@@ -65,7 +66,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.lock_rounded, size: 12, color: AppColors.error),
+                    Icon(Iconsax.lock, size: 12, color: AppColors.error),
                     SizedBox(width: 4),
                     Text(
                       'SECURE CONSOLE',
@@ -93,7 +94,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                       border: Border.all(color: AppColors.darkPrimary, width: 1.5),
                     ),
                     child: const Center(
-                      child: Icon(Icons.terminal_rounded, color: AppColors.darkPrimary, size: 32),
+                      child: Icon(Iconsax.code, color: AppColors.darkPrimary, size: 32),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -120,7 +121,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                     ),
                     child: const Row(
                       children: [
-                        Icon(Icons.shield_outlined, color: AppColors.darkPrimary, size: 22),
+                        Icon(Iconsax.shield_tick, color: AppColors.darkPrimary, size: 22),
                         SizedBox(width: 12),
                         Expanded(
                           child: Text(
@@ -143,7 +144,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                     autocorrect: false,
                     decoration: InputDecoration(
                       fillColor: const Color(0xFF131722),
-                      prefixIcon: const Icon(Icons.badge_outlined, color: Colors.white54, size: 20),
+                      prefixIcon: const Icon(Iconsax.card, color: Colors.white54, size: 20),
                       hintText: 'Enter admin email address',
                       hintStyle: const TextStyle(color: Colors.white30),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
@@ -160,13 +161,13 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       fillColor: const Color(0xFF131722),
-                      prefixIcon: const Icon(Icons.key_rounded, color: Colors.white54, size: 20),
+                      prefixIcon: const Icon(Iconsax.key, color: Colors.white54, size: 20),
                       hintText: '••••••••',
                       hintStyle: const TextStyle(color: Colors.white30),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                          _obscurePassword ? Iconsax.eye_slash : Iconsax.eye,
                           color: Colors.white54,
                           size: 20,
                         ),
@@ -183,7 +184,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
 
                   CustomButton(
                     text: 'Authenticate & Open Console',
-                    icon: Icons.vpn_key_rounded,
+                    icon: Iconsax.key_square,
                     backgroundColor: AppColors.darkPrimary,
                     isLoading: isLoading,
                     onPressed: () {
@@ -213,3 +214,6 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
     );
   }
 }
+
+
+

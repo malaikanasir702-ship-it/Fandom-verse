@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
@@ -80,9 +81,9 @@ class RoleSelectionPage extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            child: const Icon(Icons.rocket_launch_rounded, color: Colors.white, size: 28),
+                            child: const Icon(Iconsax.send_2, color: Colors.white, size: 28),
                           ),
-                          const Icon(Icons.arrow_forward_rounded, color: AppColors.darkSecondary),
+                          const Icon(Iconsax.arrow_right, color: AppColors.darkSecondary),
                         ],
                       ),
                       Column(
@@ -139,9 +140,9 @@ class RoleSelectionPage extends StatelessWidget {
                               color: AppColors.darkSurfaceElevated,
                               border: Border.all(color: AppColors.darkPrimary, width: 1.5),
                             ),
-                            child: const Icon(Icons.shield_rounded, color: AppColors.darkPrimary, size: 28),
+                            child: const Icon(Iconsax.shield_tick, color: AppColors.darkPrimary, size: 28),
                           ),
-                          const Icon(Icons.arrow_forward_rounded, color: AppColors.darkPrimary),
+                          const Icon(Iconsax.arrow_right, color: AppColors.darkPrimary),
                         ],
                       ),
                       Column(
@@ -197,3 +198,5 @@ class RoleSelectionPage extends StatelessWidget {
     );
   }
 }
+
+

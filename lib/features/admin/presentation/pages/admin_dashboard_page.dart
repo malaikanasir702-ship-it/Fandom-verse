@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -41,7 +41,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               border: Border.all(color: AppColors.darkPrimary),
             ),
             child: const Center(
-              child: Icon(Icons.security_rounded, size: 16, color: AppColors.darkPrimary),
+              child: Icon(Iconsax.shield_tick, size: 16, color: AppColors.darkPrimary),
             ),
           ),
         ),
@@ -142,7 +142,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         title: 'Total Fans',
                         count: '${metrics['totalFans']}',
                         subtext: '+48 this week',
-                        icon: Icons.people_alt_rounded,
+                        icon: Iconsax.people,
                         color: AppColors.darkSecondary,
                       ),
                     ),
@@ -152,7 +152,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         title: 'Published Lore',
                         count: '${metrics['publishedArticles']}',
                         subtext: 'Across 6 fandoms',
-                        icon: Icons.auto_stories_rounded,
+                        icon: Iconsax.book_1,
                         color: AppColors.darkPrimary,
                       ),
                     ),
@@ -166,7 +166,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         title: 'Upcoming Events',
                         count: '${metrics['upcomingEvents']}',
                         subtext: 'Tokyo, SDCC, Seoul',
-                        icon: Icons.radar_rounded,
+                        icon: Iconsax.radar,
                         color: AppColors.darkAccentGold,
                       ),
                     ),
@@ -176,7 +176,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         title: 'Store Inventory',
                         count: '${metrics['storeProducts']}',
                         subtext: '4 Low Stock items',
-                        icon: Icons.storefront_rounded,
+                        icon: Iconsax.shop,
                         color: AppColors.success,
                       ),
                     ),
@@ -196,28 +196,28 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 ),
                 const SizedBox(height: 10),
                 _buildModuleTile(
-                  icon: Icons.article_rounded,
+                  icon: Iconsax.document_text,
                   title: 'Content & Lore Moderation',
                   subtitle: 'Add, edit, or delete articles, guides & glossary terms',
                   route: '/admin/content',
                   accentColor: AppColors.darkPrimary,
                 ),
                 _buildModuleTile(
-                  icon: Icons.event_available_rounded,
+                  icon: Iconsax.calendar_2,
                   title: 'Convention & Event Radar',
                   subtitle: 'Manage convention schedules, venues, GPS & ticketing',
                   route: '/admin/events',
                   accentColor: AppColors.darkAccentGold,
                 ),
                 _buildModuleTile(
-                  icon: Icons.inventory_2_rounded,
+                  icon: Iconsax.box,
                   title: 'Official Merch Management',
                   subtitle: 'Update product prices, stock counters & catalog deals',
                   route: '/admin/products',
                   accentColor: AppColors.success,
                 ),
                 _buildModuleTile(
-                  icon: Icons.manage_accounts_rounded,
+                  icon: Iconsax.profile_2user,
                   title: 'User Moderation & Categories',
                   subtitle: 'Inspect fan profiles, ban users & configure categories',
                   route: '/admin/users-categories',
@@ -271,7 +271,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         children: [
           const Row(
             children: [
-              Icon(Icons.bolt_rounded, color: AppColors.darkAccentGold, size: 20),
+              Icon(Iconsax.flash_1, color: AppColors.darkAccentGold, size: 20),
               SizedBox(width: 8),
               Text(
                 'Quick Operations Hub',
@@ -286,28 +286,28 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               children: [
                 _buildQuickChip(
                   label: '+ New Article',
-                  icon: Icons.post_add_rounded,
+                  icon: Iconsax.document_text,
                   color: AppColors.darkPrimary,
                   onTap: () => Navigator.of(context).pushNamed('/admin/content-edit'),
                 ),
                 const SizedBox(width: 8),
                 _buildQuickChip(
                   label: '+ New Event',
-                  icon: Icons.add_location_alt_rounded,
+                  icon: Iconsax.location_add,
                   color: AppColors.darkAccentGold,
                   onTap: () => Navigator.of(context).pushNamed('/admin/event-edit'),
                 ),
                 const SizedBox(width: 8),
                 _buildQuickChip(
                   label: '+ New Product',
-                  icon: Icons.add_box_rounded,
+                  icon: Iconsax.add_square,
                   color: AppColors.success,
                   onTap: () => Navigator.of(context).pushNamed('/admin/product-edit'),
                 ),
                 const SizedBox(width: 8),
                 _buildQuickChip(
                   label: 'Push Alert',
-                  icon: Icons.campaign_rounded,
+                  icon: Iconsax.notification_bing,
                   color: AppColors.darkSecondary,
                   onTap: () {
                     AdminModals.showBroadcastModal(
@@ -441,7 +441,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   ],
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white30, size: 14),
+              const Icon(Iconsax.arrow_right_1, color: Colors.white30, size: 14),
             ],
           ),
         ),
@@ -474,7 +474,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         children: top3.map((l) {
           return ListTile(
             dense: true,
-        leading: const Icon(Icons.commit_rounded, color: AppColors.darkSecondary, size: 16),
+        leading: const Icon(Iconsax.activity, color: AppColors.darkSecondary, size: 16),
             title: Text(l['description'] ?? '', style: const TextStyle(color: Colors.white, fontSize: 11)),
             subtitle: Text(l['admin_email'] ?? '', style: const TextStyle(color: Colors.white38, fontSize: 9)),
           );
@@ -495,7 +495,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Row(
           children: [
-            Icon(Icons.cloud_upload_rounded, color: AppColors.darkSecondary),
+            Icon(Iconsax.cloud_notif, color: AppColors.darkSecondary),
             SizedBox(width: 10),
             Text('Seed Firestore Database',
                 style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
@@ -528,7 +528,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               foregroundColor: Colors.black,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
-            icon: const Icon(Icons.rocket_launch_rounded, size: 16),
+            icon: const Icon(Iconsax.send_2, size: 16),
             label: const Text('Seed Now', style: TextStyle(fontWeight: FontWeight.bold)),
             onPressed: () async {
               Navigator.of(dialogCtx).pop();
@@ -593,7 +593,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         content: Row(
           children: [
             Icon(
-              success ? Icons.check_circle_rounded : Icons.error_rounded,
+              success ? Iconsax.tick_circle : Iconsax.close_circle,
               color: Colors.white,
               size: 18,
             ),
@@ -620,4 +620,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     }
   }
 }
+
+
 

@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -42,11 +43,11 @@ class _DiscussionsContent extends StatelessWidget {
         title: const Text('Community', style: TextStyle(fontWeight: FontWeight.w800)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.people_alt_outlined),
+            icon: const Icon(Iconsax.people),
             onPressed: () => Navigator.of(context).pushNamed('/stars-directory'),
           ),
           IconButton(
-            icon: const Icon(Icons.add_rounded),
+            icon: const Icon(Iconsax.add_square),
             onPressed: () => Navigator.of(context).pushNamed('/create-thread'),
           ),
         ],
@@ -208,7 +209,7 @@ class _ThreadCard extends StatelessWidget {
                 child: Row(
                   children: [
                     Icon(
-                      thread.isUpvoted ? Icons.arrow_upward_rounded : Icons.arrow_upward_outlined,
+                      thread.isUpvoted ? Iconsax.arrow_up : Iconsax.arrow_up_2,
                       size: 16,
                       color: thread.isUpvoted ? AppColors.darkPrimary : (isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
                     ),
@@ -225,7 +226,7 @@ class _ThreadCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 18),
-              Icon(Icons.comment_outlined, size: 16, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+              Icon(Iconsax.message, size: 16, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
               const SizedBox(width: 4),
               Text(
                 '${thread.replies.length} replies',
@@ -241,3 +242,5 @@ class _ThreadCard extends StatelessWidget {
     );
   }
 }
+
+

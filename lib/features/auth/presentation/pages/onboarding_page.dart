@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/custom_button.dart';
@@ -19,21 +20,21 @@ class _OnboardingPageState extends State<OnboardingPage> {
       'title': 'Unified Fandom Universe',
       'subtitle':
           'No more scattered wikis or fragmented forums. Access anime lore, gaming records, superhero timelines, and glossary lexicons in one unified hub.',
-      'icon': Icons.hub_rounded,
+      'icon': Iconsax.element_4,
       'color': AppColors.darkPrimary,
     },
     {
       'title': 'Location-Aware Event Radar',
       'subtitle':
           'Discover nearby Comic-Cons, cosplay gatherings, and movie screenings using interactive GPS maps, city filters, and instant ticket links.',
-      'icon': Icons.radar_rounded,
+      'icon': Iconsax.radar,
       'color': AppColors.darkSecondary,
     },
     {
       'title': 'Official Merchandise & AI Helper',
       'subtitle':
           'Track authentic merchandise with wishlist drop alerts, simulated checkout invoices, and an AI Fan Assistant ready to answer deep universe lore.',
-      'icon': Icons.shopping_bag_rounded,
+      'icon': Iconsax.shopping_bag,
       'color': AppColors.darkAccentGold,
     },
   ];
@@ -169,7 +170,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
               // Bottom Button
               CustomButton(
                 text: _currentIndex == _slides.length - 1 ? 'Enter Fandom Verse' : 'Continue',
-                icon: Icons.arrow_forward_rounded,
+                icon: Iconsax.arrow_right,
                 onPressed: () {
                   if (_currentIndex < _slides.length - 1) {
                     _pageController.nextPage(
@@ -189,3 +190,5 @@ class _OnboardingPageState extends State<OnboardingPage> {
     );
   }
 }
+
+

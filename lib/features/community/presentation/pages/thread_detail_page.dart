@@ -334,7 +334,7 @@ class _ThreadDetailPageState extends State<ThreadDetailPage> {
                           shape: BoxShape.circle,
                           color: AppColors.comicRed,
                         ),
-                        child: const Icon(Icons.send_rounded, color: Colors.white, size: 18),
+                        child: const Icon(Iconsax.send_1, color: Colors.white, size: 18),
                       ),
                     ),
                   ],
@@ -424,3 +424,4 @@ class _ReplyCard extends StatelessWidget {
     );
   }
 }
+

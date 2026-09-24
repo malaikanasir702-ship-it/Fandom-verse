@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/services/firebase_auth_service.dart';
 import '../../../../core/di/service_locator.dart';
@@ -78,7 +79,7 @@ class _LoginPageState extends State<LoginPage> {
                   controller: resetEmailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
-                    prefixIcon: Icon(Icons.email_outlined),
+                    prefixIcon: Icon(Iconsax.sms),
                     hintText: 'Enter your registered email',
                   ),
                 ),
@@ -187,7 +188,7 @@ class _LoginPageState extends State<LoginPage> {
                     children: [
                       IconButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                        icon: const Icon(Iconsax.arrow_left, size: 20),
                       ),
                     ],
                   ),
@@ -213,7 +214,7 @@ class _LoginPageState extends State<LoginPage> {
                     keyboardType: TextInputType.emailAddress,
                     autocorrect: false,
                     decoration: const InputDecoration(
-                      prefixIcon: Icon(Icons.alternate_email_rounded, size: 20),
+                      prefixIcon: Icon(Iconsax.sms, size: 20),
                       hintText: 'Enter your email address',
                     ),
                   ),
@@ -243,11 +244,11 @@ class _LoginPageState extends State<LoginPage> {
                     controller: _passwordController,
                     obscureText: _obscurePassword,
                     decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
+                      prefixIcon: const Icon(Iconsax.lock, size: 20),
                       hintText: '••••••••',
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                          _obscurePassword ? Iconsax.eye_slash : Iconsax.eye,
                           size: 20,
                         ),
                         onPressed: () {
@@ -304,7 +305,7 @@ class _LoginPageState extends State<LoginPage> {
                     child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.person_outline_rounded, size: 20),
+                        Icon(Iconsax.profile_circle, size: 20),
                         SizedBox(width: 6),
                         Text('Continue as Guest', style: TextStyle(fontWeight: FontWeight.w600)),
                       ],
@@ -346,3 +347,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
+
+
+

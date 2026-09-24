@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_button.dart';
@@ -70,7 +71,7 @@ class _AdminEventEditPageState extends State<AdminEventEditPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white70, size: 20),
+          icon: const Icon(Iconsax.arrow_left, color: Colors.white70, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -154,7 +155,7 @@ class _AdminEventEditPageState extends State<AdminEventEditPage> {
 
             CustomButton(
               text: isEdit ? 'Update Convention' : 'Publish to Global Event Radar',
-              icon: Icons.radar_rounded,
+              icon: Iconsax.radar,
               backgroundColor: AppColors.darkAccentGold,
               onPressed: () {
                 final title = _titleController.text.trim();
@@ -203,3 +204,4 @@ class _AdminEventEditPageState extends State<AdminEventEditPage> {
     );
   }
 }
+

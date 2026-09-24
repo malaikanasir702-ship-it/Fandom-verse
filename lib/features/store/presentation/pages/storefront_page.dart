@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -62,7 +63,7 @@ class _StorefrontPageState extends State<StorefrontPage> {
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.favorite_border_rounded),
+            icon: const Icon(Iconsax.heart),
             tooltip: 'Wishlist',
             onPressed: () {
               Navigator.of(context).pushNamed('/wishlist');
@@ -75,7 +76,7 @@ class _StorefrontPageState extends State<StorefrontPage> {
                 alignment: Alignment.center,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.shopping_bag_outlined),
+                    icon: const Icon(Iconsax.shopping_bag),
                     tooltip: 'Cart',
                     onPressed: () {
                       Navigator.of(context).pushNamed('/cart');
@@ -122,7 +123,7 @@ class _StorefrontPageState extends State<StorefrontPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.error_outline, size: 48, color: AppColors.error),
+                  const Icon(Iconsax.info_circle, size: 48, color: AppColors.error),
                   const SizedBox(height: 12),
                   Text(state.message),
                   const SizedBox(height: 12),
@@ -164,10 +165,10 @@ class _StorefrontPageState extends State<StorefrontPage> {
                               color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
                               fontSize: 13,
                             ),
-                            prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                            prefixIcon: const Icon(Iconsax.search_normal, size: 20),
                             suffixIcon: _searchController.text.isNotEmpty
                                 ? IconButton(
-                                    icon: const Icon(Icons.clear, size: 18),
+                                    icon: const Icon(Iconsax.close_square, size: 18),
                                     onPressed: () {
                                       _searchController.clear();
                                       context.read<StoreBloc>().add(const SearchProductsEvent(''));
@@ -252,7 +253,7 @@ class _StorefrontPageState extends State<StorefrontPage> {
                             DropdownButton<String>(
                               value: storeState.selectedSort,
                               underline: const SizedBox(),
-                              icon: const Icon(Icons.sort_rounded, size: 18),
+                              icon: const Icon(Iconsax.sort, size: 18),
                               style: TextStyle(
                                 color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
                                 fontSize: 12,
@@ -286,7 +287,7 @@ class _StorefrontPageState extends State<StorefrontPage> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.inventory_2_outlined,
+                          Icon(Iconsax.box,
                               size: 64, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
                           const SizedBox(height: 12),
                           Text(
@@ -390,7 +391,7 @@ class _StorefrontPageState extends State<StorefrontPage> {
             ),
           ),
           const SizedBox(width: 8),
-          const Icon(Icons.local_shipping_outlined, color: Colors.white, size: 40),
+          const Icon(Iconsax.truck, color: Colors.white, size: 40),
         ],
       ),
     );
@@ -426,7 +427,7 @@ class _StorefrontPageState extends State<StorefrontPage> {
                       fit: BoxFit.cover,
                       errorBuilder: (_, _, _) => Container(
                         color: Colors.grey.withValues(alpha: 0.2),
-                        child: const Icon(Icons.image_not_supported_outlined),
+                        child: const Icon(Iconsax.gallery_slash),
                       ),
                     ),
                   ),
@@ -474,7 +475,7 @@ class _StorefrontPageState extends State<StorefrontPage> {
                             child: Padding(
                               padding: const EdgeInsets.all(6),
                               child: Icon(
-                                isWishlisted ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                                isWishlisted ? Iconsax.heart : Iconsax.heart,
                                 size: 16,
                                 color: isWishlisted ? AppColors.marvelRed : Colors.white,
                               ),
@@ -551,7 +552,7 @@ class _StorefrontPageState extends State<StorefrontPage> {
                         ),
                         Row(
                           children: [
-                            const Icon(Icons.star_rounded, size: 13, color: AppColors.darkAccentGold),
+                            const Icon(Iconsax.star_1, size: 13, color: AppColors.darkAccentGold),
                             Text(
                               product.rating.toStringAsFixed(1),
                               style: TextStyle(
@@ -573,3 +574,5 @@ class _StorefrontPageState extends State<StorefrontPage> {
     );
   }
 }
+
+

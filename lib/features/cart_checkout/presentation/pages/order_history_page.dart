@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/database/sqlite_helper.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -46,7 +47,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: const Icon(Iconsax.arrow_left, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -57,7 +58,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.receipt_long_outlined,
+                      Icon(Iconsax.receipt_1,
                           size: 64, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
                       const SizedBox(height: 14),
                       Text(
@@ -172,3 +173,5 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     );
   }
 }
+
+

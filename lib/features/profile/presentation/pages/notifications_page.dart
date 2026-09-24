@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
 
@@ -10,31 +11,31 @@ class NotificationsPage extends StatelessWidget {
       'title': 'Event Starting Soon!',
       'body': 'Anime Expo 2025 is scheduled to open in 3 days. Check your schedule and venue badges.',
       'time': '2 hours ago',
-      'icon': Icons.radar_rounded,
-      'color': AppColors.darkSecondary,
+      'icon': Iconsax.clock,
+      'color': AppColors.comicRed,
       'isRead': false,
     },
     {
       'title': 'New Discussion Reply',
       'body': 'Kenji_Art replied to your post "House of the Dragon: Prophecy Analysis".',
       'time': '5 hours ago',
-      'icon': Icons.forum_rounded,
+      'icon': Iconsax.message,
       'color': AppColors.darkPrimary,
       'isRead': false,
     },
     {
-      'title': '🏆 Badge Unlocked: Lore Master',
+      'title': 'Badge Unlocked: Lore Master',
       'body': 'You completed 10 Deep Dive Trivia challenges with 100% accuracy!',
       'time': '1 day ago',
-      'icon': Icons.military_tech_rounded,
-      'color': AppColors.darkAccentGold,
+      'icon': Iconsax.award,
+      'color': AppColors.comicYellow,
       'isRead': true,
     },
     {
       'title': 'Breaking News Alert',
       'body': 'Marvel Studios officially revealed the full Phase 6 Multiverse slate.',
       'time': '2 days ago',
-      'icon': Icons.newspaper_rounded,
+      'icon': Iconsax.document_text,
       'color': AppColors.success,
       'isRead': true,
     },
@@ -46,10 +47,14 @@ class NotificationsPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Iconsax.arrow_left),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         title: const Text('Notifications', style: TextStyle(fontWeight: FontWeight.w800)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.done_all_rounded),
+            icon: const Icon(Iconsax.tick_circle),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('All notifications marked as read.')),
@@ -113,6 +118,30 @@ class NotificationsPage extends StatelessWidget {
                           color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
                         ),
                       ),
+                      if (!isRead) ...[
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                color: color,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Unread',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: color,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),

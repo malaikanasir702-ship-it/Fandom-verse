@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
@@ -11,7 +12,7 @@ class BadgesAchievementsPage extends StatelessWidget {
     {
       'name': 'Lorekeeper Master',
       'desc': 'Bookmarked and mastered over 50 glossary terms across 3 fandoms.',
-      'icon': '📜',
+      'icon': Iconsax.book_1,
       'unlocked': true,
       'tier': 'Gold Tier',
       'date': 'Unlocked Oct 2024',
@@ -19,7 +20,7 @@ class BadgesAchievementsPage extends StatelessWidget {
     {
       'name': 'Con Navigator',
       'desc': 'RSVP\'d and checked in at 3 real-world conventions or comic cons.',
-      'icon': '🎟️',
+      'icon': Iconsax.ticket,
       'unlocked': true,
       'tier': 'Silver Tier',
       'date': 'Unlocked Nov 2024',
@@ -27,7 +28,7 @@ class BadgesAchievementsPage extends StatelessWidget {
     {
       'name': 'Discussion Pioneer',
       'desc': 'Created a thread with over 100 community upvotes and 50 replies.',
-      'icon': '🔥',
+      'icon': Iconsax.messages_1,
       'unlocked': true,
       'tier': 'Platinum Tier',
       'date': 'Unlocked Dec 2024',
@@ -35,7 +36,7 @@ class BadgesAchievementsPage extends StatelessWidget {
     {
       'name': 'Trivia Archmage',
       'desc': 'Answer 20 consecutive deep-dive trivia questions without a single mistake.',
-      'icon': '⚡',
+      'icon': Iconsax.flash_1,
       'unlocked': false,
       'tier': 'Diamond Tier',
       'date': 'Progress: 14 / 20',
@@ -43,7 +44,7 @@ class BadgesAchievementsPage extends StatelessWidget {
     {
       'name': 'Multiverse Explorer',
       'desc': 'Follow at least 1 creator or actor from 5 distinct fandom categories.',
-      'icon': '🌌',
+      'icon': Iconsax.global,
       'unlocked': false,
       'tier': 'Gold Tier',
       'date': 'Progress: 3 / 5',
@@ -56,6 +57,10 @@ class BadgesAchievementsPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Iconsax.arrow_left),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         title: const Text('Achievements & Badges', style: TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: ListView(
@@ -64,7 +69,7 @@ class BadgesAchievementsPage extends StatelessWidget {
           // XP Progression Hero
           GlassContainer(
             padding: const EdgeInsets.all(20),
-            borderColor: AppColors.darkAccentGold.withValues(alpha: 0.4),
+            borderColor: AppColors.comicYellow.withValues(alpha: 0.5),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -90,7 +95,7 @@ class BadgesAchievementsPage extends StatelessWidget {
                     ),
                     const GlowingBadge(
                       label: 'Tier III',
-                      color: AppColors.darkAccentGold,
+                      color: AppColors.comicYellow,
                     ),
                   ],
                 ),
@@ -101,22 +106,40 @@ class BadgesAchievementsPage extends StatelessWidget {
                     value: 0.85,
                     minHeight: 10,
                     backgroundColor: Colors.grey.withValues(alpha: 0.2),
-                    color: AppColors.darkAccentGold,
+                    color: AppColors.comicYellow,
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  '💡 Next unlock: Custom Neon Avatar Border & Verified Lore Badge',
-                  style: TextStyle(fontSize: 11, color: AppColors.darkSecondary, fontWeight: FontWeight.w600),
+                Row(
+                  children: [
+                    const Icon(Iconsax.lamp_on, size: 14, color: AppColors.comicYellow),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'Next unlock: Custom Solid Avatar Border & Verified Lore Badge',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isDark ? Colors.white70 : AppColors.lightTextPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
           const SizedBox(height: 24),
 
-          Text(
-            '🏅 All Trophies & Badges',
-            style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w800),
+          Row(
+            children: [
+              const Icon(Iconsax.medal_star, size: 20, color: AppColors.comicRed),
+              const SizedBox(width: 8),
+              Text(
+                'All Trophies & Badges',
+                style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w800),
+              ),
+            ],
           ),
           const SizedBox(height: 14),
 
@@ -126,7 +149,7 @@ class BadgesAchievementsPage extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 12.0),
               child: GlassContainer(
                 padding: const EdgeInsets.all(16),
-                borderColor: unlocked ? AppColors.darkAccentGold.withValues(alpha: 0.3) : null,
+                borderColor: unlocked ? AppColors.comicYellow.withValues(alpha: 0.5) : null,
                 child: Row(
                   children: [
                     Container(
@@ -134,17 +157,15 @@ class BadgesAchievementsPage extends StatelessWidget {
                       height: 50,
                       decoration: BoxDecoration(
                         color: unlocked
-                            ? AppColors.darkAccentGold.withValues(alpha: 0.15)
+                            ? AppColors.comicYellow.withValues(alpha: 0.15)
                             : Colors.grey.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Center(
-                        child: Text(
-                          b['icon'] as String,
-                          style: TextStyle(
-                            fontSize: 26,
-                            color: unlocked ? null : Colors.grey,
-                          ),
+                        child: Icon(
+                          b['icon'] as IconData,
+                          size: 24,
+                          color: unlocked ? AppColors.comicYellow : Colors.grey,
                         ),
                       ),
                     ),
@@ -168,7 +189,7 @@ class BadgesAchievementsPage extends StatelessWidget {
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
                                   color: unlocked
-                                      ? AppColors.darkAccentGold.withValues(alpha: 0.15)
+                                      ? AppColors.comicYellow.withValues(alpha: 0.15)
                                       : Colors.grey.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
@@ -177,7 +198,7 @@ class BadgesAchievementsPage extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 9,
                                     fontWeight: FontWeight.w700,
-                                    color: unlocked ? AppColors.darkAccentGold : Colors.grey,
+                                    color: unlocked ? AppColors.comicYellow : Colors.grey,
                                   ),
                                 ),
                               ),
@@ -198,7 +219,7 @@ class BadgesAchievementsPage extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
-                              color: unlocked ? AppColors.success : AppColors.darkSecondary,
+                              color: unlocked ? AppColors.success : AppColors.comicRed,
                             ),
                           ),
                         ],

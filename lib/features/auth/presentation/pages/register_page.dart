@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -76,7 +77,7 @@ class _RegisterPageState extends State<RegisterPage> {
         return Scaffold(
           appBar: AppBar(
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+              icon: const Icon(Iconsax.arrow_left, size: 20),
               onPressed: () => Navigator.of(context).pop(),
             ),
             title: const Text('Create Account'),
@@ -107,7 +108,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   TextField(
                     controller: _nameController,
                     decoration: const InputDecoration(
-                      prefixIcon: Icon(Icons.person_outline_rounded, size: 20),
+                      prefixIcon: Icon(Iconsax.profile_circle, size: 20),
                       hintText: 'e.g. Kenji Otaku',
                     ),
                   ),
@@ -121,7 +122,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
-                      prefixIcon: Icon(Icons.alternate_email_rounded, size: 20),
+                      prefixIcon: Icon(Iconsax.sms, size: 20),
                       hintText: 'yourname@domain.com',
                     ),
                   ),
@@ -136,11 +137,11 @@ class _RegisterPageState extends State<RegisterPage> {
                     obscureText: _obscurePassword,
                     onChanged: (_) => setState(() {}),
                     decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
+                      prefixIcon: const Icon(Iconsax.lock, size: 20),
                       hintText: 'Minimum 6 characters',
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                          _obscurePassword ? Iconsax.eye_slash : Iconsax.eye,
                           size: 20,
                         ),
                         onPressed: () {
@@ -189,7 +190,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     controller: _confirmPasswordController,
                     obscureText: _obscurePassword,
                     decoration: const InputDecoration(
-                      prefixIcon: Icon(Icons.lock_reset_rounded, size: 20),
+                      prefixIcon: Icon(Iconsax.lock, size: 20),
                       hintText: 'Re-enter password',
                     ),
                   ),
@@ -265,3 +266,6 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 }
+
+
+

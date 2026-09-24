@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../bloc/admin_bloc.dart';
@@ -38,13 +39,13 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white70, size: 20),
+          icon: const Icon(Iconsax.arrow_left, color: Colors.white70, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.success,
-        icon: const Icon(Icons.add_shopping_cart_rounded, color: Colors.black),
+        icon: const Icon(Iconsax.shopping_cart, color: Colors.black),
         label: const Text('New Product', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         onPressed: () {
           Navigator.of(context).push(
@@ -80,7 +81,7 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
                   decoration: InputDecoration(
                     hintText: 'Search products by title or category...',
                     hintStyle: const TextStyle(color: Colors.white30, fontSize: 12),
-                    prefixIcon: const Icon(Icons.search_rounded, color: Colors.white54, size: 18),
+                    prefixIcon: const Icon(Iconsax.search_normal, color: Colors.white54, size: 18),
                     fillColor: const Color(0xFF131722),
                     filled: true,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -151,7 +152,7 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
                 width: 64,
                 height: 64,
                 color: Colors.white12,
-                child: const Icon(Icons.inventory_2_outlined, color: Colors.white38),
+                child: const Icon(Iconsax.box, color: Colors.white38),
               ),
             ),
           ),
@@ -208,7 +209,7 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
                               ),
                             ),
                             const SizedBox(width: 2),
-                            const Icon(Icons.edit, size: 8, color: Colors.white54),
+                            const Icon(Iconsax.edit_2, size: 8, color: Colors.white54),
                           ],
                         ),
                       ),
@@ -233,7 +234,7 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
           Column(
             children: [
               IconButton(
-                icon: const Icon(Icons.edit_rounded, color: AppColors.darkSecondary, size: 18),
+                icon: const Icon(Iconsax.edit_2, color: AppColors.darkSecondary, size: 18),
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
@@ -243,7 +244,7 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
                 },
               ),
               IconButton(
-                icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error, size: 18),
+                icon: const Icon(Iconsax.trash, color: AppColors.error, size: 18),
                 onPressed: () {
                   AdminModals.showDeleteBarrierDialog(
                     context: context,
@@ -261,3 +262,5 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
     );
   }
 }
+
+

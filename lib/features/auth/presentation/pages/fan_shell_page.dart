@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../fandom_hub/presentation/pages/fan_feed_page.dart';
@@ -98,3 +98,4 @@ class _FanShellPageState extends State<FanShellPage> {
     );
   }
 }
+

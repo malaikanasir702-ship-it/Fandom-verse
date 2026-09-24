@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -39,7 +40,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(_rsvped ? 'Cancel RSVP?' : '🎟️ RSVP Confirmation'),
+        title: Text(_rsvped ? 'Cancel RSVP?' : 'RSVP Confirmation'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,7 +52,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
               const SizedBox(height: 12),
               const Row(
                 children: [
-                  Icon(Icons.calendar_today_rounded, size: 16, color: AppColors.success),
+                  Icon(Iconsax.calendar_tick, size: 16, color: AppColors.success),
                   SizedBox(width: 8),
                   Text('Event added to your calendar', style: TextStyle(fontSize: 13)),
                 ],
@@ -68,7 +69,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
               context.read<EventCalendarBloc>().add(ToggleEventRsvpEvent(widget.event.id));
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(_rsvped ? 'RSVP removed.' : '🎉 RSVP Confirmed! Added to your calendar.'),
+                  content: Text(_rsvped ? 'RSVP removed.' : 'RSVP Confirmed! Added to your calendar.'),
                   backgroundColor: _rsvped ? AppColors.error : AppColors.success,
                 ),
               );
@@ -97,7 +98,13 @@ class _EventDetailPageState extends State<EventDetailPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('📍 Venue Directions', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+              const Row(
+              children: [
+                Icon(Iconsax.location, size: 18, color: AppColors.comicRed),
+                SizedBox(width: 8),
+                Text('Venue Directions', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+              ],
+            ),
               const SizedBox(height: 12),
               GlassContainer(
                 padding: const EdgeInsets.all(14),
@@ -121,7 +128,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
-                      icon: const Icon(Icons.copy_rounded, size: 16),
+                      icon: const Icon(Iconsax.copy, size: 16),
                       label: const Text('Copy Coordinates'),
                       onPressed: () {
                         Clipboard.setData(ClipboardData(
@@ -137,7 +144,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton.icon(
-                      icon: const Icon(Icons.navigation_rounded, size: 16),
+                      icon: const Icon(Iconsax.direct_right, size: 16),
                       label: const Text('Open Maps'),
                       onPressed: () async {
                         final url = Uri.parse(
@@ -223,7 +230,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.check_circle_rounded, size: 12, color: AppColors.success),
+                              Icon(Iconsax.tick_circle, size: 12, color: AppColors.success),
                               SizedBox(width: 4),
                               Text('RSVP\'d', style: TextStyle(color: AppColors.success, fontWeight: FontWeight.w700, fontSize: 12)),
                             ],
@@ -239,12 +246,12 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   // Location & date info
                   Row(
                     children: [
-                      const Icon(Icons.location_on_rounded, size: 16, color: AppColors.darkSecondary),
+                      const Icon(Iconsax.location, size: 16, color: AppColors.comicRed),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
                           widget.event.venueName,
-                          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.darkSecondary),
+                          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.comicRed),
                         ),
                       ),
                     ],
@@ -252,7 +259,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.calendar_today_rounded, size: 16),
+                      const Icon(Iconsax.calendar_1, size: 16),
                       const SizedBox(width: 6),
                       Text(dateStr, style: AppTextStyles.bodyMedium),
                     ],
@@ -260,7 +267,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.people_rounded, size: 16),
+                      const Icon(Iconsax.people, size: 16),
                       const SizedBox(width: 6),
                       Text(
                         '${NumberFormat.compact().format(widget.event.attendeesCount)} attendees registered',
@@ -273,27 +280,33 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   const SizedBox(height: 20),
                   GlassContainer(
                     padding: const EdgeInsets.all(16),
-                    borderColor: AppColors.darkSecondary.withValues(alpha: 0.35),
+                    borderColor: AppColors.comicRed.withValues(alpha: 0.35),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('⏱️ Event Countdown', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                            const Row(
+                              children: [
+                                Icon(Iconsax.timer_1, size: 16, color: AppColors.comicRed),
+                                SizedBox(width: 6),
+                                Text('Event Countdown', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                              ],
+                            ),
                             const SizedBox(height: 4),
                             Text(
                               _formatDuration(_timeLeft),
                               style: const TextStyle(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 22,
-                                color: AppColors.darkSecondary,
+                                color: AppColors.comicRed,
                                 letterSpacing: 1,
                               ),
                             ),
                           ],
                         ),
-                        const Icon(Icons.timer_rounded, size: 36, color: AppColors.darkSecondary),
+                        const Icon(Iconsax.timer_1, size: 36, color: AppColors.comicRed),
                       ],
                     ),
                   ),
@@ -313,7 +326,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   // ─── Action Buttons ───
                   const SizedBox(height: 24),
                   CustomButton(
-                    text: _rsvped ? 'Cancel RSVP' : '🎟️ RSVP for this Event',
+                    text: _rsvped ? 'Cancel RSVP' : 'RSVP for this Event',
                     onPressed: _showRsvpConfirmation,
                     backgroundColor: _rsvped ? AppColors.error : null,
                   ),
@@ -324,7 +337,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                         child: CustomButton(
                           text: 'Directions',
                           isOutlined: true,
-                          icon: Icons.navigation_rounded,
+                          icon: Iconsax.direct_right,
                           onPressed: _showDirectionsSheet,
                         ),
                       ),
@@ -333,7 +346,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                         child: CustomButton(
                           text: 'Buy Tickets',
                           isOutlined: false,
-                          icon: Icons.confirmation_number_rounded,
+                          icon: Iconsax.ticket,
                           backgroundColor: AppColors.comicRed,
                           textColor: Colors.white,
                           onPressed: () {
@@ -356,3 +369,4 @@ class _EventDetailPageState extends State<EventDetailPage> {
     );
   }
 }
+

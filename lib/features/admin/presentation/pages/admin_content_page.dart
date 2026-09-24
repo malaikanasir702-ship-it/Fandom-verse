@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../bloc/admin_bloc.dart';
@@ -39,13 +40,13 @@ class _AdminContentPageState extends State<AdminContentPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white70, size: 20),
+          icon: const Icon(Iconsax.arrow_left, color: Colors.white70, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.darkPrimary,
-        icon: const Icon(Icons.add_rounded, color: Colors.white),
+        icon: const Icon(Iconsax.add_circle, color: Colors.white),
         label: const Text('New Article', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         onPressed: () {
           Navigator.of(context).push(
@@ -85,7 +86,7 @@ class _AdminContentPageState extends State<AdminContentPage> {
                   decoration: InputDecoration(
                     hintText: 'Search articles, theories, lore guides...',
                     hintStyle: const TextStyle(color: Colors.white30, fontSize: 12),
-                    prefixIcon: const Icon(Icons.search_rounded, color: Colors.white54, size: 18),
+                    prefixIcon: const Icon(Iconsax.search_normal, color: Colors.white54, size: 18),
                     fillColor: const Color(0xFF131722),
                     filled: true,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -192,7 +193,7 @@ class _AdminContentPageState extends State<AdminContentPage> {
                 width: 60,
                 height: 60,
                 color: Colors.white12,
-                child: const Icon(Icons.article_outlined, color: Colors.white38),
+                child: const Icon(Iconsax.document_text, color: Colors.white38),
               ),
             ),
           ),
@@ -248,7 +249,7 @@ class _AdminContentPageState extends State<AdminContentPage> {
           Column(
             children: [
               IconButton(
-                icon: const Icon(Icons.edit_rounded, color: AppColors.darkSecondary, size: 18),
+                icon: const Icon(Iconsax.edit_2, color: AppColors.darkSecondary, size: 18),
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
@@ -258,7 +259,7 @@ class _AdminContentPageState extends State<AdminContentPage> {
                 },
               ),
               IconButton(
-                icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error, size: 18),
+                icon: const Icon(Iconsax.trash, color: AppColors.error, size: 18),
                 onPressed: () {
                   AdminModals.showDeleteBarrierDialog(
                     context: context,
@@ -276,3 +277,7 @@ class _AdminContentPageState extends State<AdminContentPage> {
     );
   }
 }
+
+
+
+

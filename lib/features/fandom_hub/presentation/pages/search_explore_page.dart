@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
@@ -65,7 +66,7 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
       appBar: AppBar(
         titleSpacing: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
+          icon: const Icon(Iconsax.arrow_left),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Container(
@@ -81,10 +82,10 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
             },
             decoration: InputDecoration(
               hintText: 'Search lore, characters, events...',
-              prefixIcon: const Icon(Icons.search_rounded, size: 20),
+              prefixIcon: const Icon(Iconsax.search_normal_1, size: 20),
               suffixIcon: _activeQuery.isNotEmpty
                   ? IconButton(
-                      icon: const Icon(Icons.clear_rounded, size: 18),
+                      icon: const Icon(Iconsax.close_circle, size: 18),
                       onPressed: () {
                         _searchController.clear();
                         setState(() {
@@ -157,9 +158,15 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              '🕒 Recent Searches',
-              style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w700),
+            Row(
+              children: [
+                const Icon(Iconsax.clock, size: 18, color: AppColors.comicRed),
+                const SizedBox(width: 8),
+                Text(
+                  'Recent Searches',
+                  style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w700),
+                ),
+              ],
             ),
             TextButton(
               onPressed: () {
@@ -173,9 +180,9 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
         ),
         const SizedBox(height: 8),
         ..._recentSearches.map((term) => ListTile(
-              leading: const Icon(Icons.history_rounded, size: 20),
+              leading: const Icon(Iconsax.clock, size: 18),
               title: Text(term, style: const TextStyle(fontSize: 14)),
-              trailing: const Icon(Icons.north_west_rounded, size: 16),
+              trailing: const Icon(Iconsax.arrow_right_3, size: 16),
               onTap: () {
                 _searchController.text = term;
                 setState(() {
@@ -184,9 +191,15 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
               },
             )),
         const SizedBox(height: 24),
-        Text(
-          '🔥 Popular Fandom Tags',
-          style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w700),
+        Row(
+          children: [
+            const Icon(Iconsax.flash_1, size: 18, color: AppColors.comicYellow),
+            const SizedBox(width: 8),
+            Text(
+              'Popular Fandom Tags',
+              style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w700),
+            ),
+          ],
         ),
         const SizedBox(height: 12),
         Wrap(
@@ -225,7 +238,7 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.search_off_rounded, size: 64, color: Colors.grey),
+            const Icon(Iconsax.search_status, size: 64, color: Colors.grey),
             const SizedBox(height: 12),
             Text(
               'No universe found for "$_activeQuery"',
@@ -245,9 +258,15 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
       padding: const EdgeInsets.all(16),
       children: [
         if (glossary.isNotEmpty) ...[
-          Text(
-            '📖 Lore Glossary Matches (${glossary.length})',
-            style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w700),
+          Row(
+            children: [
+              const Icon(Iconsax.book, size: 18, color: AppColors.comicRed),
+              const SizedBox(width: 8),
+              Text(
+                'Lore Glossary Matches (${glossary.length})',
+                style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w700),
+              ),
+            ],
           ),
           const SizedBox(height: 10),
           ...glossary.map((g) => Padding(
@@ -263,7 +282,7 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
                           Text(
                             g.term,
                             style: const TextStyle(
-                              color: AppColors.darkSecondary,
+                              color: AppColors.comicRed,
                               fontWeight: FontWeight.w700,
                               fontSize: 15,
                             ),
@@ -271,12 +290,12 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: AppColors.darkPrimary.withValues(alpha: 0.15),
+                              color: AppColors.comicRed.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
                               g.fandomCategory,
-                              style: const TextStyle(fontSize: 10, color: AppColors.darkPrimary),
+                              style: const TextStyle(fontSize: 10, color: AppColors.comicRed),
                             ),
                           ),
                         ],
@@ -294,9 +313,15 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
         ],
 
         if (posts.isNotEmpty) ...[
-          Text(
-            '📰 Articles & Guides (${posts.length})',
-            style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w700),
+          Row(
+            children: [
+              const Icon(Iconsax.document_text, size: 18, color: AppColors.comicRed),
+              const SizedBox(width: 8),
+              Text(
+                'Articles & Guides (${posts.length})',
+                style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w700),
+              ),
+            ],
           ),
           const SizedBox(height: 10),
           ...posts.map((post) => Padding(
@@ -319,7 +344,7 @@ class _SearchExplorePageState extends State<SearchExplorePage> {
                             width: 70,
                             height: 70,
                             color: Colors.grey.withValues(alpha: 0.2),
-                            child: const Icon(Icons.image_not_supported_rounded),
+                            child: const Icon(Iconsax.image),
                           ),
                         ),
                       ),

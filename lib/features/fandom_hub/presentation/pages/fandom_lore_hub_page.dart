@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
@@ -44,22 +45,34 @@ class _FandomLoreHubPageState extends State<FandomLoreHubPage> with SingleTicker
             actions: [
               IconButton(
                 onPressed: () => Navigator.of(context).pushNamed('/search'),
-                icon: const Icon(Icons.search_rounded),
+                icon: const Icon(Iconsax.search_normal_1),
               ),
             ],
             bottom: TabBar(
               controller: _tabController,
-              indicatorColor: AppColors.darkSecondary,
-              labelColor: AppColors.darkSecondary,
+              indicatorColor: AppColors.comicRed,
+              labelColor: AppColors.comicRed,
               unselectedLabelColor: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
               labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
               isScrollable: true,
               tabAlignment: TabAlignment.start,
               tabs: const [
-                Tab(text: '📚 Beginner Hub'),
-                Tab(text: '📖 Glossary'),
-                Tab(text: '🎬 Media'),
-                Tab(text: '🔍 Deep Dive'),
+                Tab(
+                  icon: Icon(Iconsax.book_1, size: 18),
+                  text: 'Beginner Hub',
+                ),
+                Tab(
+                  icon: Icon(Iconsax.book, size: 18),
+                  text: 'Glossary',
+                ),
+                Tab(
+                  icon: Icon(Iconsax.video_play, size: 18),
+                  text: 'Media',
+                ),
+                Tab(
+                  icon: Icon(Iconsax.lamp_on, size: 18),
+                  text: 'Deep Dive',
+                ),
               ],
             ),
           ),
@@ -86,37 +99,37 @@ class _BeginnerHubTab extends StatelessWidget {
     {
       'title': 'Fate Series: Complete Viewing Order',
       'subtitle': 'Zero → Stay Night → UBW → Heaven\'s Feel',
-      'icon': '⚔️',
+      'icon': Iconsax.shield,
       'color': 0xFF9C27B0,
     },
     {
       'title': 'Star Wars Canon Chronology',
       'subtitle': 'From Phantom Menace to The Mandalorian',
-      'icon': '🚀',
+      'icon': Iconsax.airplane,
       'color': 0xFF2196F3,
     },
     {
       'title': 'Marvel Comics Starting Points 2024',
       'subtitle': 'Essential reading for MCU fans entering comics',
-      'icon': '🦸',
+      'icon': Iconsax.crown_1,
       'color': 0xFFE53935,
     },
     {
       'title': 'Dark Souls Lore: Where to Start',
       'subtitle': 'Understanding Age of Fire, Lords of Cinder & Hollowing',
-      'icon': '🔥',
+      'icon': Iconsax.flash_1,
       'color': 0xFFFF9100,
     },
     {
       'title': 'K-Pop 101: Fandoms & Fan Culture',
       'subtitle': 'Albums, fan chants, lightsticks & fancafe essentials',
-      'icon': '🎵',
+      'icon': Iconsax.music,
       'color': 0xFFE91E63,
     },
     {
       'title': 'Speedrunning Basics: Any% to 100%',
       'subtitle': 'Glossary, category rules, world record tracking',
-      'icon': '⚡',
+      'icon': Iconsax.timer_1,
       'color': 0xFF00BCD4,
     },
   ];
@@ -145,7 +158,9 @@ class _BeginnerHubTab extends StatelessWidget {
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: color.withValues(alpha: 0.3)),
                 ),
-                child: Center(child: Text(guide['icon'] as String, style: const TextStyle(fontSize: 22))),
+                child: Center(
+                  child: Icon(guide['icon'] as IconData, size: 24, color: color),
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -166,7 +181,7 @@ class _BeginnerHubTab extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(Icons.arrow_forward_ios_rounded, size: 14, color: color),
+              Icon(Iconsax.arrow_right_3, size: 16, color: color),
             ],
           ),
         );
@@ -208,7 +223,7 @@ class _GlossaryTabState extends State<_GlossaryTab> {
               child: TextField(
                 onChanged: (v) => setState(() => _search = v),
                 decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                  prefixIcon: const Icon(Iconsax.search_normal_1, size: 20),
                   hintText: 'Search fandom terms...',
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -235,7 +250,7 @@ class _GlossaryTabState extends State<_GlossaryTab> {
                                   Text(
                                     term.term,
                                     style: AppTextStyles.titleMedium.copyWith(
-                                      color: AppColors.darkSecondary,
+                                      color: AppColors.comicRed,
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
@@ -256,10 +271,10 @@ class _GlossaryTabState extends State<_GlossaryTab> {
                                     ToggleBookmarkGlossaryEvent(term.id),
                                   ),
                               child: Icon(
-                                term.isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
+                                term.isBookmarked ? Iconsax.bookmark : Iconsax.bookmark_2,
                                 size: 18,
                                 color: term.isBookmarked
-                                    ? AppColors.darkAccentGold
+                                    ? AppColors.comicYellow
                                     : (isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
                               ),
                             ),
@@ -271,12 +286,19 @@ class _GlossaryTabState extends State<_GlossaryTab> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: AppColors.darkPrimary.withValues(alpha: 0.12),
+                            color: AppColors.comicRed.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Text(
-                            '📌 ${term.fandomCategory}',
-                            style: const TextStyle(fontSize: 11, color: AppColors.darkPrimary, fontWeight: FontWeight.w600),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Iconsax.tag, size: 12, color: AppColors.comicRed),
+                              const SizedBox(width: 4),
+                              Text(
+                                term.fandomCategory,
+                                style: const TextStyle(fontSize: 11, color: AppColors.comicRed, fontWeight: FontWeight.w600),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -304,7 +326,13 @@ class _MediaTab extends StatelessWidget {
         return ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            Text('🖼️ Fan Art Gallery', style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w800)),
+            Row(
+              children: [
+                const Icon(Iconsax.gallery, size: 20, color: AppColors.comicRed),
+                const SizedBox(width: 8),
+                Text('Fan Art Gallery', style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w800)),
+              ],
+            ),
             const SizedBox(height: 12),
             GridView.builder(
               shrinkWrap: true,
@@ -403,16 +431,29 @@ class _DeepDiveTabState extends State<_DeepDiveTab> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('🧠 Deep Dive Trivia', style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w800)),
+            Row(
+              children: [
+                const Icon(Iconsax.lamp_charge, size: 20, color: AppColors.comicRed),
+                const SizedBox(width: 8),
+                Text('Deep Dive Trivia', style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w800)),
+              ],
+            ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: AppColors.darkAccentGold.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Text(
-                '⭐ Score: $_score / ${_triviaList.length}',
-                style: const TextStyle(color: AppColors.darkAccentGold, fontWeight: FontWeight.w700, fontSize: 13),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Iconsax.star_1, size: 14, color: AppColors.darkAccentGold),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Score: $_score / ${_triviaList.length}',
+                    style: const TextStyle(color: AppColors.darkAccentGold, fontWeight: FontWeight.w700, fontSize: 13),
+                  ),
+                ],
               ),
             ),
           ],
@@ -428,12 +469,12 @@ class _DeepDiveTabState extends State<_DeepDiveTab> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.darkSecondary.withValues(alpha: 0.15),
+                  color: AppColors.comicRed.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   'Q${_currentQ + 1} of ${_triviaList.length}',
-                  style: const TextStyle(color: AppColors.darkSecondary, fontWeight: FontWeight.w700, fontSize: 12),
+                  style: const TextStyle(color: AppColors.comicRed, fontWeight: FontWeight.w700, fontSize: 12),
                 ),
               ),
               const SizedBox(height: 12),
@@ -490,9 +531,18 @@ class _DeepDiveTabState extends State<_DeepDiveTab> {
           GlassContainer(
             padding: const EdgeInsets.all(14),
             borderColor: AppColors.darkAccentGold.withValues(alpha: 0.3),
-            child: Text(
-              '💡 ${question['explanation']}',
-              style: const TextStyle(height: 1.5),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Iconsax.info_circle, size: 18, color: AppColors.darkAccentGold),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    question['explanation'] as String,
+                    style: const TextStyle(height: 1.5),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 14),
@@ -504,7 +554,14 @@ class _DeepDiveTabState extends State<_DeepDiveTab> {
                 _currentQ = (_currentQ + 1) % _triviaList.length;
               });
             },
-            child: Text(_currentQ < _triviaList.length - 1 ? 'Next Question →' : 'Restart Trivia'),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(_currentQ < _triviaList.length - 1 ? 'Next Question' : 'Restart Trivia'),
+                const SizedBox(width: 6),
+                const Icon(Iconsax.arrow_right_3, size: 16),
+              ],
+            ),
           ),
         ],
       ],

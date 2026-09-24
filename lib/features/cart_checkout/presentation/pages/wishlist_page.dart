@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -41,12 +42,12 @@ class _WishlistPageState extends State<WishlistPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: const Icon(Iconsax.arrow_left, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.shopping_bag_outlined),
+            icon: const Icon(Iconsax.shopping_bag),
             tooltip: 'Go to Cart',
             onPressed: () => Navigator.of(context).pushNamed('/cart'),
           ),
@@ -71,7 +72,7 @@ class _WishlistPageState extends State<WishlistPage> {
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
-                        Icons.favorite_border_rounded,
+                        Iconsax.heart,
                         size: 64,
                         color: isDark ? AppColors.darkSecondary : AppColors.lightPrimary,
                       ),
@@ -96,7 +97,7 @@ class _WishlistPageState extends State<WishlistPage> {
                     const SizedBox(height: 24),
                     CustomButton(
                       text: 'Explore Merch Catalog',
-                      icon: Icons.storefront_rounded,
+                      icon: Iconsax.shop,
                       backgroundColor: isDark ? AppColors.darkPrimary : AppColors.lightPrimary,
                       onPressed: () => Navigator.of(context).pushReplacementNamed('/store'),
                     ),
@@ -149,7 +150,7 @@ class _WishlistPageState extends State<WishlistPage> {
                   width: 80,
                   height: 80,
                   color: Colors.grey.withValues(alpha: 0.2),
-                  child: const Icon(Icons.image_not_supported_outlined),
+                  child: const Icon(Iconsax.gallery_slash),
                 ),
               ),
             ),
@@ -220,7 +221,7 @@ class _WishlistPageState extends State<WishlistPage> {
           Column(
             children: [
               IconButton(
-                icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error, size: 20),
+                icon: const Icon(Iconsax.trash, color: AppColors.error, size: 20),
                 tooltip: 'Remove',
                 onPressed: () {
                   context.read<CartBloc>().add(
@@ -233,7 +234,7 @@ class _WishlistPageState extends State<WishlistPage> {
               ),
               IconButton(
                 icon: Icon(
-                  Icons.add_shopping_cart_rounded,
+                  Iconsax.shopping_cart,
                   color: isDark ? AppColors.darkSecondary : AppColors.lightPrimary,
                   size: 20,
                 ),
@@ -267,3 +268,5 @@ class _WishlistPageState extends State<WishlistPage> {
     );
   }
 }
+
+

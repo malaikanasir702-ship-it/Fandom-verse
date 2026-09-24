@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_button.dart';
 
@@ -29,7 +30,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   void _saveProfile() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('✅ Profile updated successfully!'),
+        content: Text('Profile updated successfully!'),
         backgroundColor: AppColors.success,
         behavior: SnackBarBehavior.floating,
       ),
@@ -53,18 +54,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 children: [
                   CircleAvatar(
                     radius: 46,
-                    backgroundColor: AppColors.darkPrimary,
-                    child: const Icon(Icons.person_rounded, size: 50, color: Colors.white),
+                    backgroundColor: AppColors.comicRed,
+                    child: const Icon(Iconsax.profile_circle, size: 50, color: Colors.white),
                   ),
                   Positioned(
                     bottom: 0,
                     right: 0,
                     child: CircleAvatar(
                       radius: 16,
-                      backgroundColor: AppColors.darkSecondary,
+                      backgroundColor: AppColors.comicYellow,
                       child: IconButton(
                         padding: EdgeInsets.zero,
-                        icon: const Icon(Icons.camera_alt_rounded, size: 16, color: Colors.black),
+                        icon: const Icon(Iconsax.camera, size: 16, color: Colors.black),
                         onPressed: () {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Avatar picker opened')),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
@@ -14,7 +15,9 @@ class BeginnerHubDetailPage extends StatelessWidget {
 
     final title = guideData?['title'] as String? ?? 'Fate Series: Complete Viewing Order';
     final subtitle = guideData?['subtitle'] as String? ?? 'From Fate/Zero to Heaven\'s Feel';
-    final icon = guideData?['icon'] as String? ?? '⚔️';
+    final iconData = guideData?['icon'] is IconData
+        ? guideData!['icon'] as IconData
+        : Iconsax.book_1;
 
     return Scaffold(
       body: CustomScrollView(
@@ -22,29 +25,24 @@ class BeginnerHubDetailPage extends StatelessWidget {
           SliverAppBar(
             expandedHeight: 200,
             pinned: true,
+            leading: IconButton(
+              icon: const Icon(Iconsax.arrow_left, color: Colors.white),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
             title: Text(
               title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white),
             ),
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppColors.darkPrimary.withValues(alpha: 0.8),
-                      AppColors.darkSecondary.withValues(alpha: 0.8),
-                    ],
-                  ),
-                ),
+                color: AppColors.comicRed,
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const SizedBox(height: 40),
-                      Text(icon, style: const TextStyle(fontSize: 48)),
-                      const SizedBox(height: 8),
+                      Icon(iconData, size: 52, color: Colors.white),
+                      const SizedBox(height: 12),
                       Text(
                         subtitle,
                         style: const TextStyle(
@@ -73,7 +71,7 @@ class BeginnerHubDetailPage extends StatelessWidget {
                       children: [
                         const Row(
                           children: [
-                            Icon(Icons.info_outline_rounded, color: AppColors.darkSecondary, size: 20),
+                            Icon(Iconsax.info_circle, color: AppColors.comicRed, size: 20),
                             SizedBox(width: 8),
                             Text('Beginner Road Map Overview', style: TextStyle(fontWeight: FontWeight.w700)),
                           ],
@@ -123,13 +121,13 @@ class BeginnerHubDetailPage extends StatelessWidget {
                   // Lore Tips & Common Pitfalls
                   GlassContainer(
                     padding: const EdgeInsets.all(16),
-                    borderColor: AppColors.darkAccentGold.withValues(alpha: 0.3),
+                    borderColor: AppColors.comicYellow.withValues(alpha: 0.5),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Row(
                           children: [
-                            Icon(Icons.lightbulb_outline_rounded, color: AppColors.darkAccentGold),
+                            Icon(Iconsax.lamp_on, color: AppColors.comicYellow, size: 20),
                             SizedBox(width: 8),
                             Text('Pro Tips for Beginners', style: TextStyle(fontWeight: FontWeight.w800)),
                           ],

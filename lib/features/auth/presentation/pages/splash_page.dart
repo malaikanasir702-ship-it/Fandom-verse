@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -132,7 +133,7 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
                           ),
                           child: const Center(
                             child: Icon(
-                              Icons.auto_awesome_rounded,
+                              Iconsax.star_1,
                               size: 54,
                               color: Colors.white,
                             ),
@@ -201,3 +202,5 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
     );
   }
 }
+
+

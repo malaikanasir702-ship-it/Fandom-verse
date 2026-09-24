@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/database/sqlite_helper.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/bloc/theme_bloc.dart';
@@ -95,7 +96,7 @@ class _SettingsPageState extends State<SettingsPage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Row(
           children: [
-            Icon(Icons.file_download_done_rounded, color: AppColors.success),
+            Icon(Iconsax.tick_circle, color: AppColors.success),
             SizedBox(width: 8),
             Text('Bookmarks Exported'),
           ],
@@ -125,7 +126,7 @@ class _SettingsPageState extends State<SettingsPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: const Icon(Iconsax.arrow_left, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -153,7 +154,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       children: [
                         _buildThemeCard(
                           title: 'Cyber Dark',
-                          icon: Icons.dark_mode_rounded,
+                          icon: Iconsax.moon,
                           mode: ThemeMode.dark,
                           isSelected: activeMode == ThemeMode.dark,
                           isDark: isDark,
@@ -161,7 +162,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         const SizedBox(width: 10),
                         _buildThemeCard(
                           title: 'Lumina Light',
-                          icon: Icons.light_mode_rounded,
+                          icon: Iconsax.sun_1,
                           mode: ThemeMode.light,
                           isSelected: activeMode == ThemeMode.light,
                           isDark: isDark,
@@ -169,7 +170,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         const SizedBox(width: 10),
                         _buildThemeCard(
                           title: 'System',
-                          icon: Icons.phone_android_rounded,
+                          icon: Iconsax.mobile,
                           mode: ThemeMode.system,
                           isSelected: activeMode == ThemeMode.system,
                           isDark: isDark,
@@ -292,7 +293,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        icon: const Icon(Icons.cleaning_services_rounded, size: 16),
+                        icon: const Icon(Iconsax.trash, size: 16),
                         label: const Text('Clear Cache', style: TextStyle(fontSize: 12)),
                         onPressed: _showClearCacheConfirmDialog,
                       ),
@@ -300,7 +301,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: OutlinedButton.icon(
-                        icon: const Icon(Icons.file_upload_outlined, size: 16),
+                        icon: const Icon(Iconsax.export, size: 16),
                         label: const Text('Export JSON', style: TextStyle(fontSize: 12)),
                         onPressed: _exportBookmarksJson,
                       ),

@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
@@ -115,7 +116,7 @@ class _StarDetailPageState extends State<StarDetailPage> {
                             ),
                           );
                         },
-                        icon: Icon(_isFollowing ? Icons.check_rounded : Icons.person_add_rounded, size: 16),
+                        icon: Icon(_isFollowing ? Iconsax.tick_square : Iconsax.profile_add, size: 16),
                         label: Text(_isFollowing ? 'Following' : 'Follow'),
                       ),
                     ],
@@ -125,11 +126,11 @@ class _StarDetailPageState extends State<StarDetailPage> {
                   // Stats Row
                   Row(
                     children: [
-                      _buildStatBox('Fans', '${widget.star.followersCount}', Icons.groups_rounded),
+                      _buildStatBox('Fans', '${widget.star.followersCount}', Iconsax.people),
                       const SizedBox(width: 12),
-                      _buildStatBox('Credits', '48+ Titles', Icons.movie_filter_rounded),
+                      _buildStatBox('Credits', '48+ Titles', Iconsax.video_play),
                       const SizedBox(width: 12),
-                      _buildStatBox('Rating', '9.8 / 10', Icons.star_rounded),
+                      _buildStatBox('Rating', '9.8 / 10', Iconsax.star_1),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -161,7 +162,7 @@ class _StarDetailPageState extends State<StarDetailPage> {
                       children: [
                         const Row(
                           children: [
-                            Icon(Icons.event_seat_rounded, color: AppColors.darkSecondary),
+                            Icon(Iconsax.calendar_2, color: AppColors.darkSecondary),
                             SizedBox(width: 8),
                             Text('Upcoming Con Signings & Panels', style: TextStyle(fontWeight: FontWeight.w800)),
                           ],
@@ -231,3 +232,5 @@ class _StarDetailPageState extends State<StarDetailPage> {
     }).toList();
   }
 }
+
+

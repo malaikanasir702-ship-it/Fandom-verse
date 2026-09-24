@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -120,7 +121,7 @@ class _BadgeSetupPageState extends State<BadgeSetupPage> {
                             ),
                             const SizedBox(width: 8),
                             Icon(
-                              isSelected ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
+                              isSelected ? Iconsax.tick_circle : Iconsax.record_circle,
                               color: isSelected ? AppColors.darkAccentGold : (isDark ? Colors.white24 : Colors.black26),
                             ),
                           ],
@@ -135,7 +136,7 @@ class _BadgeSetupPageState extends State<BadgeSetupPage> {
 
               CustomButton(
                 text: 'Enter Fandom Universe',
-                icon: Icons.auto_awesome_rounded,
+                icon: Iconsax.star_1,
                 onPressed: () {
                   context.read<AuthBloc>().add(SelectStarterBadgeEvent(_selectedBadge));
                   Navigator.of(context).pushReplacementNamed('/fan-home');
@@ -149,3 +150,5 @@ class _BadgeSetupPageState extends State<BadgeSetupPage> {
     );
   }
 }
+
+

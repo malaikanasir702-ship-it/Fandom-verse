@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -19,12 +20,12 @@ class _InterestSetupPageState extends State<InterestSetupPage> {
   final Set<String> _selectedFandoms = {'Anime & Manga', 'Gaming & Esports'};
 
   final Map<String, IconData> _categoryIcons = {
-    'Anime & Manga': Icons.movie_filter_rounded,
-    'Gaming & Esports': Icons.sports_esports_rounded,
-    'Sci-Fi & Fantasy': Icons.auto_awesome_rounded,
-    'Marvel & DC Comics': Icons.menu_book_rounded,
-    'K-Pop & Idol Culture': Icons.music_note_rounded,
-    'Pop Culture & Movies': Icons.local_activity_rounded,
+    'Anime & Manga': Iconsax.video_play,
+    'Gaming & Esports': Iconsax.game,
+    'Sci-Fi & Fantasy': Iconsax.star_1,
+    'Marvel & DC Comics': Iconsax.book_1,
+    'K-Pop & Idol Culture': Iconsax.music,
+    'Pop Culture & Movies': Iconsax.ticket_2,
   };
 
   final Map<String, Color> _categoryColors = {
@@ -116,7 +117,7 @@ class _InterestSetupPageState extends State<InterestSetupPage> {
                   itemBuilder: (context, index) {
                     final cat = AppConstants.defaultCategories[index];
                     final isSelected = _selectedFandoms.contains(cat);
-                    final icon = _categoryIcons[cat] ?? Icons.stars_rounded;
+                    final icon = _categoryIcons[cat] ?? Iconsax.star_1;
                     final color = _categoryColors[cat] ?? AppColors.darkSecondary;
 
                     return GlassContainer(
@@ -141,7 +142,7 @@ class _InterestSetupPageState extends State<InterestSetupPage> {
                                 child: Icon(icon, color: color, size: 24),
                               ),
                               if (isSelected)
-                                Icon(Icons.check_circle_rounded, color: color, size: 20),
+                                Icon(Iconsax.tick_circle, color: color, size: 20),
                             ],
                           ),
                           Text(
@@ -162,7 +163,7 @@ class _InterestSetupPageState extends State<InterestSetupPage> {
 
               CustomButton(
                 text: 'Proceed to Badge Selection',
-                icon: Icons.arrow_forward_rounded,
+                icon: Iconsax.arrow_right,
                 onPressed: () {
                   context.read<AuthBloc>().add(
                         UpdateUserInterestsEvent(_selectedFandoms.toList()),
@@ -178,3 +179,7 @@ class _InterestSetupPageState extends State<InterestSetupPage> {
     );
   }
 }
+
+
+
+

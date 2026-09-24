@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
@@ -72,7 +73,13 @@ class _AIAssistantPageState extends State<AIAssistantPage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('⚙️ AI Mode Settings', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+            const Row(
+              children: [
+                Icon(Iconsax.cpu, size: 20, color: AppColors.darkSecondary),
+                SizedBox(width: 8),
+                Text('AI Mode Settings', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+              ],
+            ),
             const SizedBox(height: 16),
             GlassContainer(
               padding: const EdgeInsets.all(14),
@@ -80,7 +87,7 @@ class _AIAssistantPageState extends State<AIAssistantPage> {
               borderColor: !currentMode ? AppColors.darkSecondary : null,
               child: Row(
                 children: [
-                  const Icon(Icons.offline_bolt_rounded, color: AppColors.darkSecondary),
+                  const Icon(Iconsax.flash_1, color: AppColors.darkSecondary),
                   const SizedBox(width: 12),
                   const Expanded(
                     child: Column(
@@ -91,7 +98,7 @@ class _AIAssistantPageState extends State<AIAssistantPage> {
                       ],
                     ),
                   ),
-                  if (!currentMode) const Icon(Icons.check_circle_rounded, color: AppColors.darkSecondary),
+                  if (!currentMode) const Icon(Iconsax.tick_circle, color: AppColors.darkSecondary),
                 ],
               ),
             ),
@@ -102,7 +109,7 @@ class _AIAssistantPageState extends State<AIAssistantPage> {
               borderColor: currentMode ? AppColors.darkPrimary : null,
               child: Row(
                 children: [
-                  const Icon(Icons.cloud_rounded, color: AppColors.darkPrimary),
+                  const Icon(Iconsax.cloud, color: AppColors.darkPrimary),
                   const SizedBox(width: 12),
                   const Expanded(
                     child: Column(
@@ -113,7 +120,7 @@ class _AIAssistantPageState extends State<AIAssistantPage> {
                       ],
                     ),
                   ),
-                  if (currentMode) const Icon(Icons.check_circle_rounded, color: AppColors.darkPrimary),
+                  if (currentMode) const Icon(Iconsax.tick_circle, color: AppColors.darkPrimary),
                 ],
               ),
             ),
@@ -135,11 +142,11 @@ class _AIAssistantPageState extends State<AIAssistantPage> {
         title: const Text('AI Fan Helper', style: TextStyle(fontWeight: FontWeight.w800)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.tune_rounded),
+            icon: const Icon(Iconsax.setting_2),
             onPressed: _showModeSheet,
           ),
           IconButton(
-            icon: const Icon(Icons.delete_outline_rounded),
+            icon: const Icon(Iconsax.trash),
             onPressed: () => context.read<AIAssistantBloc>().add(const ClearChatHistoryEvent()),
           ),
         ],
@@ -170,7 +177,7 @@ class _AIAssistantPageState extends State<AIAssistantPage> {
                           children: [
                             const Row(
                               children: [
-                                Text('🤖', style: TextStyle(fontSize: 28)),
+                                Icon(Iconsax.cpu, size: 28, color: AppColors.darkSecondary),
                                 SizedBox(width: 12),
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,7 +200,13 @@ class _AIAssistantPageState extends State<AIAssistantPage> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      const Text('💡 Quick Prompts', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                      const Row(
+                        children: [
+                          Icon(Iconsax.flash_1, size: 16, color: AppColors.darkSecondary),
+                          SizedBox(width: 6),
+                          Text('Quick Prompts', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                        ],
+                      ),
                       const SizedBox(height: 10),
                       Wrap(
                         spacing: 8,
@@ -266,17 +279,9 @@ class _AIAssistantPageState extends State<AIAssistantPage> {
                         height: 46,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          gradient: const LinearGradient(
-                            colors: [AppColors.darkPrimary, AppColors.darkSecondary],
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.darkPrimary.withValues(alpha: 0.4),
-                              blurRadius: 10,
-                            ),
-                          ],
+                          color: AppColors.comicRed,
                         ),
-                        child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+                        child: const Icon(Iconsax.send_1, color: Colors.white, size: 20),
                       ),
                     ),
                   ],
@@ -311,9 +316,9 @@ class _ChatBubble extends StatelessWidget {
               height: 32,
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: LinearGradient(colors: [AppColors.darkPrimary, AppColors.darkSecondary]),
+                color: AppColors.darkSurface,
               ),
-              child: const Center(child: Text('🤖', style: TextStyle(fontSize: 16))),
+              child: const Center(child: Icon(Iconsax.cpu, size: 16, color: AppColors.darkSecondary)),
             ),
             const SizedBox(width: 8),
           ],
@@ -362,9 +367,9 @@ class _TypingIndicator extends StatelessWidget {
             width: 32, height: 32,
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              gradient: LinearGradient(colors: [AppColors.darkPrimary, AppColors.darkSecondary]),
+              color: AppColors.darkSurface,
             ),
-            child: const Center(child: Text('🤖', style: TextStyle(fontSize: 16))),
+            child: const Center(child: Icon(Iconsax.cpu, size: 16, color: AppColors.darkSecondary)),
           ),
           const SizedBox(width: 8),
           Container(

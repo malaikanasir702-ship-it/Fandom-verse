@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/custom_button.dart';
@@ -34,7 +35,7 @@ class OrderSuccessPage extends StatelessWidget {
           automaticallyImplyLeading: false,
           actions: [
             IconButton(
-              icon: const Icon(Icons.close_rounded),
+              icon: const Icon(Iconsax.close_circle),
               onPressed: () => Navigator.of(context).pushReplacementNamed('/store'),
             ),
             const SizedBox(width: 8),
@@ -55,7 +56,7 @@ class OrderSuccessPage extends StatelessWidget {
                   border: Border.all(color: AppColors.success, width: 2),
                 ),
                 child: const Center(
-                  child: Icon(Icons.check_rounded, color: AppColors.success, size: 40),
+                  child: Icon(Iconsax.tick_square, color: AppColors.success, size: 40),
                 ),
               ),
               const SizedBox(height: 14),
@@ -249,7 +250,7 @@ class OrderSuccessPage extends StatelessWidget {
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
-                      icon: const Icon(Icons.download_rounded, size: 18),
+                      icon: const Icon(Iconsax.document_download, size: 18),
                       label: const Text('Export PDF'),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -269,7 +270,7 @@ class OrderSuccessPage extends StatelessWidget {
                   Expanded(
                     child: CustomButton(
                       text: 'Back to Store',
-                      icon: Icons.storefront_rounded,
+                      icon: Iconsax.shop,
                       backgroundColor: isDark ? AppColors.darkPrimary : AppColors.lightPrimary,
                       onPressed: () {
                         Navigator.of(context).pushReplacementNamed('/store');
@@ -281,7 +282,7 @@ class OrderSuccessPage extends StatelessWidget {
               const SizedBox(height: 12),
 
               TextButton.icon(
-                icon: const Icon(Icons.history_rounded, size: 18),
+                icon: const Icon(Iconsax.clock, size: 18),
                 label: const Text('View All Past Orders'),
                 onPressed: () {
                   Navigator.of(context).pushNamed('/order-history');
@@ -401,3 +402,5 @@ class _QrCodePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+
+

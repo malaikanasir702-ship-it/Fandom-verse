@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
@@ -28,7 +29,7 @@ class AdminModals {
               ),
               title: const Row(
                 children: [
-                  Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 24),
+              Icon(Iconsax.warning_2, color: AppColors.error, size: 24),
                   SizedBox(width: 8),
                   Text('Destructive Action', style: TextStyle(color: Colors.white, fontSize: 16)),
                 ],
@@ -123,7 +124,7 @@ class AdminModals {
               const SizedBox(height: 16),
               const Row(
                 children: [
-                  Icon(Icons.history_rounded, color: AppColors.darkSecondary, size: 22),
+                  Icon(Iconsax.clock, color: AppColors.darkSecondary, size: 22),
                   SizedBox(width: 8),
                   Text(
                     'Operations Audit Trail',
@@ -158,7 +159,7 @@ class AdminModals {
                                 color: AppColors.darkPrimary.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: const Icon(Icons.bolt_rounded, color: AppColors.darkSecondary, size: 20),
+                              child: const Icon(Iconsax.flash_1, color: AppColors.darkSecondary, size: 20),
                             ),
                             title: Text(
                               log['description'] ?? 'Admin action',
@@ -222,7 +223,7 @@ class AdminModals {
                     children: [
                       IconButton(
                         style: IconButton.styleFrom(backgroundColor: Colors.white10),
-                        icon: const Icon(Icons.remove, color: Colors.white),
+                        icon: const Icon(Iconsax.minus_square, color: Colors.white),
                         onPressed: stock > 0
                             ? () => setModalState(() => stock--)
                             : null,
@@ -240,7 +241,7 @@ class AdminModals {
                       ),
                       IconButton(
                         style: IconButton.styleFrom(backgroundColor: Colors.white10),
-                        icon: const Icon(Icons.add, color: Colors.white),
+                        icon: const Icon(Iconsax.add_square, color: Colors.white),
                         onPressed: () => setModalState(() => stock++),
                       ),
                     ],
@@ -322,7 +323,7 @@ class AdminModals {
                 const SizedBox(height: 16),
                 const Row(
                   children: [
-                    Icon(Icons.campaign_rounded, color: AppColors.darkSecondary, size: 24),
+                    Icon(Iconsax.notification_bing, color: AppColors.darkSecondary, size: 24),
                     SizedBox(width: 8),
                     Text(
                       'Broadcast Push Notification',
@@ -376,7 +377,7 @@ class AdminModals {
                 const SizedBox(height: 20),
                 CustomButton(
                   text: 'Simulate Push Dispatch',
-                  icon: Icons.send_rounded,
+                  icon: Iconsax.send_1,
                   backgroundColor: AppColors.darkPrimary,
                   onPressed: () {
                     final t = titleController.text.trim();
@@ -396,3 +397,5 @@ class AdminModals {
     );
   }
 }
+
+

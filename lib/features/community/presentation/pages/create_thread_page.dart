@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/custom_button.dart';
@@ -48,7 +49,7 @@ class _CreateThreadPageState extends State<CreateThreadPage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('🎉 Discussion published to community!'),
+          content: Text('Discussion published to community!'),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
         ),
@@ -78,7 +79,7 @@ class _CreateThreadPageState extends State<CreateThreadPage> {
                 padding: const EdgeInsets.all(14),
                 child: Row(
                   children: [
-                    const Icon(Icons.shield_outlined, color: AppColors.darkSecondary, size: 24),
+                    const Icon(Iconsax.shield_tick, color: AppColors.darkSecondary, size: 24),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -176,7 +177,7 @@ class _CreateThreadPageState extends State<CreateThreadPage> {
 
               // Publish Button
               CustomButton(
-                text: '🚀 Publish Discussion',
+                text: 'Publish Discussion',
                 onPressed: _submit,
               ),
             ],

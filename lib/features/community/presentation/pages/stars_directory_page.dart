@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
@@ -114,7 +115,7 @@ class _StarsDirectoryPageState extends State<StarsDirectoryPage> {
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => Container(
                         color: AppColors.darkSurfaceElevated,
-                        child: const Icon(Icons.person_rounded, size: 48),
+                        child: const Icon(Iconsax.profile_circle, size: 48),
                       ),
                     ),
                   ),
@@ -127,7 +128,7 @@ class _StarsDirectoryPageState extends State<StarsDirectoryPage> {
                       child: IconButton(
                         padding: EdgeInsets.zero,
                         icon: Icon(
-                          star.isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                          star.isBookmarked ? Iconsax.bookmark : Iconsax.bookmark,
                           size: 16,
                           color: star.isBookmarked ? AppColors.darkAccentGold : Colors.white,
                         ),
@@ -180,7 +181,7 @@ class _StarsDirectoryPageState extends State<StarsDirectoryPage> {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.favorite_rounded, size: 12, color: Colors.redAccent),
+                      const Icon(Iconsax.heart, size: 12, color: Colors.redAccent),
                       const SizedBox(width: 4),
                       Text(
                         '${star.followersCount} fans',
@@ -197,3 +198,4 @@ class _StarsDirectoryPageState extends State<StarsDirectoryPage> {
     );
   }
 }
+

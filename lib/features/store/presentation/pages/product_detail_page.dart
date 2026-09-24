@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -48,7 +49,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: const Icon(Iconsax.arrow_left, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
@@ -59,7 +60,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
 
               return IconButton(
                 icon: Icon(
-                  isWishlisted ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                  isWishlisted ? Iconsax.heart : Iconsax.heart,
                   color: isWishlisted ? AppColors.marvelRed : null,
                 ),
                 tooltip: 'Wishlist',
@@ -75,7 +76,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
             },
           ),
           IconButton(
-            icon: const Icon(Icons.shopping_bag_outlined),
+            icon: const Icon(Iconsax.shopping_bag),
             tooltip: 'View Cart',
             onPressed: () => Navigator.of(context).pushNamed('/cart'),
           ),
@@ -102,7 +103,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
                             fit: BoxFit.cover,
                             errorBuilder: (_, _, _) => Container(
                               color: Colors.grey.withValues(alpha: 0.2),
-                              child: const Icon(Icons.image_not_supported_outlined, size: 48),
+                              child: const Icon(Iconsax.gallery_slash, size: 48),
                             ),
                           ),
                         ),
@@ -119,7 +120,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
                             child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.verified_rounded, size: 14, color: AppColors.darkSecondary),
+                                Icon(Iconsax.verify, size: 14, color: AppColors.darkSecondary),
                                 SizedBox(width: 4),
                                 Text(
                                   'OFFICIAL LICENSED MERCH',
@@ -180,7 +181,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
                       ),
                       Row(
                         children: [
-                          const Icon(Icons.star_rounded, color: AppColors.darkAccentGold, size: 18),
+                          const Icon(Iconsax.star_1, color: AppColors.darkAccentGold, size: 18),
                           const SizedBox(width: 4),
                           Text(
                             product.rating.toStringAsFixed(1),
@@ -256,7 +257,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              product.stockCount <= 5 ? Icons.local_fire_department_rounded : Icons.check_circle_outline,
+                              product.stockCount <= 5 ? Iconsax.flash_1 : Iconsax.tick_circle,
                               size: 14,
                               color: product.stockCount <= 5 ? AppColors.error : AppColors.success,
                             ),
@@ -411,7 +412,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
                     child: Row(
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.remove, size: 16),
+                          icon: const Icon(Iconsax.minus, size: 16),
                           onPressed: _quantity > 1
                               ? () => setState(() => _quantity--)
                               : null,
@@ -421,7 +422,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.add, size: 16),
+                          icon: const Icon(Iconsax.add, size: 16),
                           onPressed: _quantity < product.stockCount
                               ? () => setState(() => _quantity++)
                               : null,
@@ -435,7 +436,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
                   Expanded(
                     child: CustomButton(
                       text: 'Add to Cart • \$${(product.price * _quantity).toStringAsFixed(2)}',
-                      icon: Icons.add_shopping_cart_rounded,
+                      icon: Iconsax.shopping_cart,
                       backgroundColor: isDark ? AppColors.darkPrimary : AppColors.lightPrimary,
                       onPressed: () {
                         context.read<CartBloc>().add(
@@ -500,3 +501,5 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
     );
   }
 }
+
+

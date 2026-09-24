@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_button.dart';
@@ -73,7 +74,7 @@ class _AdminContentEditPageState extends State<AdminContentEditPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white70, size: 20),
+          icon: const Icon(Iconsax.arrow_left, color: Colors.white70, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -173,7 +174,7 @@ class _AdminContentEditPageState extends State<AdminContentEditPage> {
 
             CustomButton(
               text: isEdit ? 'Update Article' : 'Publish Article to Universe',
-              icon: Icons.cloud_upload_rounded,
+              icon: Iconsax.cloud_notif,
               backgroundColor: AppColors.darkPrimary,
               onPressed: () {
                 final title = _titleController.text.trim();
@@ -221,3 +222,5 @@ class _AdminContentEditPageState extends State<AdminContentEditPage> {
     );
   }
 }
+
+

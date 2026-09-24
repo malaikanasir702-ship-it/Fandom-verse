@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
@@ -41,11 +42,11 @@ class _EventsMapPageState extends State<EventsMapPage> {
         title: const Text('Live Radar Map', style: TextStyle(fontWeight: FontWeight.w800)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.my_location_rounded),
+            icon: const Icon(Iconsax.location_tick),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('📍 Centered on your current location: Los Angeles, CA'),
+                  content: Text('Centered on your current location: Los Angeles, CA'),
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -100,7 +101,7 @@ class _EventsMapPageState extends State<EventsMapPage> {
                       ),
                     ),
                     child: const Center(
-                      child: Icon(Icons.person_pin_circle_rounded, color: AppColors.darkSecondary, size: 28),
+                      child: Icon(Iconsax.profile_circle, color: AppColors.darkSecondary, size: 28),
                     ),
                   ),
                 ),
@@ -146,7 +147,7 @@ class _EventsMapPageState extends State<EventsMapPage> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(Icons.confirmation_num_rounded, size: 12, color: Colors.white),
+                                  const Icon(Iconsax.ticket, size: 12, color: Colors.white),
                                   const SizedBox(width: 4),
                                   Text(
                                     e.cityName,
@@ -160,7 +161,7 @@ class _EventsMapPageState extends State<EventsMapPage> {
                               ),
                             ),
                             Icon(
-                              Icons.location_on_rounded,
+                              Iconsax.location,
                               color: isSelected ? AppColors.darkSecondary : AppColors.darkPrimary,
                               size: 28,
                             ),
@@ -258,7 +259,7 @@ class _EventsMapPageState extends State<EventsMapPage> {
                           width: 75,
                           height: 75,
                           color: AppColors.darkSurfaceElevated,
-                          child: const Icon(Icons.event_rounded),
+                          child: const Icon(Iconsax.calendar_2),
                         ),
                       ),
                     ),
@@ -329,3 +330,4 @@ class _EventsMapPageState extends State<EventsMapPage> {
     );
   }
 }
+

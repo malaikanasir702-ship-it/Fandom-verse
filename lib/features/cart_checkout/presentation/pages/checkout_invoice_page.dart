@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -44,17 +45,17 @@ class _CheckoutInvoicePageState extends State<CheckoutInvoicePage> {
     {
       'title': 'Cash on Convention',
       'desc': 'Pay at physical event merchandise pick-up booth',
-      'icon': Icons.storefront_rounded,
+      'icon': Iconsax.shop,
     },
     {
       'title': 'Credit Card Mock',
       'desc': 'Simulated Visa / Mastercard token transaction',
-      'icon': Icons.credit_card_rounded,
+      'icon': Iconsax.card,
     },
     {
       'title': 'Fan Reward Points',
       'desc': 'Redeem 2,800 Otaku Lore XP Points',
-      'icon': Icons.stars_rounded,
+      'icon': Iconsax.star_1,
     },
   ];
 
@@ -94,7 +95,7 @@ class _CheckoutInvoicePageState extends State<CheckoutInvoicePage> {
           backgroundColor: Colors.transparent,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+            icon: const Icon(Iconsax.arrow_left, size: 20),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
@@ -113,7 +114,7 @@ class _CheckoutInvoicePageState extends State<CheckoutInvoicePage> {
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.shield_outlined, color: AppColors.darkAccentGold, size: 24),
+                    Icon(Iconsax.shield_tick, color: AppColors.darkAccentGold, size: 24),
                     SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -160,13 +161,13 @@ class _CheckoutInvoicePageState extends State<CheckoutInvoicePage> {
                     CustomTextField(
                       controller: _nameController,
                       label: 'Full Name',
-                      prefixIcon: const Icon(Icons.person_outline, size: 18),
+                      prefixIcon: const Icon(Iconsax.profile_circle, size: 18),
                     ),
                     const SizedBox(height: 12),
                     CustomTextField(
                       controller: _addressController,
                       label: 'Street Address',
-                      prefixIcon: const Icon(Icons.location_on_outlined, size: 18),
+                      prefixIcon: const Icon(Iconsax.location, size: 18),
                     ),
                     const SizedBox(height: 12),
                     Row(
@@ -175,7 +176,7 @@ class _CheckoutInvoicePageState extends State<CheckoutInvoicePage> {
                           child: CustomTextField(
                             controller: _cityController,
                             label: 'City / Region',
-                            prefixIcon: const Icon(Icons.apartment_outlined, size: 18),
+                            prefixIcon: const Icon(Iconsax.buildings, size: 18),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -183,7 +184,7 @@ class _CheckoutInvoicePageState extends State<CheckoutInvoicePage> {
                           child: CustomTextField(
                             controller: _phoneController,
                             label: 'Phone Contact',
-                            prefixIcon: const Icon(Icons.phone_outlined, size: 18),
+                            prefixIcon: const Icon(Iconsax.call, size: 18),
                           ),
                         ),
                       ],
@@ -253,7 +254,7 @@ class _CheckoutInvoicePageState extends State<CheckoutInvoicePage> {
                             ),
                           ),
                           Icon(
-                            isSelected ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
+                            isSelected ? Iconsax.tick_circle : Iconsax.record_circle,
                             color: isSelected
                                 ? (isDark ? AppColors.darkSecondary : AppColors.lightPrimary)
                                 : Colors.grey,
@@ -328,7 +329,7 @@ class _CheckoutInvoicePageState extends State<CheckoutInvoicePage> {
                   final isLoading = state is CartLoading;
                   return CustomButton(
                     text: 'Confirm & Generate Invoice Bill',
-                    icon: Icons.receipt_long_rounded,
+                    icon: Iconsax.receipt_1,
                     backgroundColor: isDark ? AppColors.darkPrimary : AppColors.lightPrimary,
                     isLoading: isLoading,
                     onPressed: () {
@@ -386,3 +387,6 @@ class _CheckoutInvoicePageState extends State<CheckoutInvoicePage> {
     );
   }
 }
+
+
+

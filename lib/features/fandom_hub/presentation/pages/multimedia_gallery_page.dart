@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
@@ -48,15 +49,15 @@ class _MultimediaGalleryPageState extends State<MultimediaGalleryPage> with Sing
     },
     {
       'title': 'Elden Ring: Erdtree in Golden Bloom',
-      'artist': 'TarnishedBrush',
+      'artist': 'TarnishedPainter',
       'fandom': 'Gaming',
       'imageUrl': 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800',
       'likes': 6200,
-      'isLiked': true,
+      'isLiked': false,
     },
     {
-      'title': 'K-Pop Cyber Hologram Stage Concept',
-      'artist': 'SeoulVisuals',
+      'title': 'BTS: Permission to Dance Stage Art',
+      'artist': 'ARMY_Creative',
       'fandom': 'K-Pop',
       'imageUrl': 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800',
       'likes': 4150,
@@ -70,14 +71,14 @@ class _MultimediaGalleryPageState extends State<MultimediaGalleryPage> with Sing
       'cosplayer': 'ValkyrieCrafts',
       'event': 'Tokyo Game Show 2024',
       'imageUrl': 'https://images.unsplash.com/photo-1563089145-599997674d42?w=800',
-      'award': 'Best Armor Crafting 🏆',
+      'award': 'Best Armor Crafting',
     },
     {
       'character': 'Spider-Man 2099 (Miguel O\'Hara)',
       'cosplayer': 'WebHead_Cosplay',
       'event': 'San Diego Comic-Con',
       'imageUrl': 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=800',
-      'award': 'Audience Favorite 🌟',
+      'award': 'Audience Favorite',
     },
   ];
 
@@ -99,15 +100,19 @@ class _MultimediaGalleryPageState extends State<MultimediaGalleryPage> with Sing
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Iconsax.arrow_left),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         title: const Text('Multimedia & Gallery', style: TextStyle(fontWeight: FontWeight.w800)),
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: AppColors.darkSecondary,
-          labelColor: AppColors.darkSecondary,
+          indicatorColor: AppColors.comicRed,
+          labelColor: AppColors.comicRed,
           unselectedLabelColor: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
           tabs: const [
-            Tab(icon: Icon(Icons.brush_rounded), text: 'Fan Art Gallery'),
-            Tab(icon: Icon(Icons.theater_comedy_rounded), text: 'Cosplay Spotlight'),
+            Tab(icon: Icon(Iconsax.brush_1, size: 20), text: 'Fan Art Gallery'),
+            Tab(icon: Icon(Iconsax.mask, size: 20), text: 'Cosplay Spotlight'),
           ],
         ),
       ),
@@ -155,7 +160,7 @@ class _MultimediaGalleryPageState extends State<MultimediaGalleryPage> with Sing
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => Container(
                           color: AppColors.darkSurfaceElevated,
-                          child: const Icon(Icons.image_not_supported_rounded),
+                          child: const Icon(Iconsax.image),
                         ),
                       ),
                     ),
@@ -168,9 +173,9 @@ class _MultimediaGalleryPageState extends State<MultimediaGalleryPage> with Sing
                         child: IconButton(
                           padding: EdgeInsets.zero,
                           icon: Icon(
-                            isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                            isLiked ? Iconsax.heart : Iconsax.heart,
                             size: 16,
-                            color: isLiked ? Colors.redAccent : Colors.white,
+                            color: isLiked ? AppColors.comicRed : Colors.white,
                           ),
                           onPressed: () {
                             setState(() {
@@ -193,7 +198,7 @@ class _MultimediaGalleryPageState extends State<MultimediaGalleryPage> with Sing
                       item['fandom'] as String,
                       style: const TextStyle(
                         fontSize: 10,
-                        color: AppColors.darkPrimary,
+                        color: AppColors.comicRed,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -215,9 +220,16 @@ class _MultimediaGalleryPageState extends State<MultimediaGalleryPage> with Sing
                             color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
                           ),
                         ),
-                        Text(
-                          '❤️ ${item['likes']}',
-                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Iconsax.heart, size: 12, color: AppColors.comicRed),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${item['likes']}',
+                              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -253,7 +265,7 @@ class _MultimediaGalleryPageState extends State<MultimediaGalleryPage> with Sing
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Container(
                       color: AppColors.darkSurfaceElevated,
-                      child: const Icon(Icons.theater_comedy_rounded, size: 48),
+                      child: const Icon(Iconsax.mask, size: 48),
                     ),
                   ),
                 ),
@@ -272,13 +284,20 @@ class _MultimediaGalleryPageState extends State<MultimediaGalleryPage> with Sing
                             color: AppColors.darkAccentGold.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Text(
-                            c['award'] as String,
-                            style: const TextStyle(
-                              color: AppColors.darkAccentGold,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 11,
-                            ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Iconsax.award, size: 13, color: AppColors.darkAccentGold),
+                              const SizedBox(width: 4),
+                              Text(
+                                c['award'] as String,
+                                style: const TextStyle(
+                                  color: AppColors.darkAccentGold,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         Text(

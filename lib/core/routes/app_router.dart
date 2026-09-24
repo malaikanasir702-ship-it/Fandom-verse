@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'fan_routes.dart';
 import 'admin_routes.dart';
 
@@ -24,7 +25,7 @@ class AppRouter {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline_rounded, size: 64, color: Colors.amber),
+              const Icon(Iconsax.info_circle, size: 64, color: Colors.amber),
               const SizedBox(height: 12),
               Text('No route defined for: ${settings.name}'),
             ],
@@ -34,3 +35,6 @@ class AppRouter {
     );
   }
 }
+
+
+

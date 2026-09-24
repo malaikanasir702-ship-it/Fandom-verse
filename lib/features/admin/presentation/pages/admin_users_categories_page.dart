@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_text_field.dart';
@@ -103,7 +104,7 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white70, size: 20),
+          icon: const Icon(Iconsax.arrow_left, color: Colors.white70, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
         bottom: TabBar(
@@ -112,8 +113,8 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
           labelColor: AppColors.darkSecondary,
           unselectedLabelColor: Colors.white60,
           tabs: const [
-            Tab(icon: Icon(Icons.people_alt_rounded, size: 18), text: 'Registered Fans'),
-            Tab(icon: Icon(Icons.category_rounded, size: 18), text: 'Fandom Categories'),
+            Tab(icon: Icon(Iconsax.people, size: 18), text: 'Registered Fans'),
+            Tab(icon: Icon(Iconsax.category, size: 18), text: 'Fandom Categories'),
           ],
         ),
       ),
@@ -247,7 +248,7 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 ),
-                icon: const Icon(Icons.add, size: 16, color: Colors.white),
+                icon: const Icon(Iconsax.add, size: 16, color: Colors.white),
                 label: const Text('Add Pillar', style: TextStyle(color: Colors.white, fontSize: 11)),
                 onPressed: _showAddCategoryDialog,
               ),
@@ -297,7 +298,7 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
                         ],
                       ),
                     ),
-                    const Icon(Icons.check_circle_outline, color: AppColors.success, size: 18),
+                    const Icon(Iconsax.tick_circle, color: AppColors.success, size: 18),
                   ],
                 ),
               );
@@ -308,3 +309,4 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
     );
   }
 }
+

@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -42,7 +43,7 @@ class _CartPageState extends State<CartPage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Row(
           children: [
-            Icon(Icons.delete_sweep_rounded, color: AppColors.error),
+            Icon(Iconsax.trash, color: AppColors.error),
             SizedBox(width: 8),
             Text('Empty Cart?'),
           ],
@@ -93,7 +94,7 @@ class _CartPageState extends State<CartPage> {
                 ),
               ),
               const SizedBox(height: 16),
-              const Icon(Icons.celebration_rounded, size: 48, color: AppColors.darkAccentGold),
+              const Icon(Iconsax.award, size: 48, color: AppColors.darkAccentGold),
               const SizedBox(height: 12),
               Text(
                 'Coupon Code "$coupon" Applied!',
@@ -163,7 +164,7 @@ class _CartPageState extends State<CartPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: const Icon(Iconsax.arrow_left, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
@@ -171,7 +172,7 @@ class _CartPageState extends State<CartPage> {
             builder: (context, state) {
               if (state is CartLoaded && state.items.isNotEmpty) {
                 return IconButton(
-                  icon: const Icon(Icons.delete_sweep_outlined, color: AppColors.error),
+                  icon: const Icon(Iconsax.trash, color: AppColors.error),
                   tooltip: 'Empty Cart',
                   onPressed: _showClearCartDialog,
                 );
@@ -209,7 +210,7 @@ class _CartPageState extends State<CartPage> {
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
-                        Icons.shopping_bag_outlined,
+                        Iconsax.shopping_bag,
                         size: 64,
                         color: isDark ? AppColors.darkSecondary : AppColors.lightPrimary,
                       ),
@@ -234,7 +235,7 @@ class _CartPageState extends State<CartPage> {
                     const SizedBox(height: 24),
                     CustomButton(
                       text: 'Browse Merch Store',
-                      icon: Icons.storefront_rounded,
+                      icon: Iconsax.shop,
                       backgroundColor: isDark ? AppColors.darkPrimary : AppColors.lightPrimary,
                       onPressed: () => Navigator.of(context).pushReplacementNamed('/store'),
                     ),
@@ -298,7 +299,7 @@ class _CartPageState extends State<CartPage> {
                               decoration: InputDecoration(
                                 hintText: 'Enter code FANDOM10 or CON2025',
                                 hintStyle: const TextStyle(fontSize: 12, color: Colors.grey),
-                                prefixIcon: const Icon(Icons.discount_outlined, size: 18),
+                                prefixIcon: const Icon(Iconsax.discount_shape, size: 18),
                                 filled: true,
                                 fillColor: isDark ? AppColors.darkSurfaceElevated : AppColors.lightSurfaceElevated,
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -373,7 +374,7 @@ class _CartPageState extends State<CartPage> {
                       // Proceed to Checkout CTA
                       CustomButton(
                         text: 'Proceed to Simulated Checkout',
-                        icon: Icons.lock_outline_rounded,
+                        icon: Iconsax.lock,
                         backgroundColor: isDark ? AppColors.darkPrimary : AppColors.lightPrimary,
                         onPressed: () {
                           Navigator.of(context).push(
@@ -412,7 +413,7 @@ class _CartPageState extends State<CartPage> {
           color: AppColors.error,
           borderRadius: BorderRadius.circular(16),
         ),
-        child: const Icon(Icons.delete_rounded, color: Colors.white, size: 28),
+        child: const Icon(Iconsax.trash, color: Colors.white, size: 28),
       ),
       onDismissed: (_) {
         context.read<CartBloc>().add(RemoveCartItemEvent(item.cartId));
@@ -435,7 +436,7 @@ class _CartPageState extends State<CartPage> {
                   width: 72,
                   height: 72,
                   color: Colors.grey.withValues(alpha: 0.2),
-                  child: const Icon(Icons.image_not_supported_outlined),
+                  child: const Icon(Iconsax.gallery_slash),
                 ),
               ),
             ),
@@ -493,7 +494,7 @@ class _CartPageState extends State<CartPage> {
                     },
                     child: const Padding(
                       padding: EdgeInsets.all(6),
-                      child: Icon(Icons.remove, size: 14),
+                      child: Icon(Iconsax.minus, size: 14),
                     ),
                   ),
                   Padding(
@@ -511,7 +512,7 @@ class _CartPageState extends State<CartPage> {
                     },
                     child: const Padding(
                       padding: EdgeInsets.all(6),
-                      child: Icon(Icons.add, size: 14),
+                      child: Icon(Iconsax.add, size: 14),
                     ),
                   ),
                 ],
@@ -555,3 +556,5 @@ class _CartPageState extends State<CartPage> {
     );
   }
 }
+
+

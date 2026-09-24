@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -81,7 +81,7 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
         ),
         title: const Column(
           children: [
-            Icon(Icons.check_circle_rounded, color: AppColors.success, size: 54),
+            Icon(Iconsax.tick_circle, color: AppColors.success, size: 54),
             SizedBox(height: 10),
             Text(
               'PAYMENT SUCCESSFUL!',
@@ -140,7 +140,7 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  const Icon(Icons.qr_code_2_rounded, size: 72, color: AppColors.comicBlack),
+                  const Icon(Iconsax.scan_barcode, size: 72, color: AppColors.comicBlack),
                   const Text('Show this QR at the venue entrance', style: TextStyle(fontSize: 10, color: AppColors.comicGray)),
                 ],
               ),
@@ -284,7 +284,7 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
                   child: Row(
                     children: [
                       Icon(
-                        isSelected ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
+                        isSelected ? Iconsax.tick_circle : Iconsax.record_circle,
                         color: isSelected ? AppColors.comicRed : AppColors.comicGray,
                         size: 20,
                       ),
@@ -358,7 +358,7 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
                   Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.remove_circle_outline_rounded, size: 22),
+                        icon: const Icon(Iconsax.minus_cirlce, size: 22),
                         onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
                       ),
                       Text(
@@ -366,7 +366,7 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
                         style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.add_circle_outline_rounded, size: 22, color: AppColors.comicRed),
+                        icon: const Icon(Iconsax.add_circle, size: 22, color: AppColors.comicRed),
                         onPressed: _quantity < 10 ? () => setState(() => _quantity++) : null,
                       ),
                     ],
@@ -426,7 +426,7 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
                   TextField(
                     controller: _cardNumberController,
                     decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.credit_card_rounded, color: AppColors.comicRed),
+                      prefixIcon: const Icon(Iconsax.card, color: AppColors.comicRed),
                       suffixIcon: const Padding(
                         padding: EdgeInsets.all(10),
                         child: Text('VISA', style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF1A1F71))),
@@ -474,7 +474,7 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
                   const SizedBox(height: 12),
                   const Row(
                     children: [
-                      Icon(Icons.lock_rounded, size: 14, color: AppColors.success),
+                      Icon(Iconsax.lock, size: 14, color: AppColors.success),
                       SizedBox(width: 6),
                       Text('256-bit SSL encrypted • Stripe Certified Gateway',
                           style: TextStyle(fontSize: 10, color: AppColors.comicGray)),
@@ -559,7 +559,7 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.lock_rounded, size: 18),
+                          const Icon(Iconsax.lock, size: 18),
                           const SizedBox(width: 8),
                           Text(
                             'PAY \$${_total.toStringAsFixed(2)} VIA STRIPE',
@@ -581,3 +581,4 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
     );
   }
 }
+

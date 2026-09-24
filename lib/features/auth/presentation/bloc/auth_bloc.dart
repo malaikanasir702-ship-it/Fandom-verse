@@ -63,10 +63,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       return;
     }
 
+    // Seeded Admin Account
+    if (email == 'admin@fandomverse.com' && pass == 'admin123') {
+      _currentUser = defaultAdmin;
+      emit(AdminAuthenticated(_currentUser!));
+      return;
+    }
+
+    // Seeded Fan Account
     if (email == 'fan@fandomverse.com' && pass == 'fan123') {
       _currentUser = defaultFan;
       emit(FanAuthenticated(_currentUser!));
-    } else if (email.contains('@')) {
+      return;
+    }
+
+    if (email.contains('@')) {
       // Allow dynamic fan login with user-provided credentials
       _currentUser = UserEntity(
         id: 'fan-${DateTime.now().millisecondsSinceEpoch}',
@@ -74,11 +85,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         email: email,
         role: 'fan',
         badges: ['Novice Otaku'],
-        selectedFandoms: ['Anime & Manga'],
+        selectedFandoms: ['Anime & Manga', 'Gaming & Esports'],
       );
       emit(FanAuthenticated(_currentUser!));
     } else {
-      emit(const AuthFailure('Invalid credentials. Use fan@fandomverse.com / fan123'));
+      emit(const AuthFailure('Invalid credentials. Use fan@fandomverse.com / fan123 or admin@fandomverse.com / admin123'));
     }
   }
 

@@ -74,6 +74,7 @@ class FanRoutes {
       case '/badge-setup':
         return MaterialPageRoute(builder: (_) => const BadgeSetupPage());
 
+      case '/fan-home':
       case '/fan-shell':
         return MaterialPageRoute(builder: (_) => const FanShellPage());
 

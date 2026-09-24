@@ -59,6 +59,7 @@ class AdminRoutes {
         return MaterialPageRoute(builder: (_) => const OrderHistoryPage());
 
       // Admin Console
+      case '/admin-dashboard':
       case '/admin/dashboard':
         return MaterialPageRoute(builder: (_) => const AdminDashboardPage());
 

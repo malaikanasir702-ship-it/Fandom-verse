@@ -33,10 +33,10 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
 
     _controller.forward();
 
-    // Auto navigate after splash animation
+    // Auto navigate after splash animation directly to Onboarding
     Future.delayed(const Duration(milliseconds: 2200), () {
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/role-selection');
+        Navigator.of(context).pushReplacementNamed('/onboarding');
       }
     });
   }

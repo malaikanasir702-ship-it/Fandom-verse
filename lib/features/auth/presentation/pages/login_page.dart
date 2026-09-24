@@ -34,6 +34,13 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
+  void _fillDemoAdminCredentials() {
+    setState(() {
+      _emailController.text = 'admin@fandomverse.com';
+      _passwordController.text = 'admin123';
+    });
+  }
+
   void _showForgotPasswordSheet() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final resetEmailController = TextEditingController(text: _emailController.text);
@@ -143,6 +150,8 @@ class _LoginPageState extends State<LoginPage> {
           } else {
             Navigator.of(context).pushReplacementNamed('/fan-home');
           }
+        } else if (state is AdminAuthenticated) {
+          Navigator.of(context).pushReplacementNamed('/admin-dashboard');
         } else if (state is AuthFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -163,7 +172,7 @@ class _LoginPageState extends State<LoginPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 16),
-                  // Top Row with Back and Quick Demo button
+                  // Top Row with Back and Quick Demo buttons
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -171,13 +180,20 @@ class _LoginPageState extends State<LoginPage> {
                         onPressed: () => Navigator.of(context).pop(),
                         icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
                       ),
-                      TextButton.icon(
-                        onPressed: _fillDemoFanCredentials,
-                        icon: const Icon(Icons.flash_on_rounded, size: 16, color: AppColors.darkSecondary),
-                        label: const Text(
-                          'Quick Fan Demo',
-                          style: TextStyle(color: AppColors.darkSecondary, fontWeight: FontWeight.w600),
-                        ),
+                      Row(
+                        children: [
+                          ActionChip(
+                            avatar: const Icon(Icons.flash_on_rounded, size: 14, color: AppColors.darkSecondary),
+                            label: const Text('Fan Demo', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                            onPressed: _fillDemoFanCredentials,
+                          ),
+                          const SizedBox(width: 6),
+                          ActionChip(
+                            avatar: const Icon(Icons.shield_rounded, size: 14, color: AppColors.darkAccentGold),
+                            label: const Text('Admin Demo', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.darkAccentGold)),
+                            onPressed: _fillDemoAdminCredentials,
+                          ),
+                        ],
                       ),
                     ],
                   ),

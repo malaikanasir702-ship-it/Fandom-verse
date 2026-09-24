@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "987727308455",
+    "project_id": "fandom-verse-e3024",
+    "storage_bucket": "fandom-verse-e3024.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:987727308455:android:7d40ee6c8ff1615f05dd82",
+        "android_client_info": {
+          "package_name": "com.fandomverse.fandom_verse"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "987727308455-s8lklviqvuqigp92ga0kcotalckpfek8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.fandomverse.fandom_verse",
+            "certificate_hash": "a1e0bb46e7e05493cd6d665aa853b8eeff48cd90"
+          }
+        },
+        {
+          "client_id": "987727308455-cl92q4lomnq87rbhbv2mgun3evpttrp7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC2xLKBVzlNUWsKsJcKxkv_jlYgK8iAKAs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "987727308455-cl92q4lomnq87rbhbv2mgun3evpttrp7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

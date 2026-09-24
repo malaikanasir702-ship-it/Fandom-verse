@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/services/firestore_seeder.dart';
 import '../bloc/admin_bloc.dart';
 import '../bloc/admin_event.dart';
 import '../bloc/admin_state.dart';
@@ -58,6 +59,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
             tooltip: 'Refresh Metrics',
             onPressed: () => context.read<AdminBloc>().add(const LoadAdminDashboardStatsEvent()),
+          ),
+          // ── Seed Firestore Button ──
+          IconButton(
+            icon: const Icon(Icons.cloud_upload_rounded, color: AppColors.darkSecondary),
+            tooltip: 'Seed Firestore Database',
+            onPressed: () => _showSeedDialog(context),
           ),
           IconButton(
             icon: const Icon(Icons.logout_rounded, color: AppColors.error),
@@ -452,7 +459,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         children: top3.map((l) {
           return ListTile(
             dense: true,
-            leading: const Icon(Icons.commit_rounded, color: AppColors.darkSecondary, size: 16),
+        leading: const Icon(Icons.commit_rounded, color: AppColors.darkSecondary, size: 16),
             title: Text(l['description'] ?? '', style: const TextStyle(color: Colors.white, fontSize: 11)),
             subtitle: Text(l['admin_email'] ?? '', style: const TextStyle(color: Colors.white38, fontSize: 9)),
           );
@@ -460,4 +467,142 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       ),
     );
   }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // FIRESTORE SEED DIALOG
+  // ─────────────────────────────────────────────────────────────────────────
+
+  void _showSeedDialog(BuildContext ctx) {
+    showDialog(
+      context: ctx,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: const Color(0xFF131722),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.cloud_upload_rounded, color: AppColors.darkSecondary),
+            SizedBox(width: 10),
+            Text('Seed Firestore Database',
+                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: const Text(
+          'This will populate all Firestore collections with:\n\n'
+          '• 6 Fandom Categories\n'
+          '• 2 User Accounts (Admin + Fan)\n'
+          '• 8 Lore Posts & News Articles\n'
+          '• 8 Glossary Terms\n'
+          '• 3 Convention Events\n'
+          '• 8 Store Products\n'
+          '• 5 Community Discussions\n'
+          '• 6 Star Profiles\n'
+          '• 2 Demo Orders\n'
+          '• 3 Audit Logs\n\n'
+          'Firebase Auth accounts will also be created.\n'
+          'Existing documents will be merged (safe).',
+          style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.darkSecondary,
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            icon: const Icon(Icons.rocket_launch_rounded, size: 16),
+            label: const Text('Seed Now', style: TextStyle(fontWeight: FontWeight.bold)),
+            onPressed: () async {
+              Navigator.of(dialogCtx).pop();
+              await _runSeeding(ctx);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _runSeeding(BuildContext ctx) async {
+    // Show loading overlay
+    showDialog(
+      context: ctx,
+      barrierDismissible: false,
+      builder: (_) => const PopScope(
+        canPop: false,
+        child: Center(
+          child: Card(
+            color: Color(0xFF131722),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(16)),
+            ),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 40, vertical: 32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(color: AppColors.darkSecondary),
+                  SizedBox(height: 20),
+                  Text(
+                    'Seeding Firestore...',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                  ),
+                  SizedBox(height: 6),
+                  Text(
+                    'Creating collections & Auth accounts',
+                    style: TextStyle(color: Colors.white54, fontSize: 11),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final result = await FirestoreSeeder.seedAll();
+
+    // Close loading dialog
+    if (ctx.mounted) Navigator.of(ctx, rootNavigator: true).pop();
+
+    if (!ctx.mounted) return;
+
+    final success = result['success'] as bool? ?? false;
+    final message = result['message'] as String? ?? 'Done';
+    final count = result['count'] as int? ?? 0;
+
+    ScaffoldMessenger.of(ctx).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              success ? Icons.check_circle_rounded : Icons.error_rounded,
+              color: Colors.white,
+              size: 18,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                success ? '✅ $count documents seeded! Refresh Firestore Console.' : '❌ $message',
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: success ? AppColors.success : AppColors.error,
+        duration: const Duration(seconds: 5),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
+    if (success) {
+      // Reload metrics
+      if (ctx.mounted) {
+        ctx.read<AdminBloc>().add(const LoadAdminDashboardStatsEvent());
+      }
+    }
+  }
 }
+

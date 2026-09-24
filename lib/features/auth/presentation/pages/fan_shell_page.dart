@@ -62,10 +62,8 @@ class _FanShellPageState extends State<FanShellPage> {
           onDestinationSelected: (index) {
             setState(() => _currentIndex = index);
           },
-          backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-          indicatorColor: isDark
-              ? AppColors.darkSecondary.withValues(alpha: 0.18)
-              : AppColors.lightPrimary.withValues(alpha: 0.12),
+          backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+          indicatorColor: AppColors.comicRed,
           destinations: const [
             NavigationDestination(
               icon: Icon(Icons.home_outlined),

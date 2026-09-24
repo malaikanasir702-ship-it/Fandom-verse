@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/glass_container.dart';
+import '../../../../core/widgets/comic_ui_widgets.dart';
 import '../bloc/fandom_hub_bloc.dart';
 import '../bloc/fandom_hub_state.dart';
 import '../../domain/entities/fandom_post.dart';
@@ -15,7 +15,7 @@ class FanFeedPage extends StatelessWidget {
     return BlocBuilder<FandomHubBloc, FandomHubState>(
       builder: (context, state) {
         if (state is FandomHubLoading) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator(color: AppColors.comicRed));
         }
         if (state is FandomHubLoaded) {
           return _FanFeedContent(state: state);
@@ -30,53 +30,117 @@ class _FanFeedContent extends StatelessWidget {
   final FandomHubLoaded state;
   const _FanFeedContent({required this.state});
 
+  // Sample favourite heroes with solid colors from comic references
+  static const List<Map<String, dynamic>> _favouriteHeroes = [
+    {
+      'name': 'Spider-Man',
+      'image': 'https://images.unsplash.com/photo-1635805737707-575885ab0820?w=400',
+      'color': AppColors.heroRed,
+    },
+    {
+      'name': 'Batman',
+      'image': 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=400',
+      'color': AppColors.heroBlue,
+    },
+    {
+      'name': 'Wolverine',
+      'image': 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=400',
+      'color': AppColors.heroYellow,
+    },
+    {
+      'name': 'Wonder Woman',
+      'image': 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=400',
+      'color': AppColors.heroRed,
+    },
+    {
+      'name': 'Deadpool',
+      'image': 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=400',
+      'color': AppColors.heroPurple,
+    },
+    {
+      'name': 'Paul Atreides',
+      'image': 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400',
+      'color': AppColors.heroOrange,
+    },
+  ];
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final featuredPost = state.trendingPosts.isNotEmpty
+        ? state.trendingPosts.first
+        : (state.latestNews.isNotEmpty ? state.latestNews.first : null);
 
     return CustomScrollView(
       slivers: [
-        // ─── SliverAppBar: Greeting + Search ───
+        // ─── Comic Header Bar ───
         SliverAppBar(
           floating: true,
           backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
-          expandedHeight: 110,
+          expandedHeight: 80,
           flexibleSpace: FlexibleSpaceBar(
             background: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    // Comic Brand Title
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Good Morning, Fan! 👋',
-                              style: AppTextStyles.bodySmall.copyWith(
-                                color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                        Text(
+                          'POCKET EDITION',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.5,
+                            color: isDark ? AppColors.comicYellow : AppColors.comicRed,
+                          ),
+                        ),
+                        Text(
+                          'FANDOM VERSE',
+                          style: AppTextStyles.comicSectionHeader.copyWith(
+                            fontSize: 22,
+                            color: isDark ? Colors.white : AppColors.comicBlack,
+                          ),
+                        ),
+                      ],
+                    ),
+                    // Action Icons: Search & Profile (Solid styling)
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () => Navigator.of(context).pushNamed('/search'),
+                          child: Container(
+                            width: 38,
+                            height: 38,
+                            decoration: BoxDecoration(
+                              color: isDark ? AppColors.darkSurface : Colors.white,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isDark ? AppColors.darkBorder : AppColors.comicBorderColor,
+                                width: 1.2,
                               ),
                             ),
-                            Text(
-                              'Fandom Verse',
-                              style: AppTextStyles.titleLarge.copyWith(fontWeight: FontWeight.w800),
+                            child: Icon(
+                              Icons.search_rounded,
+                              size: 20,
+                              color: isDark ? Colors.white : AppColors.comicBlack,
                             ),
-                          ],
+                          ),
                         ),
-                        // Avatar
+                        const SizedBox(width: 10),
                         GestureDetector(
                           onTap: () => Navigator.of(context).pushNamed('/profile'),
                           child: Container(
-                            width: 40,
-                            height: 40,
+                            width: 38,
+                            height: 38,
                             decoration: const BoxDecoration(
+                              color: AppColors.comicRed,
                               shape: BoxShape.circle,
-                              gradient: LinearGradient(
-                                colors: [AppColors.darkPrimary, AppColors.darkSecondary],
-                              ),
                             ),
                             child: const Center(
                               child: Icon(Icons.person_rounded, color: Colors.white, size: 20),
@@ -85,36 +149,6 @@ class _FanFeedContent extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
-                    // Search Bar
-                    GestureDetector(
-                      onTap: () => Navigator.of(context).pushNamed('/search'),
-                      child: Container(
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-                        ),
-                        child: Row(
-                          children: [
-                            const SizedBox(width: 14),
-                            Icon(
-                              Icons.search_rounded,
-                              color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              'Search lore, events, merch...',
-                              style: AppTextStyles.bodyMedium.copyWith(
-                                color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -122,43 +156,90 @@ class _FanFeedContent extends StatelessWidget {
           ),
         ),
 
+        // ─── Main Comic Feed Body ───
         SliverToBoxAdapter(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ─── Trending Fandoms Carousel ───
-              const SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('🔥 Trending Now', style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w800)),
-                    TextButton(
-                      onPressed: () {},
-                      child: const Text('See All', style: TextStyle(color: AppColors.darkSecondary)),
-                    ),
-                  ],
+              // 1. TOP DYNAMIC HERO BANNER (Left Mockup Style)
+              if (featuredPost != null)
+                HeroPopOutBanner(
+                  title: featuredPost.title,
+                  subtitle: '${featuredPost.category.toUpperCase()} • ${featuredPost.authorName}',
+                  imageUrl: featuredPost.imageUrl,
+                  rating: 9.2,
+                  badgeText: 'READ NOW',
+                  onTap: () => Navigator.of(context).pushNamed('/news-detail', arguments: featuredPost),
                 ),
+
+              const SizedBox(height: 12),
+
+              // 2. YOUR FAVOURITE HEROES (Image Section 1)
+              ComicSectionHeader(
+                title: 'YOUR FAVOURITE HEROES',
+                actionColor: AppColors.comicYellow,
+                onActionTap: () => Navigator.of(context).pushNamed('/community'),
               ),
+              const SizedBox(height: 8),
               SizedBox(
-                height: 210,
-                child: PageView.builder(
-                  padEnds: false,
-                  controller: PageController(viewportFraction: 0.88),
-                  itemCount: state.trendingPosts.length,
+                height: 105,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  itemCount: _favouriteHeroes.length,
                   itemBuilder: (context, index) {
-                    final post = state.trendingPosts[index];
-                    return _TrendingBannerCard(post: post);
+                    final hero = _favouriteHeroes[index];
+                    return HeroAvatarRing(
+                      name: hero['name'] as String,
+                      imageUrl: hero['image'] as String,
+                      ringColor: hero['color'] as Color,
+                      onTap: () => Navigator.of(context).pushNamed('/stars-directory'),
+                    );
                   },
                 ),
               ),
 
-              // ─── Quick Access Chips ───
+              const SizedBox(height: 16),
+
+              // 3. TOP RATED COMICS (Image Section 2)
+              ComicSectionHeader(
+                title: 'TOP RATED COMICS',
+                actionColor: AppColors.comicYellow,
+                onActionTap: () => Navigator.of(context).pushNamed('/multimedia'),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 275,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  itemCount: state.trendingPosts.length,
+                  itemBuilder: (context, index) {
+                    final post = state.trendingPosts[index];
+                    return ComicCoverCard(
+                      title: post.title,
+                      subtitle: '${post.category} • ${post.readTimeMinutes} min',
+                      imageUrl: post.imageUrl,
+                      rating: 8.5 + (index % 5) * 0.2,
+                      publisher: post.category.length > 6 ? post.category.substring(0, 6) : post.category,
+                      onTap: () => Navigator.of(context).pushNamed('/news-detail', arguments: post),
+                    );
+                  },
+                ),
+              ),
+
               const SizedBox(height: 20),
+
+              // 4. QUICK ACCESS CHIPS (Solid Flat Styling)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Text('⚡ Quick Access', style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w800)),
+                child: Text(
+                  '⚡ QUICK ACCESS',
+                  style: AppTextStyles.comicSectionHeader.copyWith(
+                    fontSize: 16,
+                    color: isDark ? Colors.white : AppColors.comicBlack,
+                  ),
+                ),
               ),
               const SizedBox(height: 12),
               SingleChildScrollView(
@@ -166,122 +247,61 @@ class _FanFeedContent extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Row(
                   children: [
-                    _QuickChip(
+                    _SolidQuickChip(
                       icon: Icons.school_rounded,
                       label: 'Beginner Hub',
-                      color: AppColors.darkPrimary,
+                      color: AppColors.comicRed,
                       onTap: () => Navigator.of(context).pushNamed('/beginner-hub'),
                     ),
                     const SizedBox(width: 10),
-                    _QuickChip(
-                      icon: Icons.quiz_rounded,
+                    _SolidQuickChip(
+                      icon: Icons.bolt_rounded,
                       label: 'Trivia Challenge',
-                      color: AppColors.darkAccentGold,
+                      color: AppColors.comicYellowDark,
                       onTap: () => _showTriviaDialog(context),
                     ),
                     const SizedBox(width: 10),
-                    _QuickChip(
+                    _SolidQuickChip(
                       icon: Icons.radar_rounded,
                       label: 'Event Radar',
-                      color: AppColors.darkSecondary,
+                      color: AppColors.heroBlue,
                       onTap: () => Navigator.of(context).pushNamed('/events-map'),
                     ),
                     const SizedBox(width: 10),
-                    _QuickChip(
+                    _SolidQuickChip(
                       icon: Icons.smart_toy_rounded,
                       label: 'AI Assistant',
-                      color: AppColors.success,
+                      color: AppColors.heroGreen,
                       onTap: () => Navigator.of(context).pushNamed('/ai-assistant'),
                     ),
                     const SizedBox(width: 10),
-                    _QuickChip(
+                    _SolidQuickChip(
                       icon: Icons.shopping_bag_rounded,
                       label: 'Merch Store',
-                      color: Colors.orangeAccent,
+                      color: AppColors.heroPurple,
                       onTap: () => Navigator.of(context).pushNamed('/store'),
                     ),
                     const SizedBox(width: 10),
-                    _QuickChip(
+                    _SolidQuickChip(
                       icon: Icons.shield_rounded,
                       label: 'Admin Portal',
-                      color: AppColors.darkAccentGold,
+                      color: AppColors.comicBlack,
                       onTap: () => Navigator.of(context).pushNamed('/admin-dashboard'),
                     ),
                   ],
                 ),
               ),
 
-              // ─── Latest Fandom News ───
               const SizedBox(height: 24),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('📰 Latest News', style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w800)),
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pushNamed('/multimedia'),
-                      child: const Text('All Articles', style: TextStyle(color: AppColors.darkSecondary)),
-                    ),
-                  ],
-                ),
+
+              // 5. LATEST ISSUES & LORE (Solid Card list)
+              ComicSectionHeader(
+                title: 'LATEST LORE & ISSUES',
+                actionColor: AppColors.comicYellow,
+                onActionTap: () => Navigator.of(context).pushNamed('/multimedia'),
               ),
               const SizedBox(height: 8),
-              ...state.latestNews.map((post) => _NewsCard(post: post)),
-
-              // ─── Community Spotlight ───
-              const SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Text('💬 Community Spotlight', style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w800)),
-              ),
-              const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: GlassContainer(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 32, height: 32,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColors.darkPrimary.withValues(alpha: 0.2),
-                            ),
-                            child: const Center(child: Text('🏆', style: TextStyle(fontSize: 16))),
-                          ),
-                          const SizedBox(width: 10),
-                          const Text('Top Discussion Today', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        'House of the Dragon: The Real Meaning of Aegon\'s Prophecy',
-                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        '142 upvotes • 2 replies • #Sci-Fi & Fantasy',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () => Navigator.of(context).pushNamed('/discussions'),
-                          child: const Text('Join Discussion →', style: TextStyle(color: AppColors.darkSecondary)),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              ...state.latestNews.map((post) => _SolidNewsCard(post: post)),
 
               const SizedBox(height: 100),
             ],
@@ -295,23 +315,53 @@ class _FanFeedContent extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('⚡ Quick Trivia Challenge'),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.comicBorderColor, width: 1.5),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.bolt_rounded, color: AppColors.comicYellow, size: 28),
+            SizedBox(width: 8),
+            Text(
+              'TRIVIA CHALLENGE',
+              style: TextStyle(
+                fontStyle: FontStyle.italic,
+                fontWeight: FontWeight.w900,
+                fontSize: 18,
+                color: AppColors.comicBlack,
+              ),
+            ),
+          ],
+        ),
         content: const Text(
           'In Dragon Ball Z, who was the first mortal to defeat Son Goku in combat?\n\nA) Vegeta\nB) Master Roshi (Jackie Chun)\nC) Yamcha\nD) Tien Shinhan',
+          style: TextStyle(fontSize: 14, color: AppColors.comicBlack, height: 1.4),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('CANCEL', style: TextStyle(color: AppColors.comicGray, fontWeight: FontWeight.bold)),
+          ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.comicRed,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
             onPressed: () {
               Navigator.of(ctx).pop();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('🎉 Correct! +50 Trivia XP earned!'),
                   backgroundColor: AppColors.success,
+                  behavior: SnackBarBehavior.floating,
                 ),
               );
             },
-            child: const Text('Answer: B'),
+            child: const Text('ANSWER: B', style: TextStyle(fontWeight: FontWeight.w900)),
           ),
         ],
       ),
@@ -319,74 +369,12 @@ class _FanFeedContent extends StatelessWidget {
   }
 }
 
-class _TrendingBannerCard extends StatelessWidget {
+/// ─────────────────────────────────────────────────────────────────────────────
+/// SOLID NEWS & LORE CARD (Zero Gradients, Zero Blur)
+/// ─────────────────────────────────────────────────────────────────────────────
+class _SolidNewsCard extends StatelessWidget {
   final FandomPost post;
-  const _TrendingBannerCard({required this.post});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        image: DecorationImage(
-          image: NetworkImage(post.imageUrl),
-          fit: BoxFit.cover,
-          onError: (_, __) {},
-        ),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.transparent, Colors.black.withValues(alpha: 0.82)],
-          ),
-        ),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.darkPrimary.withValues(alpha: 0.85),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                post.category.toUpperCase(),
-                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700),
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              post.title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-                fontSize: 15,
-                height: 1.3,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '${post.readTimeMinutes} min read • ${post.authorName}',
-              style: const TextStyle(color: Colors.white70, fontSize: 12),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _NewsCard extends StatelessWidget {
-  final FandomPost post;
-  const _NewsCard({required this.post});
+  const _SolidNewsCard({required this.post});
 
   @override
   Widget build(BuildContext context) {
@@ -398,9 +386,12 @@ class _NewsCard extends StatelessWidget {
         margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+          color: isDark ? AppColors.darkSurface : Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+          border: Border.all(
+            color: isDark ? AppColors.darkBorder : AppColors.comicBorderColor,
+            width: 1.2,
+          ),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -409,18 +400,18 @@ class _NewsCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               child: Image.network(
                 post.imageUrl,
-                width: 80,
-                height: 80,
+                width: 84,
+                height: 84,
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Container(
-                  width: 80,
-                  height: 80,
-                  color: AppColors.darkSurfaceElevated,
-                  child: const Icon(Icons.image_rounded, color: Colors.white30),
+                  width: 84,
+                  height: 84,
+                  color: isDark ? AppColors.darkSurfaceElevated : AppColors.comicGrayLight,
+                  child: const Icon(Icons.image_rounded, color: AppColors.comicGray),
                 ),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -428,28 +419,54 @@ class _NewsCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: AppColors.darkPrimary.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(6),
+                      color: AppColors.comicRed,
+                      borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      post.category,
-                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.darkPrimary),
+                      post.category.toUpperCase(),
+                      style: const TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: 0.5,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     post.title,
-                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, height: 1.3),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontStyle: FontStyle.italic,
+                      fontSize: 14,
+                      height: 1.25,
+                      color: isDark ? Colors.white : AppColors.comicBlack,
+                    ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${post.readTimeMinutes} min read',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                    ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      const Icon(Icons.bolt_rounded, size: 14, color: AppColors.comicYellow),
+                      const SizedBox(width: 2),
+                      Text(
+                        '8.6',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white70 : AppColors.comicBlack,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        '${post.readTimeMinutes} min read',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isDark ? AppColors.darkTextSecondary : AppColors.comicGray,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -461,13 +478,16 @@ class _NewsCard extends StatelessWidget {
   }
 }
 
-class _QuickChip extends StatelessWidget {
+/// ─────────────────────────────────────────────────────────────────────────────
+/// SOLID QUICK CHIP (Zero Gradients, Flat Solid Fill)
+/// ─────────────────────────────────────────────────────────────────────────────
+class _SolidQuickChip extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
   final VoidCallback onTap;
 
-  const _QuickChip({
+  const _SolidQuickChip({
     required this.icon,
     required this.label,
     required this.color,
@@ -476,21 +496,33 @@ class _QuickChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.12),
+          color: isDark ? AppColors.darkSurface : Colors.white,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
+          border: Border.all(
+            color: isDark ? AppColors.darkBorder : AppColors.comicBorderColor,
+            width: 1.2,
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 18, color: color),
             const SizedBox(width: 8),
-            Text(label, style: TextStyle(color: color, fontWeight: FontWeight.w600, fontSize: 13)),
+            Text(
+              label,
+              style: TextStyle(
+                color: isDark ? Colors.white : AppColors.comicBlack,
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+              ),
+            ),
           ],
         ),
       ),

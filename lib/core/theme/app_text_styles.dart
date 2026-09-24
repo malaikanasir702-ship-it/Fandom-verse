@@ -73,4 +73,33 @@ class AppTextStyles {
     fontWeight: FontWeight.w700,
     letterSpacing: 0.8,
   );
+
+  // ─── Comic Theme Styles (Solid Typography) ───
+  static const TextStyle comicTitleLarge = TextStyle(
+    fontSize: 28,
+    fontWeight: FontWeight.w900,
+    fontStyle: FontStyle.italic,
+    letterSpacing: 0.5,
+    height: 1.1,
+  );
+
+  static const TextStyle comicSectionHeader = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w900,
+    fontStyle: FontStyle.italic,
+    letterSpacing: 0.8,
+  );
+
+  static const TextStyle comicAction = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w900,
+    fontStyle: FontStyle.italic,
+    letterSpacing: 1.2,
+  );
+
+  static const TextStyle comicRating = TextStyle(
+    fontSize: 13,
+    fontWeight: FontWeight.w800,
+    letterSpacing: 0.2,
+  );
 }

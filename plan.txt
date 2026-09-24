@@ -1,0 +1,844 @@
+================================================================================
+FANDOM VERSE POCKET EDITION — MASTER ENTERPRISE IMPLEMENTATION BLUEPRINT
+Zero-Conflict Dual-Developer Architecture (Developer A & Developer B)
+Clean Architecture + BLoC Pattern + Dual Theme + Offline-First SQLite Sync
+Flutter 3.24+ / Dart 3.6+ / Cross-Platform (Android & iOS)
+================================================================================
+
+TABLE OF CONTENTS:
+1. SRS DEEP ANALYSIS & ENTERPRISE REQUIREMENTS MATRIX
+2. ZERO-CONFLICT ARCHITECTURAL STRATEGY & GIT COLLABORATION PROTOCOL
+3. DEVELOPER OWNERSHIP MATRIX (DEV A vs DEV B CONTRACTS)
+4. UI/UX DUAL-THEME ENGINE (CYBER FANDOM DARK & GALACTIC LUMINA LIGHT)
+5. COMPLETE SCREEN-BY-SCREEN & MODAL SPECIFICATION (50 SCREENS + 19 MODALS)
+6. DATABASE ARCHITECTURE: SQLITE DDL SCHEMA, RELATIONS & SEED DATA
+7. BLOC STATE MANAGEMENT CONTRACTS & DATA FLOW
+8. DUAL-DEVELOPER SPRINT ROADMAP & INTEGRATION PROTOCOL
+9. MANDATORY PROJECT DELIVERABLES (SRS REPORT, SQL SCRIPTS, APK & DEMO VIDEO)
+
+================================================================================
+1. SRS DEEP ANALYSIS & ENTERPRISE REQUIREMENTS MATRIX
+================================================================================
+
+1.1 Core Entities & User Archetypes:
+-----------------------------------
+A. Fan User (Client Side):
+   - Multi-platform exploration across 6 major fandom pillars:
+     1. Anime & Manga (Cosplay, Graphic Novels, Shonen/Seinen lore)
+     2. Gaming & Esports (Retro gaming, Open-world RPGs, Speedrunning records)
+     3. Pop Culture, Movies & Sci-Fi Universes (Cinematic sagas, Marvel, Star Wars)
+     4. Comic Books & Graphic Literature (Superhero lore, Indie comics)
+     5. Music & Idol Culture (K-Pop bands, Discographies, Fan clubs)
+     6. Fantasy & Literature (Novels, High-fantasy worldbuilding)
+   - Beginner Fan Hub: Lore starters, Glossary of 50+ fandom terms, Pronunciations.
+   - Deep Dive Lore: Hidden trivia, easter eggs, creator interviews, universe chronologies.
+   - Location-Aware Event Radar: GPS convention finder, city filtering, Google Maps pins, direct external ticketing.
+   - Official Fan Merchandise Store: Catalog, price sort/filter, wishlist, simulated cart, coupon engine, printable invoice bill with QR code.
+   - AI Fan Assistant: Predefined FAQ fast answers + connected AI API (Google AI Studio / Gemini API) for conversational fandom queries.
+   - Offline Bookmarking: SQLite local caching of articles, idol profiles, and lore for instant no-internet reading.
+   - Community & Discussions: Topic boards, rating, upvoting, nested discussion replies.
+   - Contact & About Us: Interactive enquiry form, organization history, team credits, Google Maps office marker.
+
+B. Admin User (Management Console):
+   - Pre-configured secure credential login (No open signup; role-based access control).
+   - Real-time Analytics Dashboard: Total fans, active fandoms, trending products, upcoming events, system health metrics.
+   - Content Moderation: Add, edit, delete articles, lore, news, glossary entries.
+   - Event Management: Add, edit, delete conventions, venues, latitude/longitude coords, ticket URLs.
+   - Merchandise Management: Add, edit, delete products, prices, stock levels, discount flags.
+   - User Management: View fan accounts, toggle active/suspended status, audit logs.
+   - Category Management: Create, update, re-order Fandom categories and custom icon/banner assets.
+
+1.2 Non-Functional & Enterprise Constraints:
+-------------------------------------------
+- Performance: 60/120 FPS buttery smooth transitions, lazy-loaded lists (`ListView.builder`), cached images, sub-120MB baseline memory footprint.
+- Offline-First: All bookmarked content, categories, and FAQs stored in local SQLite database for zero-latency offline access.
+- Security: Role-based routing guards, token storage in `flutter_secure_storage`, parameterized SQL queries preventing SQL injection.
+- Code Standards: Clean Architecture with Feature-First structure, SOLID principles, 100% type-safe Dart 3.6+, zero compiler warnings.
+
+
+================================================================================
+2. ZERO-CONFLICT ARCHITECTURAL STRATEGY & GIT PROTOCOL
+================================================================================
+
+To ensure Developer A and Developer B can work in parallel at high velocity with ZERO Git merge conflicts, the following rules are strictly enforced:
+
+2.1 Codebase File Tree & Ownership Boundary:
+-------------------------------------------
+```
+lib/
+├── core/                                      # [SHARED FOUNDATION / FROZEN DAY 1]
+│   ├── constants/                             # Owned by Dev A & Dev B via dedicated files
+│   │   ├── app_colors.dart                   # Dev A
+│   │   ├── app_assets.dart                   # Dev A
+│   │   ├── app_constants.dart                # Dev A
+│   │   └── db_constants.dart                 # Dev B
+│   ├── theme/                                 # Owned exclusively by Dev A
+│   │   ├── app_theme.dart
+│   │   ├── color_schemes.dart
+│   │   └── text_styles.dart
+│   ├── database/                              # Owned exclusively by Dev B
+│   │   ├── sqlite_helper.dart
+│   │   ├── database_tables.dart
+│   │   └── seed_data.dart
+│   ├── services/
+│   │   ├── location_service.dart             # Dev A
+│   │   ├── gemini_ai_service.dart            # Dev A
+│   │   └── local_storage_service.dart        # Dev B
+│   ├── widgets/                               # Shared reusable widgets (strictly separate files)
+│   │   ├── glass_card.dart                   # Dev A
+│   │   ├── custom_button.dart                # Dev A
+│   │   ├── custom_text_field.dart            # Dev B
+│   │   └── loading_indicator.dart            # Dev A
+│   └── di/                                    # Dependency Injection
+│       ├── injection_container.dart          # Aggregator (Frozen after setup)
+│       ├── dev_a_injection.dart              # Dev A ONLY
+│       └── dev_b_injection.dart              # Dev B ONLY
+│
+├── routes/                                    # ZERO-CONFLICT ROUTING
+│   ├── app_router.dart                        # Aggregator (Frozen)
+│   ├── fan_routes.dart                        # Dev A ONLY
+│   └── admin_routes.dart                      # Dev B ONLY
+│
+├── features/
+│   │   # ==================== DEVELOPER A DOMAIN ====================
+│   ├── auth/                                  # Fan Login, Register, Role Choice, Setup
+│   ├── fandom_hub/                            # Home Feed, Carousel, Lore, Beginner, Glossary, Multimedia
+│   ├── events/                                # Map Radar, Calendar, Event Details, RSVP
+│   ├── ai_assistant/                          # AI Assistant, Chatbot, FAQ Accordion, Lore Battle Generator
+│   ├── community/                             # Discussion Threads, Star/Idol Profiles
+│   ├── info/                                  # About Us, Contact Us with Google Maps
+│   │
+│   │   # ==================== DEVELOPER B DOMAIN ====================
+│   ├── store/                                 # Merch Catalog, Product Details, Filters
+│   ├── cart_checkout/                         # Cart, Wishlist, Coupon Engine, Simulated Checkout & Invoice
+│   ├── profile_settings/                      # Fan Profile, Badges, Edit Profile, App Settings, Cache Cleaner
+│   └── admin/                                 # Admin Dashboard, Content CRUD, Event CRUD, Product CRUD, Users, Categories
+│
+└── main.dart                                  # Main App Bootstrap (Pre-configured multi-bloc provider)
+```
+
+2.2 Zero-Conflict Routing Contract:
+-----------------------------------
+`lib/routes/app_router.dart` is written on Day 1 and NEVER modified again:
+```dart
+class AppRouter {
+  static Route<dynamic> onGenerateRoute(RouteSettings settings) {
+    // Check Fan routes first
+    final fanRoute = FanRoutes.getRoute(settings);
+    if (fanRoute != null) return fanRoute;
+
+    // Check Admin routes
+    final adminRoute = AdminRoutes.getRoute(settings);
+    if (adminRoute != null) return adminRoute;
+
+    return MaterialPageRoute(builder: (_) => const NotFoundPage());
+  }
+}
+```
+Developer A only adds routes inside `fan_routes.dart`.
+Developer B only adds routes inside `admin_routes.dart`.
+Result: 0% chance of route file git conflicts.
+
+2.3 Zero-Conflict Dependency Injection Contract:
+------------------------------------------------
+`lib/core/di/injection_container.dart` is structured cleanly:
+```dart
+final sl = GetIt.instance;
+Future<void> initDependencies() async {
+  await initCoreDependencies(sl);
+  await initDevAInjection(sl); // Handled in dev_a_injection.dart by Dev A
+  await initDevBInjection(sl); // Handled in dev_b_injection.dart by Dev B
+}
+```
+
+2.4 Git Branching & Workflow Rules:
+-----------------------------------
+1. `main` branch: Stable, runnable, production-ready.
+2. `develop` branch: Integration branch.
+3. Feature branches:
+   - `feature/dev-a-auth-fandom-hub`
+   - `feature/dev-a-events-ai-community`
+   - `feature/dev-b-database-store-cart`
+   - `feature/dev-b-admin-profile-deliverables`
+4. Pull Request Rule: Never commit directly to `develop` or `main`. PRs merge cleanly because file paths are 100% disjoint.
+
+
+================================================================================
+3. DEVELOPER OWNERSHIP MATRIX (DEV A vs DEV B)
+================================================================================
+
++-------------------------------------------------------------------------------+
+| DEVELOPER A: FAN CORE, DISCOVERY, EVENTS, AI & BRAND EXPERIENCE               |
++-------------------------------------------------------------------------------+
+| 1. UI Design System, Dual Theme (Dark & Light), Glassmorphism Engine & Fonts  |
+| 2. Feature: Auth, Role Selection Gate, Onboarding, Interest & Badge Setup     |
+| 3. Feature: Fandom Hub (Feed, Carousel, Beginner Hub, Glossary, Media, Deep)  |
+| 4. Feature: Location-Aware Events (GPS Event Radar, Maps, Calendar, RSVP)     |
+| 5. Feature: AI Fan Assistant (Google Gemini AI API + Predefined FAQ Engine)   |
+| 6. Feature: Community Discussion Threads & Star/Idol Profiles Directory      |
+| 7. Feature: About Us & Contact Us (Inquiry Form + Google Maps Office Marker)  |
+| 8. File: `lib/routes/fan_routes.dart` & `lib/core/di/dev_a_injection.dart`    |
++-------------------------------------------------------------------------------+
+
++-------------------------------------------------------------------------------+
+| DEVELOPER B: DATABASE ENGINE, STORE, CHECKOUT, PROFILE, SETTINGS & ADMIN      |
++-------------------------------------------------------------------------------+
+| 1. Core SQLite Database Engine (`sqlite_helper.dart`), 12 Tables, Seed Data   |
+| 2. Feature: Official Fan Merchandise Catalog, Sorting, Filters & Product View |
+| 3. Feature: Wishlist & Cart System, Coupon Code Engine (`FANDOM10`)           |
+| 4. Feature: Simulated Checkout, Itemized Bill Invoice & QR Code Generator     |
+| 5. Feature: User Profile, Badges Showcase, Edit Profile & Order History       |
+| 6. Feature: App Settings, Theme Mode Switcher, Cache Storage Manager          |
+| 7. Feature: Complete Admin Console (Dashboard, Content/Event/Store CRUD, User)|
+| 8. File: `lib/routes/admin_routes.dart` & `lib/core/di/dev_b_injection.dart`  |
+| 9. Project Deliverables: `database_schema.sql`, Report Draft, Test Credentials|
++-------------------------------------------------------------------------------+
+
+
+================================================================================
+4. UI/UX DUAL-THEME ENGINE (CYBER FANDOM DARK & GALACTIC LUMINA LIGHT)
+================================================================================
+
+4.1 Theme Token Specifications:
+-------------------------------
+| Design Token      | Cyber Fandom Dark (Default)  | Galactic Lumina Light       | Usage                          |
+|-------------------|------------------------------|-----------------------------|--------------------------------|
+| Primary Brand     | #7C4DFF (Electric Violet)    | #6200EE (Deep Indigo)       | Primary CTAs, key accents      |
+| Secondary Brand   | #00E5FF (Cyber Neon Cyan)    | #0091EA (Sky Sapphire)      | Active tabs, glow lines, radar |
+| Lore Gold / Star  | #FFAB00 (Fandom Gold)        | #FF6D00 (Vibrant Amber)     | Badges, ratings, trivia score  |
+| Background Dark   | #0B0E14 (Deep Obsidian)      | #F8F9FE (Pure Slate Pearl)  | App scaffold background        |
+| Surface Container | #161B26 (Midnight Navy)      | #FFFFFF (Pristine White)    | Cards, bottom sheets, dialogs  |
+| Surface Glass     | rgba(255, 255, 255, 0.07)    | rgba(0, 0, 0, 0.04)         | Frosted glassmorphism panels   |
+| Border / Outline  | rgba(255, 255, 255, 0.12)    | rgba(0, 0, 0, 0.08)         | Card borders, inputs, dividers |
+| Text High Primary | #FFFFFF                      | #0F172A (Deep Slate)        | Headers, titles, primary text  |
+| Text Medium Muted | #94A3B8                      | #64748B (Muted Slate)       | Subtitles, timestamps, labels  |
+| Error / Alert     | #FF5252                      | #D32F2F                     | Price drops, deletions, errors |
+| Success / RSVP    | #00E676                      | #2E7D32                     | In-stock badges, tickets, cart |
+
+4.2 Typography & Custom Components:
+-----------------------------------
+- Headings: `Space Grotesk` or `Outfit` (Bold, futuristic, cinema-inspired).
+- Body & UI: `Plus Jakarta Sans` or `Inter` (100% clean legibility).
+- Interactive Glassmorphism: Custom `FrostedContainer` with `BackdropFilter(filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12))`.
+- Micro-animations: Smooth hero transitions on product cards, animated glow borders on selected badges, pulsating radar dots on event maps.
+
+
+================================================================================
+5. COMPLETE SCREEN-BY-SCREEN & MODAL SPECIFICATION (50 SCREENS + 19 MODALS)
+================================================================================
+
+--------------------------------------------------------------------------------
+MODULE 1: AUTH, ONBOARDING & ROLE GATEWAY (DEVELOPER A)
+--------------------------------------------------------------------------------
+Screen 1: Animated Splash Screen (`/splash`)
+  - Widgets: Glowing Fandom Universe logo, particle animation, session authenticator.
+  - Action: Automatically redirects to `/role-selection` or `/fan-home` based on token.
+
+Screen 2: Role Selection Gateway (`/role-selection`)
+  - Widgets: Dual 3D glass cards: "Fan Universe Explorer" vs "Command Admin Console".
+  - Action: Directs user to Fan Login or Admin Login.
+
+Screen 3: Fan Onboarding Carousel (`/onboarding`)
+  - Widgets: 3 interactive slides (Lore Hub & Glossary, Location-Aware Con Radar, Merch Store & Wishlist).
+  - Action: "Get Started" and "Skip" buttons leading to `/register`.
+
+Screen 4: Fan Login Screen (`/login`)
+  - Widgets: Email/Password inputs, password visibility toggle, "Forgot Password", Social OAuth buttons (Google/Apple), Biometric toggle.
+  - Action: Dispatches `FanLoginSubmitted` to `AuthBloc`.
+
+Screen 5: Fan Sign Up Screen (`/register`)
+  - Widgets: Name, Email, Password, Confirm Password, real-time password strength bar, terms agreement checkbox.
+  - Action: Dispatches `FanRegisterSubmitted` to `AuthBloc`.
+
+Screen 6: Fandom Category Picker (`/interest-setup`)
+  - Widgets: Multi-select visual grid (Anime & Manga, Gaming & Esports, Marvel/DC, Sci-Fi & Fantasy, K-Pop & Idol Culture, Comic Books).
+  - Constraint: Minimum 2 categories required to enable the "Continue" CTA.
+
+Screen 7: Starter Badge Selection (`/badge-setup`)
+  - Widgets: Visual badge cards with descriptions: "Novice Otaku", "Lorekeeper", "Speedrunner", "Merch Collector".
+  - Action: Saves initial user badge to SQLite and navigates to `/fan-home`.
+
+Screen 8: Admin Login Console (`/admin-login`)
+  - Widgets: High-security dark console theme, pre-configured credential quick-fill chips (`admin@fandomverse.com / admin123`), security notice banner.
+  - Action: Dispatches `AdminLoginSubmitted` to `AuthBloc`.
+
+Modal 1: Forgot Password Bottom Sheet
+  - Widgets: Email textfield, "Send Reset Link" button, confirmation tick animation.
+
+Modal 2: Guest Mode Confirmation Dialog
+  - Widgets: Warning message explaining that bookmarks and cart sync require an account.
+
+--------------------------------------------------------------------------------
+MODULE 2: FAN CORE NAVIGATION & DISCOVERY HUB (DEVELOPER A)
+--------------------------------------------------------------------------------
+Screen 9: Main Fan Shell (`/fan-home`)
+  - Widgets: Persistent glassmorphism bottom navigation bar with 5 tabs:
+    1. Feed (`/fan-feed`)
+    2. Lore Hub (`/lore-hub`)
+    3. Events Radar (`/events-map`)
+    4. Merch Store (`/store`)
+    5. Profile (`/profile`)
+
+Screen 10: Featured Home Feed (`/fan-feed`)
+  - Widgets:
+    * Greeting header with user avatar and active badge.
+    * Real-time search bar with filter icon.
+    * **Trending Fandoms Carousel**: High-res auto-sliding banners with page indicator.
+    * Quick Feature Chips: "Beginner Guides", "Glossary", "Event Radar", "AI Assistant".
+    * Latest News Grid: Card with image, category chip, title, 5-minute read tag.
+    * Community Spotlight: Top-rated discussion thread snippet.
+
+Screen 11: Beginner Fan Hub (`/beginner-hub`)
+  - Widgets: Curated starter chronologies and beginner-friendly guides (e.g., "Where to start with Marvel Comics?", "Fate Series Viewing Order", "Genshin Impact Lore Primer").
+
+Screen 12: Fandom Glossary & Lexicon (`/glossary`)
+  - Widgets: Searchable A-Z dictionary of 50+ fandom terms ("Canon", "Retcon", "Isekai", "Waifu", "Speedrun Any%", "Stan", "Filler Episode").
+  - Features: Category filter pills, definition, example usage, audio pronunciation button.
+
+Screen 13: Multimedia Hub (`/multimedia`)
+  - Widgets: Segmented tabs for:
+    * Fandom News Articles
+    * High-Resolution Fan Art Galleries
+    * Video Teasers & Trailers
+    * Fandom Podcasts & Lore Recaps
+
+Screen 14: News Article Reader (`/news-detail`)
+  - Widgets: Hero image, article title, author byline, reading time estimate, markdown text renderer, text size adjuster (A- / A+), offline bookmark toggle button, share icon.
+
+Screen 15: High-Res Fan Art Gallery Viewer (`/gallery-view`)
+  - Widgets: Full-screen pinch-to-zoom interactive viewer, artist credit overlay, download/set wallpaper button, bookmark button.
+
+Screen 16: Deep Dive Lore & Secret Trivia (`/deep-dive`)
+  - Widgets: Hidden easter eggs, chronological universe timelines, behind-the-scenes creator trivia, interactive 5-question trivia quiz with instant score card.
+
+Screen 17: Global Search & Faceted Filter Screen (`/search`)
+  - Widgets: Real-time search input with debounce, search history chips, category facet filters (Lore, Merchandise, Events, Stars/Idols), search results list.
+
+Screen 18: Offline Bookmarks Hub (`/bookmarks`)
+  - Widgets: Tabbed view:
+    * Saved Articles & Lore
+    * Saved Stars / Idols
+    * Saved Events
+    * One-tap "Clear Cache" button with storage footprint indicator.
+
+Modal 3: Advanced Filter Bottom Sheet
+  - Widgets: Category multi-select, sort options (Newest, Most Popular, Rating), date range picker.
+
+Modal 4: Share Content Bottom Sheet
+  - Widgets: Copy link button, direct WhatsApp, Twitter/X, and Instagram Stories share buttons.
+
+Modal 5: Quick Fandom Trivia Dialog
+  - Widgets: 3-question pop-up trivia challenge with animated countdown timer and coin badge reward.
+
+--------------------------------------------------------------------------------
+MODULE 3: LOCATION-AWARE EVENTS & CALENDAR (DEVELOPER A)
+--------------------------------------------------------------------------------
+Screen 19: Event Radar Map (`/events-map`)
+  - Widgets: Interactive map view (Google Maps / OpenStreetMap), convention pin markers with category icons, GPS "My Location" FAB, proximity radius slider (5km, 25km, 100km, Worldwide), floating event preview card at bottom.
+
+Screen 20: Event Calendar Timeline (`/events-calendar`)
+  - Widgets: Horizontal date strip selector, city search filter, event cards displaying date badge, convention title, city name, attendee count, and ticket availability pill.
+
+Screen 21: Event Detail Screen (`/event-detail`)
+  - Widgets: Event banner, live countdown timer to convention opening, venue details with "Open in Google Maps" button, detailed event schedule/agenda, external ticket link ("Book Official Tickets"), "Add to Calendar" button.
+
+Screen 22: Cosplay Meetups & Screenings Sub-Page (`/meetups`)
+  - Widgets: List of localized community gatherings, RSVP list, dress code guide, venue safety rules.
+
+Screen 23: City Selection Screen (`/city-picker`)
+  - Widgets: Grid of top convention cities (Tokyo, San Diego, New York, London, Seoul, Karachi) with convention count counters.
+
+Modal 6: RSVP Confirmation Dialog
+  - Widgets: Simulated registration badge, "Add to Device Calendar" toggle, shareable pass preview.
+
+Modal 7: Transit Directions Bottom Sheet
+  - Widgets: Venue GPS coordinates, copy address button, launch external navigation apps.
+
+--------------------------------------------------------------------------------
+MODULE 4: AI FAN HELPER & CHATBOT (DEVELOPER A)
+--------------------------------------------------------------------------------
+Screen 24: AI Fan Assistant Chat (`/ai-assistant`)
+  - Widgets:
+    * Interactive chat bubble interface with markdown support.
+    * Typing indicator animation.
+    * Quick-prompt suggestion chips:
+      - "Explain the Marvel Multiverse canon"
+      - "Top 5 anime releases of this season"
+      - "Who would win: Goku or Saitama?"
+      - "How do convention ticket lotteries work?"
+    * Google Gemini API integration with automatic fallback to smart keyword NLP.
+
+Screen 25: Predefined FAQ Directory (`/faqs`)
+  - Widgets: Searchable accordion list with 30+ comprehensive answers across ticketing, lore, conventions, and merchandise.
+
+Screen 26: AI Lore Battle / Crossover Generator (`/lore-generator`)
+  - Widgets: Character 1 selector, Character 2 selector, Arena picker, "Generate Epic Battle" button returning AI-generated crossover story synopsis.
+
+Modal 8: AI Mode Configuration Sheet
+  - Widgets: Toggle between "Fast Offline FAQs" and "Online Gemini AI Studio API".
+
+--------------------------------------------------------------------------------
+MODULE 5: COMMUNITY DISCUSSIONS & STAR PROFILES (DEVELOPER A)
+--------------------------------------------------------------------------------
+Screen 27: Discussion Boards List (`/discussions`)
+  - Widgets: Channel tabs (#AnimeTheories, #GamingSpeedruns, #CosplayWorkshop, #ConReviews), discussion cards with author avatar, user badge, upvote counter, reply count.
+
+Screen 28: Thread Detail & Replies (`/thread-detail`)
+  - Widgets: Full original post with markdown support, upvote button, list of nested community replies, bottom sticky comment input field.
+
+Screen 29: Create Discussion Post (`/create-thread`)
+  - Widgets: Category selector dropdown, thread title input, markdown content editor, spoiler warning toggle, submit CTA.
+
+Screen 30: Stars & Idols Directory (`/stars-directory`)
+  - Widgets: Filterable grid of K-Pop idols, voice actors, comic writers, and game directors with bio, photo, fandom category, and bookmark star action.
+
+Modal 9: New Reply Bottom Sheet
+  - Widgets: Text area for quick reply, formatting buttons.
+
+Modal 10: Report Inappropriate Content Dialog
+  - Widgets: Checkboxes for spam, harassment, spoiler violation.
+
+--------------------------------------------------------------------------------
+MODULE 6: INFO, CONTACT & ABOUT US (DEVELOPER A)
+--------------------------------------------------------------------------------
+Screen 31: About Us Screen (`/about-us`)
+  - Widgets: Fandom Verse team story, mission statement, cross-platform architecture overview, version info (v1.0.0), credits and acknowledgments.
+
+Screen 32: Contact Us Screen (`/contact-us`)
+  - Widgets:
+    * Interactive inquiry form (Full Name, Email, Category: General / Bug / Sponsor, Message).
+    * Official contact info cards (Email, Phone, Discord, Twitter/X).
+    * **Google Maps Office Integration**: Embedded interactive map showing development team headquarters with custom pin marker and direction trigger.
+
+Modal 11: Inquiry Sent Confirmation Dialog
+  - Widgets: Success check animation, estimated response time (24-48 hours).
+
+--------------------------------------------------------------------------------
+MODULE 7: OFFICIAL FAN MERCHANDISE & SIMULATED STORE (DEVELOPER B)
+--------------------------------------------------------------------------------
+Screen 33: Merchandise Storefront (`/store`)
+  - Widgets:
+    * Promotional deal carousel (Limited edition drops, discounts).
+    * Category chips: Apparel, Action Figures, Manga/Comics, Digital Collectibles, Replica Props.
+    * Sort dropdown: Price Low-to-High, Price High-to-Low, Most Popular, Newest.
+    * 2-Column responsive product grid with image, title, price, discount pill, and heart wishlist icon.
+
+Screen 34: Product Detail Screen (`/product-detail`)
+  - Widgets:
+    * Multi-image thumbnail carousel.
+    * Title, verified license badge, price with strikethrough original price.
+    * Size/Variant selector chips (S, M, L, XL or Standard vs Deluxe).
+    * In-stock counter ("Only 4 left in stock!").
+    * Rich description tabs: Overview, Specifications, Shipping FAQ.
+    * Sticky bottom bar: "Add to Wishlist" (heart) and "Add to Cart" button.
+
+Screen 35: Wishlist Screen (`/wishlist`)
+  - Widgets: Grid of saved products, price drop badge ("Dropped by $10!"), "Move to Cart" button, one-tap delete item.
+
+Screen 36: Cart Management Screen (`/cart`)
+  - Widgets:
+    * List of cart items with quantity increment/decrement (+ / -) controls.
+    * Swipe-to-delete item action.
+    * Promo coupon simulator input (Enter code `FANDOM10` for instant 10% discount).
+    * Order summary breakdown: Subtotal, Shipping ($5.00 or Free over $50), Tax, Total.
+    * "Proceed to Simulated Checkout" button.
+
+Screen 37: Simulated Checkout & Bill Invoice (`/checkout-invoice`)
+  - Widgets:
+    * Disclaimer Banner: *"Notice: Simulated Checkout — No actual payment or delivery will take place."*
+    * Shipping address form (Autofills from user profile).
+    * Simulated payment method picker (Cash on Convention, Credit Card Mock, Fan Reward Points).
+    * Itemized bill summary.
+    * "Generate Invoice" CTA leading to printable/shareable order confirmation.
+
+Screen 38: Order Confirmation & Printable Invoice Screen (`/order-success`)
+  - Widgets:
+    * Celebratory order success animation.
+    * Generated Order ID (e.g., `#FV-89241`).
+    * Generated scannable QR Code containing order metadata.
+    * Complete itemized printable bill table.
+    * "Download PDF Invoice" and "Back to Store" buttons.
+
+Screen 39: Order History Screen (`/order-history`)
+  - Widgets: List of past simulated orders with date, total items, total price, and "Simulated Completed" status chip.
+
+Modal 12: Coupon Applied Celebration Sheet
+  - Widgets: Confetti effect, discount savings amount, new total calculation.
+
+Modal 13: Clear Cart Confirmation Dialog
+  - Widgets: "Are you sure you want to empty your cart?" warning.
+
+Modal 14: Price Drop Alert Notification Preferences Sheet
+  - Widgets: Sliders to set threshold for merchandise alerts.
+
+--------------------------------------------------------------------------------
+MODULE 8: USER PROFILE, SETTINGS & STORAGE MANAGEMENT (DEVELOPER B)
+--------------------------------------------------------------------------------
+Screen 40: Fan Profile Screen (`/profile`)
+  - Widgets:
+    * Custom banner image, avatar with glowing rank border.
+    * User Badges Showcase ("Master Lorekeeper", "Con Veteran 2025", "Speedrun Guru").
+    * User Stats Row: 14 Bookmarks | 5 Wishlist Items | 280 Trivia XP.
+    * Menu items: Edit Profile, Order History, Liked Fandoms, Offline Storage, App Settings, Logout.
+
+Screen 41: Edit Profile Screen (`/edit-profile`)
+  - Widgets: Avatar image picker, Display Name, Bio text area, Fandom tags selector, Save CTA.
+
+Screen 42: App Settings Screen (`/settings`)
+  - Widgets:
+    * **Theme Mode Selector**: Radio cards for "Cyber Fandom Dark", "Galactic Lumina Light", "System Default".
+    * Notifications toggle (Event reminders, price drop alerts, news releases).
+    * Offline Cache Manager: Visual storage breakdown bar (Images: 42MB, Articles: 3MB).
+    * "Clear Offline Cache" button with confirmation.
+    * Export Bookmarks as JSON button.
+
+Modal 15: Theme Switcher Modal
+  - Widgets: Live theme preview cards with instant toggle without app restart.
+
+--------------------------------------------------------------------------------
+MODULE 9: ADMIN COMMAND & OPERATIONS CONSOLE (DEVELOPER B)
+--------------------------------------------------------------------------------
+Screen 43: Admin Command Dashboard (`/admin/dashboard`)
+  - Widgets:
+    * Real-time KPI Metric Cards: Total Registered Fans (1,240), Published Articles (84), Upcoming Events (16), Store Products (42).
+    * Quick Action Hub: "+ New Article", "+ New Event", "+ New Product", "Broadcast Push Alert".
+    * Recent Operations Audit Log list.
+
+Screen 44: Admin Content Management (`/admin/content`)
+  - Widgets: Searchable, filterable data list of all articles, lore posts, and glossary terms with edit and delete actions.
+
+Screen 45: Admin Add/Edit Content Screen (`/admin/content-edit`)
+  - Widgets: Form: Title input, Category dropdown, Markdown content body editor, Image URL input, "Trending" switch, "Deep Dive" switch, Save button.
+
+Screen 46: Admin Event Management (`/admin/events`)
+  - Widgets: List of all conventions and meetups with status badges (Upcoming, Completed), search by city, quick delete and edit buttons.
+
+Screen 47: Admin Add/Edit Event Screen (`/admin/event-edit`)
+  - Widgets: Form: Event Title, City Name, Venue Name, Latitude/Longitude picker, Date/Time picker, Ticket URL, Banner Image URL, Save CTA.
+
+Screen 48: Admin Merchandise Management (`/admin/products`)
+  - Widgets: Product catalog management list with inline price, stock count, and edit/delete actions.
+
+Screen 49: Admin Add/Edit Product Screen (`/admin/product-edit`)
+  - Widgets: Form: Product Name, Category dropdown, Price ($), Original Price ($), Stock Count, Description, Image URL, "Featured Product" switch.
+
+Screen 50: Admin User Moderation & Category Manager (`/admin/users-categories`)
+  - Widgets: Dual-tab view:
+    * Tab 1: Fan User Accounts (View email, registration date, role, toggle active/ban status).
+    * Tab 2: Category Manager (Add new category, edit category name, assign icon and hex color).
+
+Modal 16: Admin Delete Confirmation Barrier
+  - Widgets: Dangerous red dialog: "Type 'DELETE' to confirm removal".
+
+Modal 17: Admin Audit Log Viewer Bottom Sheet
+  - Widgets: Chronological list of admin actions with timestamps.
+
+Modal 18: Fast Stock Update Dialog
+  - Widgets: Quick numerical stepper to restock merchandise in seconds.
+
+Modal 19: Broadcast Notification Modal
+  - Widgets: Title, message body, target audience (All Fans vs Specific Fandom), simulated send button.
+
+
+================================================================================
+6. DATABASE ARCHITECTURE: SQLITE DDL SCHEMA & SEED DATA (DEVELOPER B)
+================================================================================
+
+All 12 tables are implemented in SQLite local storage (`fandom_verse.db`) with full offline indexing:
+
+```sql
+-- 1. Users Table
+CREATE TABLE IF NOT EXISTS users (
+    user_id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    role TEXT NOT NULL DEFAULT 'fan', -- 'fan' or 'admin'
+    avatar_url TEXT,
+    bio TEXT,
+    badges TEXT,                      -- JSON Array of string badges
+    selected_fandoms TEXT,            -- JSON Array of selected categories
+    created_at INTEGER NOT NULL
+);
+
+-- 2. Fandom Categories Table
+CREATE TABLE IF NOT EXISTS categories (
+    category_id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT,
+    icon_name TEXT,
+    banner_url TEXT,
+    color_hex TEXT
+);
+
+-- 3. Posts & Lore Articles Table
+CREATE TABLE IF NOT EXISTS posts (
+    post_id TEXT PRIMARY KEY,
+    category_id TEXT NOT NULL,
+    title TEXT NOT NULL,
+    content_body TEXT NOT NULL,
+    author_name TEXT,
+    image_url TEXT,
+    is_trending INTEGER DEFAULT 0,
+    is_deep_dive INTEGER DEFAULT 0,
+    tags TEXT,
+    timestamp INTEGER NOT NULL,
+    is_bookmarked INTEGER DEFAULT 0,
+    FOREIGN KEY (category_id) REFERENCES categories(category_id) ON DELETE CASCADE
+);
+
+-- 4. Fandom Glossary Table
+CREATE TABLE IF NOT EXISTS glossary (
+    term_id TEXT PRIMARY KEY,
+    term TEXT NOT NULL,
+    definition TEXT NOT NULL,
+    fandom_category TEXT,
+    example_usage TEXT
+);
+
+-- 5. Conventions & Events Table
+CREATE TABLE IF NOT EXISTS events (
+    event_id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    description TEXT,
+    city_name TEXT NOT NULL,
+    venue_name TEXT NOT NULL,
+    latitude REAL NOT NULL,
+    longitude REAL NOT NULL,
+    event_date INTEGER NOT NULL,
+    ticket_link TEXT,
+    banner_url TEXT,
+    is_bookmarked INTEGER DEFAULT 0
+);
+
+-- 6. Merchandise Catalog Table
+CREATE TABLE IF NOT EXISTS merchandise (
+    product_id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    category TEXT NOT NULL,
+    price REAL NOT NULL,
+    original_price REAL,
+    image_url TEXT NOT NULL,
+    description TEXT,
+    stock_count INTEGER DEFAULT 10,
+    rating REAL DEFAULT 4.8,
+    is_featured INTEGER DEFAULT 0
+);
+
+-- 7. Cart Items Table
+CREATE TABLE IF NOT EXISTS cart_items (
+    cart_id TEXT PRIMARY KEY,
+    product_id TEXT NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 1,
+    selected_variant TEXT,
+    added_at INTEGER NOT NULL,
+    FOREIGN KEY (product_id) REFERENCES merchandise(product_id) ON DELETE CASCADE
+);
+
+-- 8. Wishlist Table
+CREATE TABLE IF NOT EXISTS wishlists (
+    wish_id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    product_id TEXT NOT NULL,
+    saved_at INTEGER NOT NULL,
+    FOREIGN KEY (product_id) REFERENCES merchandise(product_id) ON DELETE CASCADE
+);
+
+-- 9. Community Discussions Table
+CREATE TABLE IF NOT EXISTS discussions (
+    thread_id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    user_name TEXT NOT NULL,
+    user_badge TEXT,
+    category TEXT NOT NULL,
+    title TEXT NOT NULL,
+    body TEXT NOT NULL,
+    upvotes INTEGER DEFAULT 0,
+    created_at INTEGER NOT NULL
+);
+
+-- 10. Discussion Replies Table
+CREATE TABLE IF NOT EXISTS discussion_replies (
+    reply_id TEXT PRIMARY KEY,
+    thread_id TEXT NOT NULL,
+    user_name TEXT NOT NULL,
+    reply_body TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    FOREIGN KEY (thread_id) REFERENCES discussions(thread_id) ON DELETE CASCADE
+);
+
+-- 11. Celebrity & Star Profiles Table
+CREATE TABLE IF NOT EXISTS star_profiles (
+    star_id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    fandom_category TEXT NOT NULL,
+    role_title TEXT NOT NULL,
+    bio TEXT NOT NULL,
+    image_url TEXT NOT NULL,
+    social_handle TEXT,
+    is_bookmarked INTEGER DEFAULT 0
+);
+
+-- 12. Simulated Orders Table
+CREATE TABLE IF NOT EXISTS simulated_orders (
+    order_id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    order_date INTEGER NOT NULL,
+    total_amount REAL NOT NULL,
+    items_summary TEXT NOT NULL,
+    shipping_address TEXT NOT NULL,
+    order_status TEXT DEFAULT 'Completed'
+);
+
+-- Pre-configured Admin Account Seed Data
+INSERT OR IGNORE INTO users (user_id, name, email, role, avatar_url, bio, badges, selected_fandoms, created_at)
+VALUES ('admin-01', 'Fandom Commander', 'admin@fandomverse.com', 'admin', 'assets/images/admin_avatar.png', 'Lead Operations Administrator', '["Admin Commander", "System Architect"]', '["All"]', 1700000000);
+
+-- Pre-configured Demo Fan Account Seed Data
+INSERT OR IGNORE INTO users (user_id, name, email, role, avatar_url, bio, badges, selected_fandoms, created_at)
+VALUES ('fan-01', 'Alex Mercer', 'fan@fandomverse.com', 'fan', 'assets/images/fan_avatar.png', 'Anime & Gaming enthusiast', '["Master Lorekeeper", "Con Veteran 2025"]', '["Anime & Manga", "Gaming & Esports"]', 1700000000);
+```
+
+
+================================================================================
+7. BLOC STATE MANAGEMENT CONTRACTS
+================================================================================
+
+Developer A BLoCs:
+1. `AuthBloc`:
+   - Events: `CheckAuthStatus`, `FanLoginSubmitted(email, pass)`, `FanRegisterSubmitted(name, email, pass)`, `AdminLoginSubmitted(email, pass)`, `LogoutRequested`.
+   - States: `AuthInitial`, `AuthLoading`, `FanAuthenticated(user)`, `AdminAuthenticated(admin)`, `Unauthenticated`, `AuthError(msg)`.
+
+2. `FandomHubBloc`:
+   - Events: `LoadFandomFeed`, `SelectCategoryFilter(catId)`, `SearchContentQuery(query)`, `ToggleBookmarkPost(postId)`.
+   - States: `FandomLoading`, `FandomFeedLoaded(trending, news, glossary)`, `FandomError(msg)`.
+
+3. `EventBloc`:
+   - Events: `LoadAllEvents`, `FilterEventsByRadius(km)`, `FilterEventsByCity(city)`, `ToggleEventBookmark(id)`.
+   - States: `EventLoading`, `EventLoaded(events, nearbyEvents)`, `EventError(msg)`.
+
+4. `AIAssistantBloc`:
+   - Events: `SendUserQuery(message)`, `SelectFaqPrompt(prompt)`, `ClearChatHistory`.
+   - States: `AIIdle`, `AITyping`, `AIMessageReceived(List<ChatMessage>)`, `AIError(msg)`.
+
+5. `CommunityBloc`:
+   - Events: `LoadDiscussionThreads(category)`, `SubmitNewThread(title, body, cat)`, `AddReplyToThread(threadId, reply)`, `UpvoteThread(id)`.
+   - States: `CommunityLoading`, `CommunityLoaded(threads)`, `CommunityError(msg)`.
+
+Developer B BLoCs:
+1. `ThemeBloc`:
+   - Events: `LoadSavedTheme`, `ToggleThemeMode(ThemeMode)`.
+   - States: `ThemeState(ThemeMode.dark | light)`.
+
+2. `StoreBloc`:
+   - Events: `LoadProductCatalog`, `FilterProductsByCategory(cat)`, `SortProductsByPrice(ascending)`, `SearchProducts(query)`.
+   - States: `StoreLoading`, `StoreLoaded(List<ProductEntity>)`, `StoreError(msg)`.
+
+3. `CartBloc`:
+   - Events: `LoadCartItems`, `AddToCart(product, qty, variant)`, `UpdateItemQuantity(cartId, delta)`, `RemoveItem(cartId)`, `ApplyCouponCode(code)`, `ExecuteSimulatedCheckout(address, paymentMethod)`.
+   - States: `CartLoading`, `CartLoaded(items, subtotal, discount, total)`, `CheckoutSuccess(orderInvoice)`, `CartError(msg)`.
+
+4. `ProfileBloc`:
+   - Events: `LoadUserProfile`, `UpdateProfileDetails(name, bio, avatar)`, `LoadOrderHistory`, `ClearLocalCacheStorage`.
+   - States: `ProfileLoading`, `ProfileLoaded(user, orders, cacheSizeMB)`, `ProfileError(msg)`.
+
+5. `AdminBloc`:
+   - Events: `LoadAdminDashboardStats`, `CreateArticle(post)`, `DeleteArticle(id)`, `CreateEvent(event)`, `DeleteEvent(id)`, `CreateProduct(product)`, `DeleteProduct(id)`, `ToggleUserStatus(userId)`.
+   - States: `AdminLoading`, `AdminStatsLoaded(stats, recentLogs)`, `AdminMutationSuccess(msg)`, `AdminError(msg)`.
+
+
+================================================================================
+8. DUAL-DEVELOPER SPRINT ROADMAP & INTEGRATION PROTOCOL
+================================================================================
+
+--------------------------------------------------------------------------------
+SPRINT 1: FOUNDATION, CONTRACTS & CORE WIDGETS (PARALLEL EXECUTION)
+--------------------------------------------------------------------------------
+Developer A:
+- Create `lib/core/theme/` (Color schemes, typography, glassmorphism card widgets).
+- Create `lib/routes/fan_routes.dart` skeleton.
+- Implement Splash Screen (`/splash`), Role Selection Gate (`/role-selection`), and Onboarding (`/onboarding`).
+- Setup `AuthBloc` and build Fan Login (`/login`) & Sign Up (`/register`).
+
+Developer B:
+- Implement `lib/core/database/sqlite_helper.dart` with all 12 tables and seed data.
+- Create DAOs: `UserDao`, `PostDao`, `EventDao`, `ProductDao`, `OrderDao`.
+- Create `lib/routes/admin_routes.dart` skeleton.
+- Implement `ThemeBloc` (with persistence) and Admin Login Screen (`/admin-login`).
+
+*Integration Milestone 1:* Both developers merge feature branches into `develop`. App launches, dark/light theme toggles, and both Fan and Admin logins function against SQLite. 0 merge conflicts.
+
+--------------------------------------------------------------------------------
+SPRINT 2: CORE CLIENT HUBS & MERCHANDISE STORE
+--------------------------------------------------------------------------------
+Developer A:
+- Build Main Fan Shell with Bottom Navigation Bar.
+- Build Home Feed (`/fan-feed`) with Trending Fandoms Carousel.
+- Build Beginner Fan Hub (`/beginner-hub`) and Fandom Glossary (`/glossary`).
+- Build Multimedia Hub (`/multimedia`) & News Article Reader (`/news-detail`).
+
+Developer B:
+- Implement `StoreBloc`, `CartBloc`.
+- Build Merchandise Storefront (`/store`) with category filtering and price sorting.
+- Build Product Detail Screen (`/product-detail`) with multi-angle photos and size selector.
+- Build Wishlist Screen (`/wishlist`) with price drop badges.
+
+*Integration Milestone 2:* Fan can browse media, read lore, navigate to store, add products to wishlist and cart.
+
+--------------------------------------------------------------------------------
+SPRINT 3: ADVANCED FEATURES (MAPS, AI, SIMULATED CHECKOUT & ADMIN CONSOLE)
+--------------------------------------------------------------------------------
+Developer A:
+- Implement Location-Aware Event Radar (`/events-map`) with Google Maps/OpenStreetMap integration.
+- Build Event Calendar (`/events-calendar`), Event Detail (`/event-detail`), and RSVP modal.
+- Implement `AIAssistantBloc` with Gemini AI Studio API + Predefined FAQ Engine.
+- Build AI Chatbot Screen (`/ai-assistant`) & Lore Battle Generator (`/lore-generator`).
+- Build Community Discussions (`/discussions`) & Stars Directory (`/stars-directory`).
+- Build About Us (`/about-us`) & Contact Us with embedded Google Maps office location.
+
+Developer B:
+- Build Cart Screen (`/cart`) with coupon code engine (`FANDOM10`).
+- Build Simulated Checkout & Itemized Bill Invoice Screen (`/checkout-invoice`).
+- Build Order Confirmation Screen with generated Order ID and scannable QR Code.
+- Build Fan Profile (`/profile`), Edit Profile (`/edit-profile`), and App Settings (`/settings`).
+- Build Complete Admin Console:
+  * Admin Dashboard (`/admin/dashboard`) with real-time KPI metrics.
+  * Content Management & Add/Edit Screen (`/admin/content`).
+  * Event Management & Add/Edit Screen (`/admin/events`).
+  * Merchandise Management & Add/Edit Screen (`/admin/products`).
+  * User Moderation & Category Manager (`/admin/users-categories`).
+
+*Integration Milestone 3:* Full feature integration. All 50 screens and 19 modals interactive and functional.
+
+--------------------------------------------------------------------------------
+SPRINT 4: POLISHING, OFFLINE CACHING, BUILD & DELIVERABLES PACKAGING
+--------------------------------------------------------------------------------
+Developer A:
+- Polish micro-animations, glassmorphism blurs, and haptic feedbacks.
+- Test offline mode for bookmarked lore articles and glossary terms.
+- Record comprehensive video demonstration (`.mp4`) showing all user flows and features.
+
+Developer B:
+- Generate complete SQL script file `database_schema.sql` with table definitions and seed records.
+- Compile release Android APK (`app-release.apk`).
+- Compile comprehensive project documentation report (`Fandom_Verse_Project_Report.md` / `.pdf`) including problem definition, design specifications, DFD Level 0/1/2, activity flowcharts, and credentials.
+
+
+================================================================================
+9. MANDATORY PROJECT DELIVERABLES CHECKLIST (SRS SECTION 1.9)
+================================================================================
+
+1. [x] **Complete Source Code**: Production-grade Flutter cross-platform codebase adhering to Clean Architecture & BLoC with zero warnings.
+2. [x] **Database SQL Script (`database_schema.sql`)**: 100% complete SQL DDL & DML script defining all 12 entities, indexes, and seed records.
+3. [x] **Project Technical Report (`Fandom_Verse_Project_Report.md`)**:
+       - Problem Definition & Market Fragmentation Analysis.
+       - Architecture Diagram & Clean Layer Hierarchy.
+       - Activity Flowcharts: Authentication, Simulated Checkout, Offline Bookmarks, AI Assistant.
+       - Data Flow Diagrams (DFD Level 0 Context, Level 1 Detailed, Level 2 Storage).
+       - Full Relational Database Schema & Data Dictionary.
+       - Hardware & Software Specification compliance matrix.
+4. [x] **Pre-Configured Test Credentials**:
+       - **Admin Login:** `admin@fandomverse.com` / `admin123`
+       - **Fan Login:** `fan@fandomverse.com` / `fan123`
+5. [x] **Android Package File (`.apk`)**: Compiled release APK ready for device installation and offline testing.
+6. [x] **Walkthrough Video (`.mp4`)**: End-to-end recorded video demonstrating all 50 screens, dual themes, admin console, map radar, and simulated checkout invoice.
+================================================================================

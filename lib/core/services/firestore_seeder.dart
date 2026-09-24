@@ -18,7 +18,10 @@ class FirestoreSeeder {
   /// Seeds all collections. Call from admin dashboard or app init.
   static Future<Map<String, dynamic>> seedAll() async {
     if (!_ready) {
-      return {'success': false, 'message': 'Firebase not initialized.'};
+      await FirebaseService.initialize();
+    }
+    if (!_ready) {
+      return {'success': false, 'message': 'Firebase not initialized. Please ensure internet is active and rebuild the app.'};
     }
 
     int seeded = 0;

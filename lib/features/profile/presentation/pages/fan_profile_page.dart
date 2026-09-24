@@ -1,15 +1,106 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
-import '../../../../core/widgets/glowing_badge.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_event.dart';
 
 class FanProfilePage extends StatelessWidget {
   const FanProfilePage({super.key});
 
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.comicBorderColor, width: 1.5),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.logout_rounded, color: AppColors.comicRed, size: 24),
+            SizedBox(width: 10),
+            Text(
+              'LOG OUT',
+              style: TextStyle(
+                fontStyle: FontStyle.italic,
+                fontWeight: FontWeight.w900,
+                fontSize: 18,
+                color: AppColors.comicBlack,
+              ),
+            ),
+          ],
+        ),
+        content: const Text(
+          'Are you sure you want to log out of Fandom Verse?',
+          style: TextStyle(fontSize: 14, color: AppColors.comicBlack, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text(
+              'CANCEL',
+              style: TextStyle(color: AppColors.comicGray, fontWeight: FontWeight.bold),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.comicRed,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+            ),
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              _performLogout(context);
+            },
+            child: const Text(
+              'YES, LOG OUT',
+              style: TextStyle(fontWeight: FontWeight.w900),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _performLogout(BuildContext context) {
+    // 1. Dispatch LogoutEvent to AuthBloc
+    context.read<AuthBloc>().add(const LogoutEvent());
+
+    // 2. Clear entire navigation stack and jump to Login screen immediately
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      '/login',
+      (route) => false,
+    );
+
+    // 3. Optional visual feedback
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('👋 Logged out successfully.'),
+        backgroundColor: AppColors.comicBlack,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final user = context.watch<AuthBloc>().currentUser;
+
+    final displayName = user?.name.isNotEmpty == true
+        ? user!.name
+        : 'Alex Rivera';
+    final usernameTag = user?.name.isNotEmpty == true
+        ? '@${user!.name.toLowerCase().replaceAll(' ', '_')}'
+        : '@OtakuMaster_99';
+    final userEmail = user?.email.isNotEmpty == true
+        ? user!.email
+        : 'alex.rivera@fandomverse.io';
 
     return Scaffold(
       appBar: AppBar(
@@ -19,35 +110,43 @@ class FanProfilePage extends StatelessWidget {
             icon: const Icon(Icons.settings_outlined),
             onPressed: () => Navigator.of(context).pushNamed('/settings'),
           ),
+          IconButton(
+            icon: const Icon(Icons.logout_rounded, color: AppColors.comicRed),
+            tooltip: 'Log Out',
+            onPressed: () => _showLogoutDialog(context),
+          ),
         ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
-            // Avatar & Name Card
+            // ─── Solid Avatar & Name Card ───
             Center(
               child: Column(
                 children: [
                   Stack(
                     children: [
                       Container(
-                        width: 100,
-                        height: 100,
+                        width: 96,
+                        height: 96,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          gradient: const LinearGradient(
-                            colors: [AppColors.darkPrimary, AppColors.darkSecondary],
+                          color: AppColors.comicRed,
+                          border: Border.all(
+                            color: isDark ? AppColors.darkBorder : Colors.white,
+                            width: 3,
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.darkPrimary.withValues(alpha: 0.4),
-                              blurRadius: 16,
-                            ),
-                          ],
                         ),
-                        child: const Center(
-                          child: Icon(Icons.person_rounded, size: 54, color: Colors.white),
+                        child: Center(
+                          child: Text(
+                            displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
+                            style: const TextStyle(
+                              fontSize: 42,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
                       ),
                       Positioned(
@@ -58,32 +157,44 @@ class FanProfilePage extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(6),
                             decoration: const BoxDecoration(
-                              color: AppColors.darkSecondary,
+                              color: AppColors.comicYellow,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.edit_rounded, size: 16, color: Colors.black),
+                            child: const Icon(Icons.edit_rounded, size: 16, color: AppColors.comicBlack),
                           ),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  const Text(
-                    'Alex Rivera',
-                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20),
+                  Text(
+                    displayName,
+                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 20),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '@OtakuMaster_99 • Member since 2024',
+                    '$usernameTag • $userEmail',
                     style: TextStyle(
                       fontSize: 12,
                       color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const GlowingBadge(
-                    label: '🏆 Lore Master Tier III',
-                    color: AppColors.darkAccentGold,
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.comicYellow,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text(
+                      '🏆 LORE MASTER TIER III',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.comicBlack,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -135,7 +246,7 @@ class FanProfilePage extends StatelessWidget {
                 ),
                 TextButton(
                   onPressed: () => Navigator.of(context).pushNamed('/interest-setup'),
-                  child: const Text('Manage', style: TextStyle(color: AppColors.darkSecondary)),
+                  child: const Text('Manage', style: TextStyle(color: AppColors.comicRed, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -163,7 +274,7 @@ class FanProfilePage extends StatelessWidget {
               title: 'Simulated Order History',
               subtitle: 'Track simulated merch invoices & bills',
               route: '/order-history',
-              color: AppColors.darkSecondary,
+              color: AppColors.heroBlue,
             ),
             _buildProfileNavTile(
               context,
@@ -171,7 +282,7 @@ class FanProfilePage extends StatelessWidget {
               title: 'Saved Merch Wishlist',
               subtitle: 'Exclusive figures, katanas & hoodies',
               route: '/wishlist',
-              color: AppColors.marvelRed,
+              color: AppColors.comicRed,
             ),
             _buildProfileNavTile(
               context,
@@ -179,7 +290,7 @@ class FanProfilePage extends StatelessWidget {
               title: 'Official Merch Store',
               subtitle: 'Limited edition drops & anime replicas',
               route: '/store',
-              color: AppColors.darkAccentGold,
+              color: AppColors.comicYellowDark,
             ),
             _buildProfileNavTile(
               context,
@@ -187,7 +298,7 @@ class FanProfilePage extends StatelessWidget {
               title: 'Achievements & Badges',
               subtitle: '14 Unlocked • 3 In Progress',
               route: '/badges',
-              color: AppColors.darkAccentGold,
+              color: AppColors.comicYellowDark,
             ),
             _buildProfileNavTile(
               context,
@@ -195,7 +306,7 @@ class FanProfilePage extends StatelessWidget {
               title: 'Notifications & Alerts',
               subtitle: 'Upcoming con reminders & replies',
               route: '/notifications',
-              color: AppColors.darkSecondary,
+              color: AppColors.heroCyan,
             ),
             _buildProfileNavTile(
               context,
@@ -203,8 +314,38 @@ class FanProfilePage extends StatelessWidget {
               title: 'Bookmarks & Favorites',
               subtitle: 'Saved lore articles, terms & events',
               route: '/bookmarks',
-              color: AppColors.darkPrimary,
+              color: AppColors.heroPurple,
             ),
+
+            const SizedBox(height: 20),
+
+            // ─── FULL-WIDTH FUNCTIONAL LOGOUT BUTTON ───
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.comicRed,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                icon: const Icon(Icons.logout_rounded, size: 20),
+                label: const Text(
+                  'LOG OUT',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    fontStyle: FontStyle.italic,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                onPressed: () => _showLogoutDialog(context),
+              ),
+            ),
+
             const SizedBox(height: 40),
           ],
         ),
@@ -256,7 +397,7 @@ class FanProfilePage extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
+                color: isDark ? AppColors.darkSurfaceElevated : AppColors.comicGrayLight,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 22),

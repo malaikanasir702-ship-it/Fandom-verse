@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/firestore_seeder.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_event.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 import '../bloc/admin_bloc.dart';
 import '../bloc/admin_event.dart';
 import '../bloc/admin_state.dart';
@@ -41,18 +44,28 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             ),
           ),
         ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Command Console',
-              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              'admin@fandomverse.com • Operations Lead',
-              style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 10),
-            ),
-          ],
+        title: BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, authState) {
+            final adminName = authState is AdminAuthenticated
+                ? authState.admin.name
+                : 'Administrator';
+            final adminEmail = authState is AdminAuthenticated
+                ? authState.admin.email
+                : 'admin@fandomverse.com';
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Command Console',
+                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  '$adminEmail • $adminName',
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 10),
+                ),
+              ],
+            );
+          },
         ),
         actions: [
           IconButton(
@@ -70,6 +83,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             icon: const Icon(Icons.logout_rounded, color: AppColors.error),
             tooltip: 'Exit Console',
             onPressed: () {
+              context.read<AuthBloc>().add(const LogoutEvent());
               Navigator.of(context).pushReplacementNamed('/role-selection');
             },
           ),

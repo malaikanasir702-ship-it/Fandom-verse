@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/services/firebase_auth_service.dart';
+import '../../../../core/di/service_locator.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/custom_button.dart';
@@ -19,6 +21,7 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isResettingPassword = false;
 
   @override
   void dispose() {
@@ -27,86 +30,92 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void _fillDemoFanCredentials() {
-    setState(() {
-      _emailController.text = 'fan@fandomverse.com';
-      _passwordController.text = 'fan123';
-    });
-  }
-
-  void _fillDemoAdminCredentials() {
-    setState(() {
-      _emailController.text = 'admin@fandomverse.com';
-      _passwordController.text = 'admin123';
-    });
-  }
-
-  void _showForgotPasswordSheet() {
+  Future<void> _showForgotPasswordSheet() async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final resetEmailController = TextEditingController(text: _emailController.text);
+    final resetEmailController = TextEditingController(text: _emailController.text.trim());
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(ctx).viewInsets.bottom,
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom,
           ),
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.white24 : Colors.black26,
-                    borderRadius: BorderRadius.circular(2),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+            ),
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white24 : Colors.black26,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              Text('Reset Password', style: AppTextStyles.titleLarge),
-              const SizedBox(height: 8),
-              Text(
-                'Enter your registered email address to receive password reset instructions.',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                const SizedBox(height: 20),
+                Text('Reset Password', style: AppTextStyles.titleLarge),
+                const SizedBox(height: 8),
+                Text(
+                  'Enter your registered email address and we\'ll send you password reset instructions.',
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 18),
-              TextField(
-                controller: resetEmailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.email_outlined),
-                  hintText: 'Enter your email',
+                const SizedBox(height: 18),
+                TextField(
+                  controller: resetEmailController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(
+                    prefixIcon: Icon(Icons.email_outlined),
+                    hintText: 'Enter your registered email',
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              CustomButton(
-                text: 'Send Reset Instructions',
-                onPressed: () {
-                  Navigator.of(ctx).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Password reset link sent to your email.'),
-                      backgroundColor: AppColors.success,
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 10),
-            ],
+                const SizedBox(height: 20),
+                CustomButton(
+                  text: 'Send Reset Link',
+                  isLoading: _isResettingPassword,
+                  onPressed: () async {
+                    final email = resetEmailController.text.trim();
+                    if (email.isEmpty) return;
+                    setModalState(() => _isResettingPassword = true);
+                    final messenger = ScaffoldMessenger.of(context);
+                    final navigator = Navigator.of(ctx);
+                    try {
+                      await sl<FirebaseAuthService>().sendPasswordResetEmail(email);
+                      navigator.pop();
+                      messenger.showSnackBar(
+                        const SnackBar(
+                          content: Text('Password reset link sent! Check your email inbox.'),
+                          backgroundColor: AppColors.success,
+                        ),
+                      );
+                    } catch (e) {
+                      messenger.showSnackBar(
+                        SnackBar(
+                          content: Text('Error: ${e.toString()}'),
+                          backgroundColor: AppColors.error,
+                        ),
+                      );
+                    } finally {
+                      setModalState(() => _isResettingPassword = false);
+                    }
+                  },
+                ),
+                const SizedBox(height: 10),
+              ],
+            ),
           ),
         ),
       ),
@@ -119,7 +128,7 @@ class _LoginPageState extends State<LoginPage> {
       builder: (ctx) => AlertDialog(
         title: const Text('Continue as Guest?'),
         content: const Text(
-          'In Guest Mode, you can explore lore and view events, but offline bookmarks and simulated wishlist cart require an account.',
+          'In Guest Mode, you can explore lore and view events, but bookmarks, wishlist, and cart features require a real account.',
         ),
         actions: [
           TextButton(
@@ -157,6 +166,7 @@ class _LoginPageState extends State<LoginPage> {
             SnackBar(
               content: Text(state.errorMessage),
               backgroundColor: AppColors.error,
+              duration: const Duration(seconds: 4),
             ),
           );
         }
@@ -172,35 +182,19 @@ class _LoginPageState extends State<LoginPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 16),
-                  // Top Row with Back and Quick Demo buttons
+                  // Back button only
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       IconButton(
                         onPressed: () => Navigator.of(context).pop(),
                         icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
                       ),
-                      Row(
-                        children: [
-                          ActionChip(
-                            avatar: const Icon(Icons.flash_on_rounded, size: 14, color: AppColors.darkSecondary),
-                            label: const Text('Fan Demo', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
-                            onPressed: _fillDemoFanCredentials,
-                          ),
-                          const SizedBox(width: 6),
-                          ActionChip(
-                            avatar: const Icon(Icons.shield_rounded, size: 14, color: AppColors.darkAccentGold),
-                            label: const Text('Admin Demo', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.darkAccentGold)),
-                            onPressed: _fillDemoAdminCredentials,
-                          ),
-                        ],
-                      ),
                     ],
                   ),
                   const SizedBox(height: 24),
 
-                  Text('Welcome to', style: AppTextStyles.bodyLarge),
-                  Text('Fandom Verse', style: AppTextStyles.displayMedium),
+                  Text('Welcome back', style: AppTextStyles.bodyLarge),
+                  Text('Sign In', style: AppTextStyles.displayMedium),
                   const SizedBox(height: 6),
                   Text(
                     'Sign in to sync your bookmarked lore, event passes, and merchandise wishlist.',
@@ -217,9 +211,10 @@ class _LoginPageState extends State<LoginPage> {
                   TextField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
+                    autocorrect: false,
                     decoration: const InputDecoration(
                       prefixIcon: Icon(Icons.alternate_email_rounded, size: 20),
-                      hintText: 'e.g. fan@fandomverse.com',
+                      hintText: 'Enter your email address',
                     ),
                   ),
 
@@ -233,7 +228,7 @@ class _LoginPageState extends State<LoginPage> {
                       GestureDetector(
                         onTap: _showForgotPasswordSheet,
                         child: const Text(
-                          'Forgot?',
+                          'Forgot Password?',
                           style: TextStyle(
                             color: AppColors.darkSecondary,
                             fontWeight: FontWeight.w600,
@@ -266,7 +261,7 @@ class _LoginPageState extends State<LoginPage> {
 
                   const SizedBox(height: 28),
 
-                  // Submit Button
+                  // Sign In Button
                   CustomButton(
                     text: 'Sign In',
                     isLoading: isLoading,
@@ -289,7 +284,7 @@ class _LoginPageState extends State<LoginPage> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 14),
                         child: Text(
-                          'OR EXPLORE WITH',
+                          'OR CONTINUE WITH',
                           style: AppTextStyles.bodySmall.copyWith(
                             color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
                             fontSize: 11,
@@ -302,48 +297,18 @@ class _LoginPageState extends State<LoginPage> {
 
                   const SizedBox(height: 20),
 
-                  // Social / Guest Buttons
-                  Row(
-                    children: [
-                      Expanded(
-                        child: GlassContainer(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          onTap: () {
-                            _emailController.text = 'google.fan@fandomverse.com';
-                            _passwordController.text = 'fan123';
-                            context.read<AuthBloc>().add(
-                                  FanLoginSubmittedEvent(
-                                    email: _emailController.text,
-                                    password: _passwordController.text,
-                                  ),
-                                );
-                          },
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.g_mobiledata_rounded, size: 28),
-                              SizedBox(width: 4),
-                              Text('Google', style: TextStyle(fontWeight: FontWeight.w600)),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: GlassContainer(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          onTap: _showGuestModeDialog,
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.person_outline_rounded, size: 20),
-                              SizedBox(width: 6),
-                              Text('Guest Mode', style: TextStyle(fontWeight: FontWeight.w600)),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+                  // Guest Mode Button
+                  GlassContainer(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    onTap: _showGuestModeDialog,
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.person_outline_rounded, size: 20),
+                        SizedBox(width: 6),
+                        Text('Continue as Guest', style: TextStyle(fontWeight: FontWeight.w600)),
+                      ],
+                    ),
                   ),
 
                   const SizedBox(height: 36),

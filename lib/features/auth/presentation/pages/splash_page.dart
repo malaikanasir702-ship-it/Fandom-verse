@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../bloc/auth_bloc.dart';
+import '../bloc/auth_event.dart';
+import '../bloc/auth_state.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -33,10 +37,10 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
 
     _controller.forward();
 
-    // Auto navigate after splash animation directly to Onboarding
-    Future.delayed(const Duration(milliseconds: 2200), () {
+    // Dispatch auth session check — listener handles navigation
+    Future.delayed(const Duration(milliseconds: 400), () {
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/onboarding');
+        context.read<AuthBloc>().add(const CheckAuthSessionEvent());
       }
     });
   }
@@ -51,14 +55,34 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      body: Stack(
-        children: [
-          // Background ambient gradient
-          Container(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: const Alignment(0, -0.2),
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is FanAuthenticated) {
+          if (state.user.selectedFandoms.isEmpty) {
+            Navigator.of(context).pushReplacementNamed('/interest-setup');
+          } else {
+            Navigator.of(context).pushReplacementNamed('/fan-home');
+          }
+        } else if (state is AdminAuthenticated) {
+          Navigator.of(context).pushReplacementNamed('/admin-dashboard');
+        } else if (state is Unauthenticated || state is AuthFailure) {
+          // Delay so splash animation has time to show
+          Future.delayed(const Duration(milliseconds: 1800), () {
+            if (context.mounted) {
+              Navigator.of(context).pushReplacementNamed('/onboarding');
+            }
+          });
+        }
+      },
+      child: Scaffold(
+        body: Stack(
+          children: [
+            // Background ambient gradient
+            Container(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: const Alignment(0, -0.2),
+
                 radius: 1.2,
                 colors: isDark
                     ? [
@@ -172,6 +196,7 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
             ),
           ),
         ],
+        ),
       ),
     );
   }

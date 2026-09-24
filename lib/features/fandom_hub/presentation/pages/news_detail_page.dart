@@ -1,7 +1,12 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/comic_ui_widgets.dart';
+import '../bloc/fandom_hub_bloc.dart';
+import '../bloc/fandom_hub_event.dart';
+import '../bloc/fandom_hub_state.dart';
 import '../../domain/entities/fandom_post.dart';
 
 class NewsDetailPage extends StatefulWidget {
@@ -15,62 +20,58 @@ class NewsDetailPage extends StatefulWidget {
 
 class _NewsDetailPageState extends State<NewsDetailPage> {
   bool _isSynopsisExpanded = true;
-  bool _isBookmarked = false;
+  late bool _isBookmarked;
+
+  @override
+  void initState() {
+    super.initState();
+    _isBookmarked = widget.post.isBookmarked;
+  }
+
+  void _toggleBookmark() {
+    context.read<FandomHubBloc>().add(ToggleBookmarkPostEvent(widget.post.id));
+    setState(() {
+      _isBookmarked = !_isBookmarked;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(_isBookmarked ? 'Saved to your collection!' : 'Removed from saved items.'),
+        backgroundColor: AppColors.comicBlack,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final post = widget.post;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
-      // ─── Top App Bar (Right Mockup) ───
-      appBar: AppBar(
+    return BlocListener<FandomHubBloc, FandomHubState>(
+      listener: (context, state) {
+        if (state is FandomHubLoaded) {
+          final found = [
+            ...state.latestNews,
+            ...state.trendingPosts,
+          ].where((p) => p.id == post.id).firstOrNull;
+          if (found != null && found.isBookmarked != _isBookmarked) {
+            setState(() => _isBookmarked = found.isBookmarked);
+          }
+        }
+      },
+      child: Scaffold(
         backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
-        elevation: 0,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16),
-          child: Center(
-            child: GestureDetector(
-              onTap: () => Navigator.of(context).pop(),
-              child: Container(
-                width: 36,
-                height: 36,
-                decoration: const BoxDecoration(
-                  color: AppColors.comicYellow,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.arrow_back_rounded,
-                  color: AppColors.comicBlack,
-                  size: 20,
-                ),
-              ),
-            ),
-          ),
-        ),
-        title: Text(
-          post.category.toUpperCase(),
-          style: AppTextStyles.comicSectionHeader.copyWith(
-            fontSize: 20,
-            color: isDark ? Colors.white : AppColors.comicBlack,
-          ),
-        ),
-        centerTitle: true,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
+        // ─── Top App Bar (Right Mockup) ───
+        appBar: AppBar(
+          backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+          elevation: 0,
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 16),
             child: Center(
               child: GestureDetector(
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('🎧 Audio Lore narration started...'),
-                      backgroundColor: AppColors.comicBlack,
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                },
+                onTap: () => Navigator.of(context).pop(),
                 child: Container(
                   width: 36,
                   height: 36,
@@ -79,30 +80,186 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
-                    Icons.headphones_rounded,
+                    Iconsax.arrow_left,
                     color: AppColors.comicBlack,
-                    size: 20,
+                    size: 18,
                   ),
                 ),
               ),
             ),
           ),
-        ],
-      ),
-
-      // ─── Main Comic Reader Detail Body ───
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 1. Comic Cover Showcase (Center Artwork)
-                Center(
+          title: Text(
+            post.category.toUpperCase(),
+            style: AppTextStyles.comicSectionHeader.copyWith(
+              fontSize: 20,
+              color: isDark ? Colors.white : AppColors.comicBlack,
+            ),
+          ),
+          centerTitle: true,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: Center(
+                child: GestureDetector(
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Audio Lore narration started...'),
+                        backgroundColor: AppColors.comicBlack,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
                   child: Container(
-                    width: 190,
-                    height: 270,
+                    width: 36,
+                    height: 36,
+                    decoration: const BoxDecoration(
+                      color: AppColors.comicYellow,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Iconsax.headphone,
+                      color: AppColors.comicBlack,
+                      size: 18,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        // ─── Main Comic Reader Detail Body ───
+        body: Stack(
+          children: [
+            SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 1. Comic Cover Showcase (Center Artwork)
+                  Center(
+                    child: Container(
+                      width: 190,
+                      height: 270,
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.darkSurface : Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isDark ? AppColors.darkBorder : AppColors.comicBorderColor,
+                          width: 1.5,
+                        ),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: Image.network(
+                        post.imageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const Center(
+                          child: Icon(Iconsax.book, size: 50, color: AppColors.comicGray),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // 2. Metadata Bar: Date • Issue # • Flash Rating
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${post.readTimeMinutes} min read',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? AppColors.darkTextSecondary : AppColors.comicGray,
+                        ),
+                      ),
+                      Text(
+                        'ISSUE #1',
+                        style: AppTextStyles.comicRating.copyWith(
+                          fontSize: 16,
+                          color: isDark ? Colors.white : AppColors.comicBlack,
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          const Icon(Iconsax.flash, color: AppColors.comicYellow, size: 18),
+                          const SizedBox(width: 4),
+                          Text(
+                            '8.6',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w900,
+                              color: isDark ? Colors.white : AppColors.comicBlack,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // 3. Variant Editions / Also Read list
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.darkSurface : Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: isDark ? AppColors.darkBorder : AppColors.comicBorderColor,
+                        width: 1.2,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ALSO READ',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1,
+                            color: isDark ? AppColors.comicYellow : AppColors.comicRed,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildVariantRow('001 Variant Edition', isDark),
+                        const Divider(height: 14, thickness: 0.8),
+                        _buildVariantRow('002 Director\'s Cut', isDark),
+                        const Divider(height: 14, thickness: 0.8),
+                        _buildVariantRow('003 Foil Cover Edition', isDark),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // 4. FEATURED CHARACTERS
+                  Text(
+                    'FEATURED CHARACTERS',
+                    style: AppTextStyles.comicSectionHeader.copyWith(
+                      fontSize: 14,
+                      color: isDark ? Colors.white : AppColors.comicBlack,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _buildCharacterChip(post.authorName, AppColors.heroRed),
+                      _buildCharacterChip(post.category, AppColors.heroBlue),
+                      _buildCharacterChip('The Fandom Hero', AppColors.heroYellow),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // 5. TACTILE PAPER SYNOPSIS CARD (Right Mockup)
+                  Container(
+                    padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
                       color: isDark ? AppColors.darkSurface : Colors.white,
                       borderRadius: BorderRadius.circular(16),
@@ -111,272 +268,149 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                         width: 1.5,
                       ),
                     ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Image.network(
-                      post.imageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const Center(
-                        child: Icon(Icons.menu_book_rounded, size: 60, color: AppColors.comicGray),
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // 2. Metadata Bar: Date • Issue # • ⚡ Rating
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '${post.readTimeMinutes} min read',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? AppColors.darkTextSecondary : AppColors.comicGray,
-                      ),
-                    ),
-                    Text(
-                      'ISSUE #1',
-                      style: AppTextStyles.comicRating.copyWith(
-                        fontSize: 16,
-                        color: isDark ? Colors.white : AppColors.comicBlack,
-                      ),
-                    ),
-                    Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.bolt_rounded, color: AppColors.comicYellow, size: 20),
-                        const SizedBox(width: 2),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'SYNOPSIS',
+                              style: AppTextStyles.comicSectionHeader.copyWith(
+                                fontSize: 15,
+                                color: isDark ? Colors.white : AppColors.comicBlack,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _isSynopsisExpanded = !_isSynopsisExpanded;
+                                });
+                              },
+                              child: Container(
+                                width: 26,
+                                height: 26,
+                                decoration: const BoxDecoration(
+                                  color: AppColors.comicRed,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  _isSynopsisExpanded
+                                      ? Iconsax.arrow_up_2
+                                      : Iconsax.arrow_down_1,
+                                  color: Colors.white,
+                                  size: 14,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
                         Text(
-                          '8.6',
+                          post.summary,
                           style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w900,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            height: 1.5,
                             color: isDark ? Colors.white : AppColors.comicBlack,
                           ),
                         ),
-                      ],
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-
-                // 3. Variant Editions / Also Read list
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkSurface : Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: isDark ? AppColors.darkBorder : AppColors.comicBorderColor,
-                      width: 1.2,
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'ALSO READ',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1,
-                          color: isDark ? AppColors.comicYellow : AppColors.comicRed,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      _buildVariantRow('001 Variant Edition', isDark),
-                      const Divider(height: 14, thickness: 0.8),
-                      _buildVariantRow('002 Director\'s Cut', isDark),
-                      const Divider(height: 14, thickness: 0.8),
-                      _buildVariantRow('003 Foil Cover Edition', isDark),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // 4. FEATURED CHARACTERS
-                Text(
-                  'FEATURED CHARACTERS',
-                  style: AppTextStyles.comicSectionHeader.copyWith(
-                    fontSize: 14,
-                    color: isDark ? Colors.white : AppColors.comicBlack,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _buildCharacterChip(post.authorName, AppColors.heroRed),
-                    _buildCharacterChip(post.category, AppColors.heroBlue),
-                    _buildCharacterChip('The Fandom Hero', AppColors.heroYellow),
-                  ],
-                ),
-
-                const SizedBox(height: 20),
-
-                // 5. TACTILE PAPER SYNOPSIS CARD (Right Mockup)
-                Container(
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkSurface : Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: isDark ? AppColors.darkBorder : AppColors.comicBorderColor,
-                      width: 1.5,
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
+                        if (_isSynopsisExpanded) ...[
+                          const SizedBox(height: 10),
                           Text(
-                            'SYNOPSIS',
-                            style: AppTextStyles.comicSectionHeader.copyWith(
-                              fontSize: 15,
-                              color: isDark ? Colors.white : AppColors.comicBlack,
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _isSynopsisExpanded = !_isSynopsisExpanded;
-                              });
-                            },
-                            child: Container(
-                              width: 26,
-                              height: 26,
-                              decoration: const BoxDecoration(
-                                color: AppColors.comicRed,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                _isSynopsisExpanded
-                                    ? Icons.keyboard_arrow_up_rounded
-                                    : Icons.keyboard_arrow_down_rounded,
-                                color: Colors.white,
-                                size: 18,
-                              ),
+                            'The story delves deeper into the uncharted territories of the verse. As ancient tensions reignite, loyalties are tested and legends are reborn through supreme conflict and heroic determination.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              height: 1.55,
+                              color: isDark ? AppColors.darkTextSecondary : AppColors.comicGray,
                             ),
                           ),
                         ],
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        post.summary,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          height: 1.5,
-                          color: isDark ? Colors.white : AppColors.comicBlack,
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // 6. Action Row: Save & Share (Interactive Save to Saved)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(
+                            color: _isBookmarked
+                                ? AppColors.comicRed
+                                : (isDark ? AppColors.darkBorder : AppColors.comicBorderColor),
+                            width: 1.5,
+                          ),
+                          backgroundColor: _isBookmarked ? AppColors.comicRed.withValues(alpha: 0.1) : null,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
-                      ),
-                      if (_isSynopsisExpanded) ...[
-                        const SizedBox(height: 10),
-                        Text(
-                          'The story delves deeper into the uncharted territories of the verse. As ancient tensions reignite, loyalties are tested and legends are reborn through supreme conflict and heroic determination.',
+                        icon: Icon(
+                          _isBookmarked ? Iconsax.bookmark : Iconsax.bookmark,
+                          color: _isBookmarked ? AppColors.comicRed : (isDark ? Colors.white : AppColors.comicBlack),
+                          size: 18,
+                        ),
+                        label: Text(
+                          _isBookmarked ? 'SAVED' : 'SAVE',
                           style: TextStyle(
-                            fontSize: 12,
-                            height: 1.55,
-                            color: isDark ? AppColors.darkTextSecondary : AppColors.comicGray,
+                            color: _isBookmarked ? AppColors.comicRed : (isDark ? Colors.white : AppColors.comicBlack),
+                            fontWeight: FontWeight.w900,
                           ),
                         ),
-                      ],
+                        onPressed: _toggleBookmark,
+                      ),
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(
+                            color: isDark ? AppColors.darkBorder : AppColors.comicBorderColor,
+                            width: 1.2,
+                          ),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        icon: Icon(
+                          Iconsax.share,
+                          color: isDark ? Colors.white : AppColors.comicBlack,
+                          size: 18,
+                        ),
+                        label: Text(
+                          'SHARE',
+                          style: TextStyle(
+                            color: isDark ? Colors.white : AppColors.comicBlack,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Comic link copied to clipboard!'),
+                              backgroundColor: AppColors.comicBlack,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                      ),
                     ],
                   ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // 6. Action Row: Save & Share
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(
-                          color: isDark ? AppColors.darkBorder : AppColors.comicBorderColor,
-                          width: 1.2,
-                        ),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      icon: Icon(
-                        _isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-                        color: _isBookmarked ? AppColors.comicRed : (isDark ? Colors.white : AppColors.comicBlack),
-                      ),
-                      label: Text(
-                        _isBookmarked ? 'SAVED' : 'SAVE',
-                        style: TextStyle(
-                          color: isDark ? Colors.white : AppColors.comicBlack,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _isBookmarked = !_isBookmarked;
-                        });
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(_isBookmarked ? '🔖 Saved to your collection!' : 'Removed from saved.'),
-                            backgroundColor: AppColors.comicBlack,
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                      },
-                    ),
-                    OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(
-                          color: isDark ? AppColors.darkBorder : AppColors.comicBorderColor,
-                          width: 1.2,
-                        ),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      icon: Icon(
-                        Icons.share_rounded,
-                        color: isDark ? Colors.white : AppColors.comicBlack,
-                      ),
-                      label: Text(
-                        'SHARE',
-                        style: TextStyle(
-                          color: isDark ? Colors.white : AppColors.comicBlack,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('🔗 Comic link copied to clipboard!'),
-                            backgroundColor: AppColors.comicBlack,
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
 
-          // ─── Pinned Bottom "READ NOW" Button (Right Mockup) ───
-          Positioned(
-            left: 20,
-            right: 20,
-            bottom: 20,
-            child: ComicRedButton(
-              label: 'READ NOW',
-              onPressed: () {
-                _showReadingViewer(context, post);
-              },
+            // ─── Pinned Bottom "READ NOW" Button (Right Mockup) ───
+            Positioned(
+              left: 20,
+              right: 20,
+              bottom: 20,
+              child: ComicRedButton(
+                label: 'READ NOW',
+                onPressed: () {
+                  _showReadingViewer(context, post);
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -393,7 +427,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
             color: isDark ? Colors.white : AppColors.comicBlack,
           ),
         ),
-        const Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.comicGray),
+        const Icon(Iconsax.arrow_right_3, size: 14, color: AppColors.comicGray),
       ],
     );
   }

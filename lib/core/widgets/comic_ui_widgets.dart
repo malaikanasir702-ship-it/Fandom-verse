@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 
@@ -46,9 +47,9 @@ class ComicSectionHeader extends StatelessWidget {
                 ),
                 child: const Center(
                   child: Icon(
-                    Icons.chevron_right_rounded,
+                    Iconsax.arrow_right_3,
                     color: AppColors.comicBlack,
-                    size: 20,
+                    size: 16,
                   ),
                 ),
               ),
@@ -202,7 +203,7 @@ class ComicCoverCard extends StatelessWidget {
                   imageUrl,
                   fit: BoxFit.cover,
                   errorBuilder: (_, __, ___) => const Center(
-                    child: Icon(Icons.menu_book_rounded, size: 40, color: AppColors.comicGray),
+                    child: Icon(Iconsax.book, size: 36, color: AppColors.comicGray),
                   ),
                 ),
               ),
@@ -236,8 +237,8 @@ class ComicCoverCard extends StatelessWidget {
             // Rating + Publisher Chip
             Row(
               children: [
-                const Icon(Icons.bolt_rounded, size: 16, color: AppColors.comicYellow),
-                const SizedBox(width: 2),
+                const Icon(Iconsax.flash, size: 14, color: AppColors.comicYellow),
+                const SizedBox(width: 4),
                 Text(
                   rating.toStringAsFixed(1),
                   style: TextStyle(
@@ -361,7 +362,7 @@ class HeroPopOutBanner extends StatelessWidget {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.bolt_rounded, color: AppColors.comicYellow, size: 18),
+                      const Icon(Iconsax.flash, color: AppColors.comicYellow, size: 16),
                       const SizedBox(width: 4),
                       Text(
                         rating.toStringAsFixed(1),

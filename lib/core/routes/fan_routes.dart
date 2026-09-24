@@ -25,6 +25,7 @@ import '../../features/fandom_hub/domain/entities/fandom_post.dart';
 import '../../features/events/presentation/pages/events_calendar_page.dart';
 import '../../features/events/presentation/pages/event_detail_page.dart';
 import '../../features/events/presentation/pages/events_map_page.dart';
+import '../../features/events/presentation/pages/stripe_ticket_checkout_page.dart';
 import '../../features/events/domain/entities/event_entity.dart';
 
 // Community Pages
@@ -107,6 +108,10 @@ class FanRoutes {
       case '/event-detail':
         final event = settings.arguments as EventEntity;
         return MaterialPageRoute(builder: (_) => EventDetailPage(event: event));
+
+      case '/stripe-ticket-checkout':
+        final event = settings.arguments as EventEntity;
+        return MaterialPageRoute(builder: (_) => StripeTicketCheckoutPage(event: event));
 
       case '/events-map':
         return MaterialPageRoute(builder: (_) => const EventsMapPage());

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/firestore_seeder.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
@@ -69,22 +70,22 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
+            icon: const Icon(Iconsax.refresh, color: Colors.white70, size: 20),
             tooltip: 'Refresh Metrics',
             onPressed: () => context.read<AdminBloc>().add(const LoadAdminDashboardStatsEvent()),
           ),
           // ── Seed Firestore Button ──
           IconButton(
-            icon: const Icon(Icons.cloud_upload_rounded, color: AppColors.darkSecondary),
+            icon: const Icon(Iconsax.cloud_connection, color: AppColors.darkSecondary, size: 20),
             tooltip: 'Seed Firestore Database',
             onPressed: () => _showSeedDialog(context),
           ),
           IconButton(
-            icon: const Icon(Icons.logout_rounded, color: AppColors.error),
+            icon: const Icon(Iconsax.logout, color: AppColors.error, size: 20),
             tooltip: 'Exit Console',
             onPressed: () {
               context.read<AuthBloc>().add(const LogoutEvent());
-              Navigator.of(context).pushReplacementNamed('/role-selection');
+              Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
             },
           ),
           const SizedBox(width: 8),

@@ -332,11 +332,15 @@ class _EventDetailPageState extends State<EventDetailPage> {
                       Expanded(
                         child: CustomButton(
                           text: 'Buy Tickets',
-                          isOutlined: true,
-                          icon: Icons.open_in_new_rounded,
-                          onPressed: () async {
-                            final url = Uri.parse(widget.event.ticketLink);
-                            if (await canLaunchUrl(url)) await launchUrl(url);
+                          isOutlined: false,
+                          icon: Icons.confirmation_number_rounded,
+                          backgroundColor: AppColors.comicRed,
+                          textColor: Colors.white,
+                          onPressed: () {
+                            Navigator.of(context).pushNamed(
+                              '/stripe-ticket-checkout',
+                              arguments: widget.event,
+                            );
                           },
                         ),
                       ),

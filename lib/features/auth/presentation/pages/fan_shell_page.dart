@@ -13,6 +13,8 @@ import '../../../events/presentation/bloc/event_event.dart';
 import '../../../community/presentation/bloc/community_bloc.dart';
 import '../../../community/presentation/bloc/community_event.dart';
 
+import 'package:iconsax_flutter/iconsax_flutter.dart';
+
 class FanShellPage extends StatefulWidget {
   const FanShellPage({super.key});
 
@@ -66,28 +68,28 @@ class _FanShellPageState extends State<FanShellPage> {
           indicatorColor: AppColors.comicRed,
           destinations: const [
             NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home_rounded),
+              icon: Icon(Iconsax.home),
+              selectedIcon: Icon(Iconsax.home, color: Colors.white),
               label: 'Home',
             ),
             NavigationDestination(
-              icon: Icon(Icons.auto_stories_outlined),
-              selectedIcon: Icon(Icons.auto_stories_rounded),
+              icon: Icon(Iconsax.book),
+              selectedIcon: Icon(Iconsax.book, color: Colors.white),
               label: 'Lore Hub',
             ),
             NavigationDestination(
-              icon: Icon(Icons.radar_outlined),
-              selectedIcon: Icon(Icons.radar_rounded),
+              icon: Icon(Iconsax.calendar),
+              selectedIcon: Icon(Iconsax.calendar, color: Colors.white),
               label: 'Events',
             ),
             NavigationDestination(
-              icon: Icon(Icons.forum_outlined),
-              selectedIcon: Icon(Icons.forum_rounded),
+              icon: Icon(Iconsax.messages),
+              selectedIcon: Icon(Iconsax.messages, color: Colors.white),
               label: 'Community',
             ),
             NavigationDestination(
-              icon: Icon(Icons.bookmark_outline_rounded),
-              selectedIcon: Icon(Icons.bookmark_rounded),
+              icon: Icon(Iconsax.bookmark),
+              selectedIcon: Icon(Iconsax.bookmark, color: Colors.white),
               label: 'Saved',
             ),
           ],

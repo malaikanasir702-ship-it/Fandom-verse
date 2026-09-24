@@ -1,5 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/comic_ui_widgets.dart';
@@ -76,6 +77,7 @@ class _FanFeedContent extends StatelessWidget {
         // ─── Comic Header Bar ───
         SliverAppBar(
           floating: true,
+          automaticallyImplyLeading: false,
           backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
           expandedHeight: 80,
           flexibleSpace: FlexibleSpaceBar(
@@ -109,7 +111,7 @@ class _FanFeedContent extends StatelessWidget {
                         ),
                       ],
                     ),
-                    // Action Icons: Search & Profile (Solid styling)
+                    // Action Icons: Search & Profile (Iconsax)
                     Row(
                       children: [
                         GestureDetector(
@@ -126,8 +128,8 @@ class _FanFeedContent extends StatelessWidget {
                               ),
                             ),
                             child: Icon(
-                              Icons.search_rounded,
-                              size: 20,
+                              Iconsax.search_normal,
+                              size: 18,
                               color: isDark ? Colors.white : AppColors.comicBlack,
                             ),
                           ),
@@ -143,7 +145,7 @@ class _FanFeedContent extends StatelessWidget {
                               shape: BoxShape.circle,
                             ),
                             child: const Center(
-                              child: Icon(Icons.person_rounded, color: Colors.white, size: 20),
+                              child: Icon(Iconsax.user, color: Colors.white, size: 18),
                             ),
                           ),
                         ),
@@ -230,15 +232,21 @@ class _FanFeedContent extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // 4. QUICK ACCESS CHIPS (Solid Flat Styling)
+              // 4. QUICK ACCESS CHIPS (Iconsax icons)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Text(
-                  '⚡ QUICK ACCESS',
-                  style: AppTextStyles.comicSectionHeader.copyWith(
-                    fontSize: 16,
-                    color: isDark ? Colors.white : AppColors.comicBlack,
-                  ),
+                child: Row(
+                  children: [
+                    const Icon(Iconsax.flash, size: 18, color: AppColors.comicYellow),
+                    const SizedBox(width: 6),
+                    Text(
+                      'QUICK ACCESS',
+                      style: AppTextStyles.comicSectionHeader.copyWith(
+                        fontSize: 16,
+                        color: isDark ? Colors.white : AppColors.comicBlack,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 12),
@@ -248,42 +256,42 @@ class _FanFeedContent extends StatelessWidget {
                 child: Row(
                   children: [
                     _SolidQuickChip(
-                      icon: Icons.school_rounded,
+                      icon: Iconsax.book,
                       label: 'Beginner Hub',
                       color: AppColors.comicRed,
                       onTap: () => Navigator.of(context).pushNamed('/beginner-hub'),
                     ),
                     const SizedBox(width: 10),
                     _SolidQuickChip(
-                      icon: Icons.bolt_rounded,
+                      icon: Iconsax.cup,
                       label: 'Trivia Challenge',
                       color: AppColors.comicYellowDark,
                       onTap: () => _showTriviaDialog(context),
                     ),
                     const SizedBox(width: 10),
                     _SolidQuickChip(
-                      icon: Icons.radar_rounded,
+                      icon: Iconsax.radar,
                       label: 'Event Radar',
                       color: AppColors.heroBlue,
                       onTap: () => Navigator.of(context).pushNamed('/events-map'),
                     ),
                     const SizedBox(width: 10),
                     _SolidQuickChip(
-                      icon: Icons.smart_toy_rounded,
+                      icon: Iconsax.lamp_on,
                       label: 'AI Assistant',
                       color: AppColors.heroGreen,
                       onTap: () => Navigator.of(context).pushNamed('/ai-assistant'),
                     ),
                     const SizedBox(width: 10),
                     _SolidQuickChip(
-                      icon: Icons.shopping_bag_rounded,
+                      icon: Iconsax.shop,
                       label: 'Merch Store',
                       color: AppColors.heroPurple,
                       onTap: () => Navigator.of(context).pushNamed('/store'),
                     ),
                     const SizedBox(width: 10),
                     _SolidQuickChip(
-                      icon: Icons.shield_rounded,
+                      icon: Iconsax.security_user,
                       label: 'Admin Portal',
                       color: AppColors.comicBlack,
                       onTap: () => Navigator.of(context).pushNamed('/admin-dashboard'),
@@ -322,7 +330,7 @@ class _FanFeedContent extends StatelessWidget {
         ),
         title: const Row(
           children: [
-            Icon(Icons.bolt_rounded, color: AppColors.comicYellow, size: 28),
+            Icon(Iconsax.cup, color: AppColors.comicYellow, size: 26),
             SizedBox(width: 8),
             Text(
               'TRIVIA CHALLENGE',
@@ -355,7 +363,7 @@ class _FanFeedContent extends StatelessWidget {
               Navigator.of(ctx).pop();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('🎉 Correct! +50 Trivia XP earned!'),
+                  content: Text('Correct! +50 Trivia XP earned!'),
                   backgroundColor: AppColors.success,
                   behavior: SnackBarBehavior.floating,
                 ),
@@ -370,7 +378,7 @@ class _FanFeedContent extends StatelessWidget {
 }
 
 /// ─────────────────────────────────────────────────────────────────────────────
-/// SOLID NEWS & LORE CARD (Zero Gradients, Zero Blur)
+/// SOLID NEWS & LORE CARD (Zero Gradients, Zero Blur, Iconsax Icons)
 /// ─────────────────────────────────────────────────────────────────────────────
 class _SolidNewsCard extends StatelessWidget {
   final FandomPost post;
@@ -407,7 +415,7 @@ class _SolidNewsCard extends StatelessWidget {
                   width: 84,
                   height: 84,
                   color: isDark ? AppColors.darkSurfaceElevated : AppColors.comicGrayLight,
-                  child: const Icon(Icons.image_rounded, color: AppColors.comicGray),
+                  child: const Icon(Iconsax.book, color: AppColors.comicGray),
                 ),
               ),
             ),
@@ -448,8 +456,8 @@ class _SolidNewsCard extends StatelessWidget {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.bolt_rounded, size: 14, color: AppColors.comicYellow),
-                      const SizedBox(width: 2),
+                      const Icon(Iconsax.flash, size: 14, color: AppColors.comicYellow),
+                      const SizedBox(width: 4),
                       Text(
                         '8.6',
                         style: TextStyle(
@@ -479,7 +487,7 @@ class _SolidNewsCard extends StatelessWidget {
 }
 
 /// ─────────────────────────────────────────────────────────────────────────────
-/// SOLID QUICK CHIP (Zero Gradients, Flat Solid Fill)
+/// SOLID QUICK CHIP (Iconsax Icons)
 /// ─────────────────────────────────────────────────────────────────────────────
 class _SolidQuickChip extends StatelessWidget {
   final IconData icon;

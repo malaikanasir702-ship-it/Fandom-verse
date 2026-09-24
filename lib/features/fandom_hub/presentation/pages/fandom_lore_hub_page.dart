@@ -134,7 +134,7 @@ class _BeginnerHubTab extends StatelessWidget {
         return GlassContainer(
           padding: const EdgeInsets.all(16),
           borderColor: color.withValues(alpha: 0.25),
-          onTap: () {},
+          onTap: () => Navigator.of(context).pushNamed('/beginner-hub', arguments: guide),
           child: Row(
             children: [
               Container(

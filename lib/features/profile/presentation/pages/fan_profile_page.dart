@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
@@ -20,7 +21,7 @@ class FanProfilePage extends StatelessWidget {
         ),
         title: const Row(
           children: [
-            Icon(Icons.logout_rounded, color: AppColors.comicRed, size: 24),
+            Icon(Iconsax.logout, color: AppColors.comicRed, size: 24),
             SizedBox(width: 10),
             Text(
               'LOG OUT',
@@ -80,7 +81,7 @@ class FanProfilePage extends StatelessWidget {
     // 3. Optional visual feedback
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('👋 Logged out successfully.'),
+        content: Text('Logged out successfully.'),
         backgroundColor: AppColors.comicBlack,
         behavior: SnackBarBehavior.floating,
       ),
@@ -107,11 +108,11 @@ class FanProfilePage extends StatelessWidget {
         title: const Text('Fan Profile', style: TextStyle(fontWeight: FontWeight.w800)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings_outlined),
+            icon: const Icon(Iconsax.setting_2),
             onPressed: () => Navigator.of(context).pushNamed('/settings'),
           ),
           IconButton(
-            icon: const Icon(Icons.logout_rounded, color: AppColors.comicRed),
+            icon: const Icon(Iconsax.logout, color: AppColors.comicRed),
             tooltip: 'Log Out',
             onPressed: () => _showLogoutDialog(context),
           ),
@@ -160,7 +161,7 @@ class FanProfilePage extends StatelessWidget {
                               color: AppColors.comicYellow,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.edit_rounded, size: 16, color: AppColors.comicBlack),
+                            child: const Icon(Iconsax.edit, size: 16, color: AppColors.comicBlack),
                           ),
                         ),
                       ),
@@ -181,19 +182,26 @@ class FanProfilePage extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                     decoration: BoxDecoration(
                       color: AppColors.comicYellow,
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text(
-                      '🏆 LORE MASTER TIER III',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.comicBlack,
-                        letterSpacing: 0.5,
-                      ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Iconsax.cup, size: 14, color: AppColors.comicBlack),
+                        SizedBox(width: 6),
+                        Text(
+                          'LORE MASTER TIER III',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.comicBlack,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -255,11 +263,11 @@ class FanProfilePage extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                '⚔️ Demon Slayer',
-                '🎮 Elden Ring',
-                '⚡ Marvel Multiverse',
-                '🎶 BTS ARMY',
-                '🌌 Star Wars Lore',
+                'Demon Slayer',
+                'Elden Ring',
+                'Marvel Multiverse',
+                'BTS ARMY',
+                'Star Wars Lore',
               ].map((f) => Chip(
                     label: Text(f, style: const TextStyle(fontSize: 12)),
                     backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
@@ -267,10 +275,10 @@ class FanProfilePage extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // Quick Nav Links
+            // Quick Nav Links with Iconsax
             _buildProfileNavTile(
               context,
-              icon: Icons.history_rounded,
+              icon: Iconsax.receipt,
               title: 'Simulated Order History',
               subtitle: 'Track simulated merch invoices & bills',
               route: '/order-history',
@@ -278,7 +286,7 @@ class FanProfilePage extends StatelessWidget {
             ),
             _buildProfileNavTile(
               context,
-              icon: Icons.favorite_border_rounded,
+              icon: Iconsax.heart,
               title: 'Saved Merch Wishlist',
               subtitle: 'Exclusive figures, katanas & hoodies',
               route: '/wishlist',
@@ -286,7 +294,7 @@ class FanProfilePage extends StatelessWidget {
             ),
             _buildProfileNavTile(
               context,
-              icon: Icons.storefront_rounded,
+              icon: Iconsax.shop,
               title: 'Official Merch Store',
               subtitle: 'Limited edition drops & anime replicas',
               route: '/store',
@@ -294,7 +302,7 @@ class FanProfilePage extends StatelessWidget {
             ),
             _buildProfileNavTile(
               context,
-              icon: Icons.military_tech_rounded,
+              icon: Iconsax.cup,
               title: 'Achievements & Badges',
               subtitle: '14 Unlocked • 3 In Progress',
               route: '/badges',
@@ -302,7 +310,7 @@ class FanProfilePage extends StatelessWidget {
             ),
             _buildProfileNavTile(
               context,
-              icon: Icons.notifications_outlined,
+              icon: Iconsax.notification,
               title: 'Notifications & Alerts',
               subtitle: 'Upcoming con reminders & replies',
               route: '/notifications',
@@ -310,7 +318,7 @@ class FanProfilePage extends StatelessWidget {
             ),
             _buildProfileNavTile(
               context,
-              icon: Icons.bookmark_border_rounded,
+              icon: Iconsax.bookmark,
               title: 'Bookmarks & Favorites',
               subtitle: 'Saved lore articles, terms & events',
               route: '/bookmarks',
@@ -332,7 +340,7 @@ class FanProfilePage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                icon: const Icon(Icons.logout_rounded, size: 20),
+                icon: const Icon(Iconsax.logout, size: 20),
                 label: const Text(
                   'LOG OUT',
                   style: TextStyle(
@@ -400,7 +408,7 @@ class FanProfilePage extends StatelessWidget {
                 color: isDark ? AppColors.darkSurfaceElevated : AppColors.comicGrayLight,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: color, size: 22),
+              child: Icon(icon, color: color, size: 20),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -419,7 +427,7 @@ class FanProfilePage extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios_rounded, size: 14, color: isDark ? Colors.white38 : Colors.black38),
+            Icon(Iconsax.arrow_right_3, size: 14, color: isDark ? Colors.white38 : Colors.black38),
           ],
         ),
       ),

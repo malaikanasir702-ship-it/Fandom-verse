@@ -79,7 +79,16 @@ class _HeroStoryViewerPageState extends State<HeroStoryViewerPage> {
         url: slide.imageUrl,
         controller: _storyController,
         duration: const Duration(seconds: 5),
-        caption: '${slide.tag}   ${slide.caption}',
+        caption: Text(
+          '${slide.tag}   ${slide.caption}',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+            fontSize: 15,
+            height: 1.5,
+            shadows: [Shadow(color: Colors.black87, blurRadius: 10)],
+          ),
+        ),
         imageFit: BoxFit.cover,
         shown: false,
       );
@@ -148,7 +157,7 @@ class _StoryPageContent extends StatelessWidget {
           onVerticalSwipeComplete: (direction) {
             if (direction == Direction.down) onDismiss();
           },
-          onStoryShow: (storyItem) {},
+          onStoryShow: (storyItem, idx) {},
         ),
 
         // ── Top Overlay: Avatar + Hero name + Close ─────────────────────────

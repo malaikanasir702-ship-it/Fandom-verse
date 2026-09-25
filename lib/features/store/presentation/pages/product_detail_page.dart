@@ -8,6 +8,7 @@ import '../../domain/entities/product_entity.dart';
 import '../../../cart_checkout/presentation/bloc/cart_bloc.dart';
 import '../../../cart_checkout/presentation/bloc/cart_event.dart';
 import '../../../cart_checkout/presentation/bloc/cart_state.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final ProductEntity product;
@@ -65,9 +66,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
                 ),
                 tooltip: 'Wishlist',
                 onPressed: () {
+                  final uid = context.read<AuthBloc>().currentUser?.id ?? 'fan-01';
                   context.read<CartBloc>().add(
                         ToggleWishlistEvent(
-                          userId: 'fan-01',
+                          userId: uid,
                           productId: product.id,
                         ),
                       );

@@ -18,19 +18,17 @@ class ProfileLoading extends ProfileState {
 class ProfileLoaded extends ProfileState {
   final Map<String, dynamic> user;
   final List<Map<String, dynamic>> orders;
-  final double cacheSizeMB;
   final int bookmarksCount;
   final int wishlistCount;
-  final int triviaXp;
+  final int discussionCount;
   final String? statusMessage;
 
   const ProfileLoaded({
     required this.user,
     required this.orders,
-    required this.cacheSizeMB,
-    this.bookmarksCount = 14,
-    this.wishlistCount = 5,
-    this.triviaXp = 280,
+    this.bookmarksCount = 0,
+    this.wishlistCount = 0,
+    this.discussionCount = 0,
     this.statusMessage,
   });
 
@@ -38,10 +36,9 @@ class ProfileLoaded extends ProfileState {
   List<Object?> get props => [
         user,
         orders,
-        cacheSizeMB,
         bookmarksCount,
         wishlistCount,
-        triviaXp,
+        discussionCount,
         statusMessage,
       ];
 }

@@ -62,12 +62,12 @@ class ClearCartEvent extends CartEvent {
   const ClearCartEvent();
 }
 
-class ExecuteSimulatedCheckoutEvent extends CartEvent {
+class ExecuteCheckoutEvent extends CartEvent {
   final String userId;
   final String shippingAddress;
   final String paymentMethod;
 
-  const ExecuteSimulatedCheckoutEvent({
+  const ExecuteCheckoutEvent({
     required this.userId,
     required this.shippingAddress,
     required this.paymentMethod,

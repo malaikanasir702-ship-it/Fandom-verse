@@ -10,6 +10,7 @@ import '../bloc/cart_event.dart';
 import '../bloc/cart_state.dart';
 import '../../../store/domain/entities/product_entity.dart';
 import '../../../store/presentation/pages/product_detail_page.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 
 class WishlistPage extends StatefulWidget {
   const WishlistPage({super.key});
@@ -19,10 +20,13 @@ class WishlistPage extends StatefulWidget {
 }
 
 class _WishlistPageState extends State<WishlistPage> {
+  String _userId = 'fan-01';
+
   @override
   void initState() {
     super.initState();
-    context.read<CartBloc>().add(const LoadWishlistEvent('fan-01'));
+    _userId = context.read<AuthBloc>().currentUser?.id ?? 'fan-01';
+    context.read<CartBloc>().add(LoadWishlistEvent(_userId));
   }
 
   @override
@@ -226,7 +230,7 @@ class _WishlistPageState extends State<WishlistPage> {
                 onPressed: () {
                   context.read<CartBloc>().add(
                         ToggleWishlistEvent(
-                          userId: 'fan-01',
+                          userId: _userId,
                           productId: product.id,
                         ),
                       );
@@ -249,7 +253,7 @@ class _WishlistPageState extends State<WishlistPage> {
                       );
                   context.read<CartBloc>().add(
                         ToggleWishlistEvent(
-                          userId: 'fan-01',
+                          userId: _userId,
                           productId: product.id,
                         ),
                       );

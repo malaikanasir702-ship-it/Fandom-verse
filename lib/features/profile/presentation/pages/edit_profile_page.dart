@@ -3,9 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_button.dart';
-import '../../../auth/presentation/bloc/auth_bloc.dart';
-import '../../../auth/presentation/bloc/auth_event.dart';
-import '../widgets/profile_picture_sheet.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -15,118 +12,30 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-  late final TextEditingController _nameController;
-  late final TextEditingController _handleController;
-  late final TextEditingController _bioController;
-  late final TextEditingController _cityController;
-  String? _avatarUrl;
-  bool _isSaving = false;
-
-  @override
-  void initState() {
-    super.initState();
-    final user = context.read<AuthBloc>().currentUser;
-    _nameController = TextEditingController(text: user?.name ?? 'Alex Rivera');
-    _handleController = TextEditingController(
-      text: user?.name.isNotEmpty == true
-          ? user!.name.toLowerCase().replaceAll(' ', '_')
-          : 'OtakuMaster_99',
-    );
-    _bioController = TextEditingController(
-      text: user?.bio ??
-          'Die-hard Shonen anime fan, Soulsborne speedrun enthusiast, and Marvel comics archivist.',
-    );
-    _cityController = TextEditingController(text: 'Los Angeles, CA');
-    _avatarUrl = user?.avatarUrl;
-  }
+  final _nameController = TextEditingController(text: 'Alex Rivera');
+  final _handleController = TextEditingController(text: 'OtakuMaster_99');
+  final _bioController = TextEditingController(
+    text: 'Die-hard Shonen anime fan, Soulsborne speedrun enthusiast, and Marvel comics archivist.',
+  );
+  final _cityController = TextEditingController(text: 'Los Angeles, CA');
 
   @override
   void dispose() {
     _nameController.dispose();
-    _handleController.dispose();
     _bioController.dispose();
     _cityController.dispose();
     super.dispose();
   }
 
-  void _openAvatarPicker() {
-    ProfilePictureSheet.show(
-      context: context,
-      currentAvatarUrl: _avatarUrl,
-      onSelectedUrl: (url) {
-        setState(() {
-          _avatarUrl = url;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Avatar selected! Tap "Save Changes" to commit.'),
-            backgroundColor: AppColors.comicYellowDark,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      },
-      onRemoveAvatar: () {
-        setState(() {
-          _avatarUrl = null;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile picture removed. Tap "Save Changes" to commit.'),
-            backgroundColor: AppColors.comicBlack,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      },
+  void _saveProfile() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Profile updated successfully!'),
+        backgroundColor: AppColors.success,
+        behavior: SnackBarBehavior.floating,
+      ),
     );
-  }
-
-  Future<void> _saveProfile() async {
-    final name = _nameController.text.trim();
-    if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a display name.'),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
-
-    setState(() => _isSaving = true);
-
-    try {
-      context.read<AuthBloc>().add(
-        UpdateUserProfileEvent(
-          name: name,
-          bio: _bioController.text.trim(),
-          avatarUrl: _avatarUrl,
-          removeAvatar: _avatarUrl == null || _avatarUrl!.trim().isEmpty,
-        ),
-      );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile picture & details updated successfully!'),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        Navigator.of(context).pop();
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isSaving = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to update profile: $e'),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    }
+    Navigator.of(context).pop();
   }
 
   @override

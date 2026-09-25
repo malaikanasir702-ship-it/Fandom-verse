@@ -8,7 +8,7 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../widgets/profile_picture_sheet.dart';
 
-class FanProfilePage extends StatelessWidget {
+class FanProfilePage extends StatefulWidget {
   const FanProfilePage({super.key});
 
   void _openAvatarPicker(BuildContext context, String? currentAvatarUrl) {
@@ -128,17 +128,17 @@ class FanProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final user = context.watch<AuthBloc>().currentUser;
+    final authUser = context.watch<AuthBloc>().currentUser;
 
-    final displayName = user?.name.isNotEmpty == true
-        ? user!.name
-        : 'Alex Rivera';
-    final usernameTag = user?.name.isNotEmpty == true
-        ? '@${user!.name.toLowerCase().replaceAll(' ', '_')}'
-        : '@OtakuMaster_99';
-    final userEmail = user?.email.isNotEmpty == true
-        ? user!.email
-        : 'alex.rivera@fandomverse.io';
+    final displayName = authUser?.name.isNotEmpty == true ? authUser!.name : '';
+    final usernameTag = displayName.isNotEmpty
+        ? '@${displayName.toLowerCase().replaceAll(' ', '_')}'
+        : '';
+    final userEmail = authUser?.email ?? '';
+
+    return BlocBuilder<ProfileBloc, ProfileState>(
+      builder: (context, profileState) {
+        final profileLoaded = profileState is ProfileLoaded ? profileState : null;
 
     return Scaffold(
       appBar: AppBar(
@@ -322,19 +322,22 @@ class FanProfilePage extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // Profile Stats
+            // Profile Stats — real data from ProfileBloc
             Row(
               children: [
-                _buildStatItem('Discussions', '38', isDark),
+                _buildStatItem('Discussions',
+                    '${profileLoaded?.discussionCount ?? 0}', isDark),
                 const SizedBox(width: 12),
-                _buildStatItem('RSVP Events', '5', isDark),
+                _buildStatItem(
+                    'Orders', '${profileLoaded?.orders.length ?? 0}', isDark),
                 const SizedBox(width: 12),
-                _buildStatItem('Badges', '14', isDark),
+                _buildStatItem('Bookmarks',
+                    '${profileLoaded?.bookmarksCount ?? 0}', isDark),
               ],
             ),
             const SizedBox(height: 24),
 
-            // Bio / Fandom Statement
+            // Bio — real data from ProfileBloc
             GlassContainer(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -351,7 +354,9 @@ class FanProfilePage extends StatelessWidget {
                         : 'Die-hard Shonen anime fan, Soulsborne speedrun enthusiast, and Marvel comics archivist. Always looking for new convention meetups!',
                     style: AppTextStyles.bodySmall.copyWith(
                       height: 1.5,
-                      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.lightTextSecondary,
                     ),
                   ),
                 ],
@@ -359,43 +364,67 @@ class FanProfilePage extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // Subscribed Fandoms
+            // Subscribed Fandoms — real from DB
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   'My Selected Fandoms',
-                  style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w800),
+                  style:
+                      AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w800),
                 ),
                 TextButton(
-                  onPressed: () => Navigator.of(context).pushNamed('/interest-setup'),
-                  child: const Text('Manage', style: TextStyle(color: AppColors.comicRed, fontWeight: FontWeight.bold)),
+                  onPressed: () =>
+                      Navigator.of(context).pushNamed('/interest-setup'),
+                  child: const Text('Manage',
+                      style: TextStyle(
+                          color: AppColors.comicRed,
+                          fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                'Demon Slayer',
-                'Elden Ring',
-                'Marvel Multiverse',
-                'BTS ARMY',
-                'Star Wars Lore',
-              ].map((f) => Chip(
-                    label: Text(f, style: const TextStyle(fontSize: 12)),
-                    backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-                  )).toList(),
-            ),
+            Builder(builder: (context) {
+              final rawFandoms = profileLoaded?.user['selected_fandoms']
+                      ?.toString() ??
+                  authUser?.selectedFandoms.join(', ') ??
+                  '';
+              final fandoms = rawFandoms
+                  .replaceAll('[', '')
+                  .replaceAll(']', '')
+                  .split(',')
+                  .map((f) => f.trim())
+                  .where((f) => f.isNotEmpty)
+                  .toList();
+              if (fandoms.isEmpty) {
+                return Text('No fandoms selected yet.',
+                    style: TextStyle(
+                        color: isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.lightTextSecondary,
+                        fontSize: 12));
+              }
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: fandoms
+                    .map((f) => Chip(
+                          label: Text(f, style: const TextStyle(fontSize: 12)),
+                          backgroundColor: isDark
+                              ? AppColors.darkSurface
+                              : AppColors.lightSurface,
+                        ))
+                    .toList(),
+              );
+            }),
             const SizedBox(height: 24),
 
-            // Quick Nav Links with Iconsax
+            // Quick Nav Links
             _buildProfileNavTile(
               context,
               icon: Iconsax.receipt,
-              title: 'Simulated Order History',
-              subtitle: 'Track simulated merch invoices & bills',
+              title: 'Order History',
+              subtitle: 'Track your merch invoices & bills',
               route: '/order-history',
               color: AppColors.heroBlue,
             ),
@@ -403,7 +432,9 @@ class FanProfilePage extends StatelessWidget {
               context,
               icon: Iconsax.heart,
               title: 'Saved Merch Wishlist',
-              subtitle: 'Exclusive figures, katanas & hoodies',
+              subtitle: profileLoaded != null
+                  ? '${profileLoaded.wishlistCount} items saved'
+                  : 'Your wishlist',
               route: '/wishlist',
               color: AppColors.comicRed,
             ),
@@ -419,7 +450,7 @@ class FanProfilePage extends StatelessWidget {
               context,
               icon: Iconsax.cup,
               title: 'Achievements & Badges',
-              subtitle: '14 Unlocked • 3 In Progress',
+              subtitle: 'View your unlocked badges',
               route: '/badges',
               color: AppColors.comicYellowDark,
             ),
@@ -435,14 +466,16 @@ class FanProfilePage extends StatelessWidget {
               context,
               icon: Iconsax.bookmark,
               title: 'Bookmarks & Favorites',
-              subtitle: 'Saved lore articles, terms & events',
+              subtitle: profileLoaded != null
+                  ? '${profileLoaded.bookmarksCount} saved articles'
+                  : 'Saved lore articles & events',
               route: '/bookmarks',
               color: AppColors.heroPurple,
             ),
 
             const SizedBox(height: 20),
 
-            // ─── FULL-WIDTH FUNCTIONAL LOGOUT BUTTON ───
+            // Logout Button
             SizedBox(
               width: double.infinity,
               height: 52,
@@ -474,6 +507,7 @@ class FanProfilePage extends StatelessWidget {
         ),
       ),
     );
+    }); // BlocBuilder
   }
 
   Widget _buildStatItem(String label, String count, bool isDark) {

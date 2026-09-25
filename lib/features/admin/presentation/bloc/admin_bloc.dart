@@ -1,14 +1,15 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/db_constants.dart';
-import '../../../../core/database/sqlite_helper.dart';
+import '../../../../core/repositories/i_admin_repository.dart';
+import '../../../../core/repositories/admin_repository_impl.dart';
 import 'admin_event.dart';
 import 'admin_state.dart';
 
 class AdminBloc extends Bloc<AdminEvent, AdminState> {
-  final SqliteHelper _dbHelper;
+  final IAdminRepository _repository;
 
-  AdminBloc({SqliteHelper? dbHelper})
-      : _dbHelper = dbHelper ?? SqliteHelper.instance,
+  AdminBloc({IAdminRepository? repository})
+      : _repository = repository ?? AdminRepositoryImpl(),
         super(const AdminInitial()) {
     on<LoadAdminDashboardStatsEvent>(_onLoadDashboard);
     on<CreateOrUpdateArticleEvent>(_onCreateOrUpdateArticle);
@@ -29,13 +30,13 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
   ) async {
     emit(const AdminLoading());
     try {
-      final metrics = await _dbHelper.getAdminDashboardMetrics();
-      final logs = await _dbHelper.getAuditLogs();
-      final articles = await _dbHelper.query(DbConstants.tablePosts);
-      final events = await _dbHelper.query(DbConstants.tableEvents);
-      final products = await _dbHelper.query(DbConstants.tableMerchandise);
-      final users = await _dbHelper.query(DbConstants.tableUsers);
-      final categories = await _dbHelper.query(DbConstants.tableCategories);
+      final metrics = await _repository.getDashboardMetrics();
+      final logs = await _repository.getAuditLogs();
+      final articles = await _repository.query(DbConstants.tablePosts);
+      final events = await _repository.query(DbConstants.tableEvents);
+      final products = await _repository.query(DbConstants.tableMerchandise);
+      final users = await _repository.query(DbConstants.tableUsers);
+      final categories = await _repository.query(DbConstants.tableCategories);
 
       emit(AdminStatsLoaded(
         metrics: metrics,
@@ -58,20 +59,20 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     try {
       final post = event.post;
       if (event.isEdit) {
-        await _dbHelper.update(
+        await _repository.update(
           DbConstants.tablePosts,
           'post_id',
           post['post_id'],
           post,
         );
-        await _dbHelper.logAdminAction(
+        await _repository.logAdminAction(
           actionType: 'UPDATE',
           entityType: 'Article',
           description: 'Updated article "${post['title']}"',
         );
       } else {
-        await _dbHelper.insert(DbConstants.tablePosts, post);
-        await _dbHelper.logAdminAction(
+        await _repository.insert(DbConstants.tablePosts, post);
+        await _repository.logAdminAction(
           actionType: 'CREATE',
           entityType: 'Article',
           description: 'Published new article "${post['title']}"',
@@ -88,8 +89,8 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     Emitter<AdminState> emit,
   ) async {
     try {
-      await _dbHelper.delete(DbConstants.tablePosts, 'post_id', event.postId);
-      await _dbHelper.logAdminAction(
+      await _repository.delete(DbConstants.tablePosts, 'post_id', event.postId);
+      await _repository.logAdminAction(
         actionType: 'DELETE',
         entityType: 'Article',
         description: 'Deleted article ${event.postId}',
@@ -107,20 +108,20 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     try {
       final ev = event.event;
       if (event.isEdit) {
-        await _dbHelper.update(
+        await _repository.update(
           DbConstants.tableEvents,
           'event_id',
           ev['event_id'],
           ev,
         );
-        await _dbHelper.logAdminAction(
+        await _repository.logAdminAction(
           actionType: 'UPDATE',
           entityType: 'Event',
           description: 'Updated convention "${ev['title']}"',
         );
       } else {
-        await _dbHelper.insert(DbConstants.tableEvents, ev);
-        await _dbHelper.logAdminAction(
+        await _repository.insert(DbConstants.tableEvents, ev);
+        await _repository.logAdminAction(
           actionType: 'CREATE',
           entityType: 'Event',
           description: 'Added new convention "${ev['title']}" in ${ev['city_name']}',
@@ -137,8 +138,8 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     Emitter<AdminState> emit,
   ) async {
     try {
-      await _dbHelper.delete(DbConstants.tableEvents, 'event_id', event.eventId);
-      await _dbHelper.logAdminAction(
+      await _repository.delete(DbConstants.tableEvents, 'event_id', event.eventId);
+      await _repository.logAdminAction(
         actionType: 'DELETE',
         entityType: 'Event',
         description: 'Deleted event ${event.eventId}',
@@ -156,20 +157,20 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     try {
       final prod = event.product;
       if (event.isEdit) {
-        await _dbHelper.update(
+        await _repository.update(
           DbConstants.tableMerchandise,
           'product_id',
           prod['product_id'],
           prod,
         );
-        await _dbHelper.logAdminAction(
+        await _repository.logAdminAction(
           actionType: 'UPDATE',
           entityType: 'Merchandise',
           description: 'Updated merchandise item "${prod['name']}"',
         );
       } else {
-        await _dbHelper.insert(DbConstants.tableMerchandise, prod);
-        await _dbHelper.logAdminAction(
+        await _repository.insert(DbConstants.tableMerchandise, prod);
+        await _repository.logAdminAction(
           actionType: 'CREATE',
           entityType: 'Merchandise',
           description: 'Added new store product "${prod['name']}" (\$${prod['price']})',
@@ -186,8 +187,8 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     Emitter<AdminState> emit,
   ) async {
     try {
-      await _dbHelper.delete(DbConstants.tableMerchandise, 'product_id', event.productId);
-      await _dbHelper.logAdminAction(
+      await _repository.delete(DbConstants.tableMerchandise, 'product_id', event.productId);
+      await _repository.logAdminAction(
         actionType: 'DELETE',
         entityType: 'Merchandise',
         description: 'Deleted merchandise ${event.productId}',
@@ -203,7 +204,17 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     Emitter<AdminState> emit,
   ) async {
     try {
-      await _dbHelper.updateProductStock(event.productId, event.newStock);
+      await _repository.update(
+        DbConstants.tableMerchandise,
+        'product_id',
+        event.productId,
+        {'stock_count': event.newStock},
+      );
+      await _repository.logAdminAction(
+        actionType: 'UPDATE_STOCK',
+        entityType: 'Merchandise',
+        description: 'Stock updated to ${event.newStock} for product ${event.productId}',
+      );
       add(const LoadAdminDashboardStatsEvent());
     } catch (e) {
       emit(AdminError('Failed to update stock: ${e.toString()}'));
@@ -215,14 +226,7 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     Emitter<AdminState> emit,
   ) async {
     try {
-      await _dbHelper.update(DbConstants.tableUsers, 'user_id', event.userId, {
-        'status': event.newStatus,
-      });
-      await _dbHelper.logAdminAction(
-        actionType: 'USER_MODERATION',
-        entityType: 'User',
-        description: 'Updated user ${event.userId} status to ${event.newStatus}',
-      );
+      await _repository.updateUserStatus(event.userId, event.newStatus);
       add(const LoadAdminDashboardStatsEvent());
     } catch (e) {
       emit(AdminError('Failed to update user: ${e.toString()}'));
@@ -234,8 +238,8 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     Emitter<AdminState> emit,
   ) async {
     try {
-      await _dbHelper.insert(DbConstants.tableCategories, event.category);
-      await _dbHelper.logAdminAction(
+      await _repository.insert(DbConstants.tableCategories, event.category);
+      await _repository.logAdminAction(
         actionType: 'CREATE',
         entityType: 'Category',
         description: 'Created new fandom category "${event.category['name']}"',
@@ -251,7 +255,7 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     Emitter<AdminState> emit,
   ) async {
     try {
-      await _dbHelper.logAdminAction(
+      await _repository.logAdminAction(
         actionType: 'BROADCAST',
         entityType: 'Push Alert',
         description: 'Dispatched alert "${event.title}" to ${event.audience}',

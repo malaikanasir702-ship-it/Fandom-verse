@@ -1,7 +1,10 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as p;
 import '../constants/db_constants.dart';
+import '../utils/password_hasher.dart';
+import 'database_tables.dart';
 import 'seed_data.dart';
 import 'seed_data_extended.dart';
 
@@ -48,27 +51,40 @@ class SqliteHelper {
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    debugPrint('⬆️ [SqliteHelper] Upgrading DB from v$oldVersion → v$newVersion');
-    // Drop and recreate on upgrade
-    final tables = [
-      DbConstants.tableAuditLogs,
-      DbConstants.tableSimulatedOrders,
-      DbConstants.tableStarProfiles,
-      DbConstants.tableDiscussionReplies,
-      DbConstants.tableDiscussions,
-      DbConstants.tableWishlists,
-      DbConstants.tableCartItems,
-      DbConstants.tableMerchandise,
-      DbConstants.tableEvents,
-      DbConstants.tableGlossary,
-      DbConstants.tablePosts,
-      DbConstants.tableCategories,
-      DbConstants.tableUsers,
-    ];
-    for (final t in tables) {
-      await db.execute('DROP TABLE IF EXISTS $t');
+    debugPrint('⬆️ [SqliteHelper] Safely upgrading DB from v$oldVersion → v$newVersion without dropping tables');
+    // Non-destructive additive migrations (Bug 5.1/6.1)
+    await _safeAddColumn(db, DbConstants.tableUsers, 'status', "TEXT NOT NULL DEFAULT 'active'");
+    await _safeAddColumn(db, DbConstants.tableUsers, 'password_hash', 'TEXT');
+    await _safeAddColumn(db, DbConstants.tableUsers, 'password_salt', 'TEXT');
+
+    await _safeAddColumn(db, DbConstants.tableEvents, 'category', "TEXT DEFAULT 'Convention'");
+    await _safeAddColumn(db, DbConstants.tableEvents, 'attendees_count', 'INTEGER DEFAULT 120');
+    await _safeAddColumn(db, DbConstants.tableEvents, 'is_rsvped', 'INTEGER DEFAULT 0');
+
+    await _safeAddColumn(db, DbConstants.tableDiscussions, 'is_upvoted', 'INTEGER DEFAULT 0');
+
+    await _safeAddColumn(db, DbConstants.tableGlossary, 'is_bookmarked', 'INTEGER DEFAULT 0');
+
+    await _safeAddColumn(db, DbConstants.tableSimulatedOrders, 'subtotal', 'REAL NOT NULL DEFAULT 0.0');
+    await _safeAddColumn(db, DbConstants.tableSimulatedOrders, 'shipping_fee', 'REAL NOT NULL DEFAULT 0.0');
+    await _safeAddColumn(db, DbConstants.tableSimulatedOrders, 'discount_amount', 'REAL NOT NULL DEFAULT 0.0');
+    await _safeAddColumn(db, DbConstants.tableSimulatedOrders, 'tax_amount', 'REAL NOT NULL DEFAULT 0.0');
+    await _safeAddColumn(db, DbConstants.tableSimulatedOrders, 'applied_coupon', "TEXT DEFAULT ''");
+    await _safeAddColumn(db, DbConstants.tableSimulatedOrders, 'payment_method', "TEXT DEFAULT 'Cash on Delivery'");
+
+    // Create any missing tables from single source of truth
+    for (final sql in DatabaseTables.allCreateStatements) {
+      await db.execute(sql);
     }
-    await _onCreate(db, newVersion);
+    await _createAllIndexes(db);
+  }
+
+  Future<void> _safeAddColumn(Database db, String table, String column, String definition) async {
+    try {
+      await db.execute('ALTER TABLE $table ADD COLUMN $column $definition');
+    } catch (_) {
+      // Column already exists, safe to ignore
+    }
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -76,185 +92,9 @@ class SqliteHelper {
   // ─────────────────────────────────────────────────────────────────────────
 
   Future<void> _createAllTables(Database db) async {
-    // 1. USERS
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS ${DbConstants.tableUsers} (
-        user_id       TEXT PRIMARY KEY,
-        name          TEXT NOT NULL,
-        email         TEXT UNIQUE NOT NULL,
-        role          TEXT NOT NULL DEFAULT 'fan',
-        status        TEXT NOT NULL DEFAULT 'active',
-        avatar_url    TEXT,
-        bio           TEXT,
-        badges        TEXT,
-        selected_fandoms TEXT,
-        created_at    INTEGER NOT NULL
-      )
-    ''');
-
-    // 2. CATEGORIES
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS ${DbConstants.tableCategories} (
-        category_id   TEXT PRIMARY KEY,
-        name          TEXT NOT NULL,
-        description   TEXT,
-        icon_name     TEXT,
-        banner_url    TEXT,
-        color_hex     TEXT
-      )
-    ''');
-
-    // 3. POSTS & LORE ARTICLES
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS ${DbConstants.tablePosts} (
-        post_id       TEXT PRIMARY KEY,
-        category_id   TEXT NOT NULL,
-        title         TEXT NOT NULL,
-        content_body  TEXT NOT NULL,
-        author_name   TEXT,
-        image_url     TEXT,
-        is_trending   INTEGER DEFAULT 0,
-        is_deep_dive  INTEGER DEFAULT 0,
-        tags          TEXT,
-        timestamp     INTEGER NOT NULL,
-        is_bookmarked INTEGER DEFAULT 0,
-        FOREIGN KEY (category_id) REFERENCES ${DbConstants.tableCategories}(category_id) ON DELETE CASCADE
-      )
-    ''');
-
-    // 4. GLOSSARY
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS ${DbConstants.tableGlossary} (
-        term_id          TEXT PRIMARY KEY,
-        term             TEXT NOT NULL,
-        definition       TEXT NOT NULL,
-        fandom_category  TEXT,
-        example_usage    TEXT,
-        phonetic         TEXT
-      )
-    ''');
-
-    // 5. EVENTS & CONVENTIONS
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS ${DbConstants.tableEvents} (
-        event_id      TEXT PRIMARY KEY,
-        title         TEXT NOT NULL,
-        description   TEXT,
-        city_name     TEXT NOT NULL,
-        venue_name    TEXT NOT NULL,
-        latitude      REAL NOT NULL,
-        longitude     REAL NOT NULL,
-        event_date    INTEGER NOT NULL,
-        ticket_link   TEXT,
-        banner_url    TEXT,
-        is_bookmarked INTEGER DEFAULT 0
-      )
-    ''');
-
-    // 6. MERCHANDISE CATALOG
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS ${DbConstants.tableMerchandise} (
-        product_id     TEXT PRIMARY KEY,
-        name           TEXT NOT NULL,
-        category       TEXT NOT NULL,
-        price          REAL NOT NULL,
-        original_price REAL,
-        image_url      TEXT NOT NULL,
-        description    TEXT,
-        stock_count    INTEGER DEFAULT 10,
-        rating         REAL DEFAULT 4.8,
-        is_featured    INTEGER DEFAULT 0
-      )
-    ''');
-
-    // 7. CART ITEMS
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS ${DbConstants.tableCartItems} (
-        cart_id          TEXT PRIMARY KEY,
-        product_id       TEXT NOT NULL,
-        quantity         INTEGER NOT NULL DEFAULT 1,
-        selected_variant TEXT,
-        added_at         INTEGER NOT NULL,
-        FOREIGN KEY (product_id) REFERENCES ${DbConstants.tableMerchandise}(product_id) ON DELETE CASCADE
-      )
-    ''');
-
-    // 8. WISHLISTS
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS ${DbConstants.tableWishlists} (
-        wish_id    TEXT PRIMARY KEY,
-        user_id    TEXT NOT NULL,
-        product_id TEXT NOT NULL,
-        saved_at   INTEGER NOT NULL,
-        FOREIGN KEY (product_id) REFERENCES ${DbConstants.tableMerchandise}(product_id) ON DELETE CASCADE
-      )
-    ''');
-
-    // 9. COMMUNITY DISCUSSIONS
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS ${DbConstants.tableDiscussions} (
-        thread_id  TEXT PRIMARY KEY,
-        user_id    TEXT NOT NULL,
-        user_name  TEXT NOT NULL,
-        user_badge TEXT,
-        category   TEXT NOT NULL,
-        title      TEXT NOT NULL,
-        body       TEXT NOT NULL,
-        upvotes    INTEGER DEFAULT 0,
-        created_at INTEGER NOT NULL
-      )
-    ''');
-
-    // 10. DISCUSSION REPLIES
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS ${DbConstants.tableDiscussionReplies} (
-        reply_id   TEXT PRIMARY KEY,
-        thread_id  TEXT NOT NULL,
-        user_name  TEXT NOT NULL,
-        reply_body TEXT NOT NULL,
-        created_at INTEGER NOT NULL,
-        FOREIGN KEY (thread_id) REFERENCES ${DbConstants.tableDiscussions}(thread_id) ON DELETE CASCADE
-      )
-    ''');
-
-    // 11. STAR PROFILES
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS ${DbConstants.tableStarProfiles} (
-        star_id          TEXT PRIMARY KEY,
-        name             TEXT NOT NULL,
-        fandom_category  TEXT NOT NULL,
-        role_title       TEXT NOT NULL,
-        bio              TEXT NOT NULL,
-        image_url        TEXT NOT NULL,
-        social_handle    TEXT,
-        is_bookmarked    INTEGER DEFAULT 0
-      )
-    ''');
-
-    // 12. SIMULATED ORDERS
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS ${DbConstants.tableSimulatedOrders} (
-        order_id         TEXT PRIMARY KEY,
-        user_id          TEXT NOT NULL,
-        order_date       INTEGER NOT NULL,
-        total_amount     REAL NOT NULL,
-        items_summary    TEXT NOT NULL,
-        shipping_address TEXT NOT NULL,
-        order_status     TEXT DEFAULT 'Completed'
-      )
-    ''');
-
-    // 13. ADMIN AUDIT LOGS
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS ${DbConstants.tableAuditLogs} (
-        log_id       TEXT PRIMARY KEY,
-        action_type  TEXT NOT NULL,
-        entity_type  TEXT NOT NULL,
-        description  TEXT NOT NULL,
-        admin_email  TEXT NOT NULL,
-        timestamp    INTEGER NOT NULL
-      )
-    ''');
+    for (final sql in DatabaseTables.allCreateStatements) {
+      await db.execute(sql);
+    }
   }
 
   Future<void> _createAllIndexes(Database db) async {
@@ -278,9 +118,15 @@ class SqliteHelper {
   Future<void> _seedAllData(Database db) async {
     final batch = db.batch();
 
-    // Users
+    // Users (seeded with SHA-256 + salt password)
     for (final u in SeedData.defaultUsers) {
-      batch.insert(DbConstants.tableUsers, u, conflictAlgorithm: ConflictAlgorithm.ignore);
+      final userMap = Map<String, dynamic>.from(u);
+      final salt = u['role'] == 'admin' ? 'fandom_salt_admin' : 'fandom_salt_fan';
+      final pwd = u['role'] == 'admin' ? 'admin123' : 'password123';
+      userMap['password_salt'] = salt;
+      userMap['password_hash'] = PasswordHasher.hashPassword(pwd, salt);
+      userMap['status'] = userMap['status'] ?? 'active';
+      batch.insert(DbConstants.tableUsers, userMap, conflictAlgorithm: ConflictAlgorithm.ignore);
     }
 
     // Categories
@@ -295,7 +141,11 @@ class SqliteHelper {
 
     // Events
     for (final e in SeedData.defaultEvents) {
-      batch.insert(DbConstants.tableEvents, e, conflictAlgorithm: ConflictAlgorithm.ignore);
+      final eventMap = Map<String, dynamic>.from(e);
+      eventMap['category'] = eventMap['category'] ?? 'Convention';
+      eventMap['attendees_count'] = eventMap['attendees_count'] ?? 120;
+      eventMap['is_rsvped'] = 0;
+      batch.insert(DbConstants.tableEvents, eventMap, conflictAlgorithm: ConflictAlgorithm.ignore);
     }
 
     // Orders
@@ -316,7 +166,9 @@ class SqliteHelper {
       batch.insert(DbConstants.tableGlossary, term, conflictAlgorithm: ConflictAlgorithm.ignore);
     }
     for (final thread in SeedDataExtended.defaultDiscussions) {
-      batch.insert(DbConstants.tableDiscussions, thread, conflictAlgorithm: ConflictAlgorithm.ignore);
+      final tMap = Map<String, dynamic>.from(thread);
+      tMap['is_upvoted'] = 0;
+      batch.insert(DbConstants.tableDiscussions, tMap, conflictAlgorithm: ConflictAlgorithm.ignore);
     }
     for (final reply in SeedDataExtended.defaultReplies) {
       batch.insert(DbConstants.tableDiscussionReplies, reply, conflictAlgorithm: ConflictAlgorithm.ignore);
@@ -629,24 +481,40 @@ class SqliteHelper {
         await _database.rawQuery("SELECT COUNT(*) FROM ${DbConstants.tableMerchandise}")) ?? 0;
 
     return {
-      'totalFans': 1240 + users,
-      'publishedArticles': 84 + posts,
-      'upcomingEvents': 16 + events,
+      'totalFans': users,
+      'publishedArticles': posts,
+      'upcomingEvents': events,
       'storeProducts': products,
     };
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // CACHE SIZE (simulated)
+  // CACHE SIZE (Real on-disk SQLite calculation)
   // ─────────────────────────────────────────────────────────────────────────
 
   Future<double> calculateCacheSizeMB() async {
     await initDatabase();
-    return 45.2; // Baseline media cache estimate
+    try {
+      final dbPath = await getDatabasesPath();
+      final fullPath = p.join(dbPath, DbConstants.databaseName);
+      final file = File(fullPath);
+      if (await file.exists()) {
+        final bytes = await file.length();
+        return double.parse((bytes / (1024 * 1024)).toStringAsFixed(2));
+      }
+    } catch (e) {
+      debugPrint('[SqliteHelper] Error calculating cache size: $e');
+    }
+    return 0.0;
   }
 
   Future<void> clearOfflineCache() async {
     await initDatabase();
-    await _database.delete(DbConstants.tableCartItems);
+    await _database.delete(DbConstants.tablePosts);
+    await _database.delete(DbConstants.tableEvents);
+    await _database.delete(DbConstants.tableDiscussions);
+    await _database.delete(DbConstants.tableDiscussionReplies);
+    await _database.delete(DbConstants.tableStarProfiles);
+    await _database.delete(DbConstants.tableGlossary);
   }
 }

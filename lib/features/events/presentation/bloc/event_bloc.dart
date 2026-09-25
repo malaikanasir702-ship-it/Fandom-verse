@@ -1,10 +1,15 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../data/event_mock_data.dart';
+import '../../../../core/repositories/i_events_repository.dart';
+import '../../../../core/repositories/events_repository_impl.dart';
 import 'event_event.dart';
 import 'event_state.dart';
 
 class EventCalendarBloc extends Bloc<EventCalendarEvent, EventCalendarState> {
-  EventCalendarBloc() : super(const EventLoading()) {
+  final IEventsRepository _repository;
+
+  EventCalendarBloc({IEventsRepository? repository})
+      : _repository = repository ?? EventsRepositoryImpl(),
+        super(const EventLoading()) {
     on<LoadAllEventsEvent>(_onLoadEvents);
     on<FilterEventsByCityEvent>(_onFilterByCity);
     on<FilterEventsByRadiusEvent>(_onFilterByRadius);
@@ -12,11 +17,17 @@ class EventCalendarBloc extends Bloc<EventCalendarEvent, EventCalendarState> {
     on<ToggleEventRsvpEvent>(_onToggleRsvp);
   }
 
-  void _onLoadEvents(
+  Future<void> _onLoadEvents(
     LoadAllEventsEvent event,
     Emitter<EventCalendarState> emit,
-  ) {
-    emit(EventLoaded(allEvents: EventMockData.sampleEvents));
+  ) async {
+    emit(const EventLoading());
+    try {
+      final events = await _repository.getAllEvents();
+      emit(EventLoaded(allEvents: events));
+    } catch (_) {
+      emit(const EventLoaded(allEvents: []));
+    }
   }
 
   void _onFilterByCity(
@@ -39,39 +50,54 @@ class EventCalendarBloc extends Bloc<EventCalendarEvent, EventCalendarState> {
     }
   }
 
-  void _onToggleBookmark(
+  Future<void> _onToggleBookmark(
     ToggleEventBookmarkEvent event,
     Emitter<EventCalendarState> emit,
-  ) {
+  ) async {
     if (state is EventLoaded) {
       final current = state as EventLoaded;
+      bool targetBookmarkState = true;
+
       final updatedList = current.allEvents.map((item) {
         if (item.id == event.eventId) {
-          return item.copyWith(isBookmarked: !item.isBookmarked);
+          targetBookmarkState = !item.isBookmarked;
+          return item.copyWith(isBookmarked: targetBookmarkState);
         }
         return item;
       }).toList();
+
       emit(current.copyWith(allEvents: updatedList));
+
+      // Persist to SQLite events table
+      await _repository.toggleBookmark(event.eventId, targetBookmarkState);
     }
   }
 
-  void _onToggleRsvp(
+  Future<void> _onToggleRsvp(
     ToggleEventRsvpEvent event,
     Emitter<EventCalendarState> emit,
-  ) {
+  ) async {
     if (state is EventLoaded) {
       final current = state as EventLoaded;
+      bool newRsvp = false;
+      int newAttendeesCount = 0;
+
       final updatedList = current.allEvents.map((item) {
         if (item.id == event.eventId) {
-          final newRsvp = !item.isRsvped;
+          newRsvp = !item.isRsvped;
+          newAttendeesCount = newRsvp ? item.attendeesCount + 1 : (item.attendeesCount > 0 ? item.attendeesCount - 1 : 0);
           return item.copyWith(
             isRsvped: newRsvp,
-            attendeesCount: newRsvp ? item.attendeesCount + 1 : item.attendeesCount - 1,
+            attendeesCount: newAttendeesCount,
           );
         }
         return item;
       }).toList();
+
       emit(current.copyWith(allEvents: updatedList));
+
+      // Persist to SQLite events table
+      await _repository.toggleRsvp(event.eventId, newRsvp, newAttendeesCount);
     }
   }
 }

@@ -7,9 +7,11 @@ abstract class ProfileEvent extends Equatable {
   List<Object?> get props => [];
 }
 
+/// ProfileBloc now derives userId from AuthBloc's currentUser.
+/// Pass userId explicitly when dispatching events — no more 'fan-01' fallback.
 class LoadUserProfileEvent extends ProfileEvent {
   final String userId;
-  const LoadUserProfileEvent({this.userId = 'fan-01'});
+  const LoadUserProfileEvent({required this.userId});
 
   @override
   List<Object?> get props => [userId];
@@ -23,7 +25,7 @@ class UpdateProfileDetailsEvent extends ProfileEvent {
   final List<String> selectedFandoms;
 
   const UpdateProfileDetailsEvent({
-    this.userId = 'fan-01',
+    required this.userId,
     required this.name,
     required this.bio,
     required this.avatarUrl,
@@ -36,7 +38,7 @@ class UpdateProfileDetailsEvent extends ProfileEvent {
 
 class LoadProfileOrdersEvent extends ProfileEvent {
   final String userId;
-  const LoadProfileOrdersEvent({this.userId = 'fan-01'});
+  const LoadProfileOrdersEvent({required this.userId});
 
   @override
   List<Object?> get props => [userId];

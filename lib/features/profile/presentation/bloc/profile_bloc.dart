@@ -21,31 +21,43 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ) async {
     emit(const ProfileLoading());
     try {
-      final users = await _dbHelper.query(DbConstants.tableUsers);
-      final user = users.firstWhere(
-        (u) => u['user_id'] == event.userId,
-        orElse: () => {
-          'user_id': 'fan-01',
-          'name': 'Alex Mercer',
-          'email': 'fan@fandomverse.com',
-          'avatar_url': 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400',
-          'bio': 'Anime watcher, speedrunner & convention fanatic.',
-          'badges': '["Master Lorekeeper", "Con Veteran 2025", "Speedrun Guru"]',
-          'selected_fandoms': '["Anime & Manga", "Gaming & Esports"]',
-        },
+      // Query logged-in user from SQLite by real userId
+      final users = await _dbHelper.query(
+        DbConstants.tableUsers,
+        where: 'user_id = ?',
+        whereArgs: [event.userId],
       );
 
+      if (users.isEmpty) {
+        emit(const ProfileError('User profile not found. Please log in again.'));
+        return;
+      }
+
+      final user = users.first;
+
+      // Real counts from DB
       final orders = await _dbHelper.getUserOrders(event.userId);
       final wishes = await _dbHelper.getWishlist(event.userId);
-      final cacheMB = await _dbHelper.calculateCacheSizeMB();
+
+      // Real bookmarks count from posts table
+      final bookmarkedPosts = await _dbHelper.query(
+        DbConstants.tablePosts,
+        where: 'is_bookmarked = 1',
+      );
+
+      // Real discussion count for this user
+      final discussions = await _dbHelper.query(
+        DbConstants.tableDiscussions,
+        where: 'user_id = ?',
+        whereArgs: [event.userId],
+      );
 
       emit(ProfileLoaded(
         user: user,
         orders: orders,
-        cacheSizeMB: cacheMB,
         wishlistCount: wishes.length,
-        bookmarksCount: 14,
-        triviaXp: 280,
+        bookmarksCount: bookmarkedPosts.length,
+        discussionCount: discussions.length,
       ));
     } catch (e) {
       emit(ProfileError('Failed to load profile: ${e.toString()}'));
@@ -61,6 +73,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         'name': event.name,
         'bio': event.bio,
         'avatar_url': event.avatarUrl,
+        'selected_fandoms': event.selectedFandoms.toString(),
       });
       add(LoadUserProfileEvent(userId: event.userId));
     } catch (e) {
@@ -74,17 +87,15 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ) async {
     try {
       await _dbHelper.clearOfflineCache();
-      final cacheMB = await _dbHelper.calculateCacheSizeMB();
       if (state is ProfileLoaded) {
         final current = state as ProfileLoaded;
         emit(ProfileLoaded(
           user: current.user,
           orders: current.orders,
-          cacheSizeMB: cacheMB,
-          bookmarksCount: current.bookmarksCount,
+          bookmarksCount: 0,
           wishlistCount: current.wishlistCount,
-          triviaXp: current.triviaXp,
-          statusMessage: 'Offline cache cleared successfully!',
+          discussionCount: current.discussionCount,
+          statusMessage: 'Cache cleared successfully!',
         ));
       }
     } catch (_) {}

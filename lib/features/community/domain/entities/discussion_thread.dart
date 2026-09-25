@@ -1,4 +1,6 @@
-class DiscussionReply {
+import 'package:equatable/equatable.dart';
+
+class DiscussionReply extends Equatable {
   final String id;
   final String userName;
   final String userAvatar;
@@ -12,9 +14,32 @@ class DiscussionReply {
     required this.body,
     required this.createdAt,
   });
+
+  factory DiscussionReply.fromDbMap(Map<String, dynamic> map) {
+    return DiscussionReply(
+      id: (map['reply_id'] ?? '').toString(),
+      userName: (map['user_name'] ?? 'Fan').toString(),
+      userAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100',
+      body: (map['reply_body'] ?? '').toString(),
+      createdAt: DateTime.fromMillisecondsSinceEpoch((map['created_at'] as num?)?.toInt() ?? 0),
+    );
+  }
+
+  Map<String, dynamic> toDbMap(String threadId) {
+    return {
+      'reply_id': id,
+      'thread_id': threadId,
+      'user_name': userName,
+      'reply_body': body,
+      'created_at': createdAt.millisecondsSinceEpoch,
+    };
+  }
+
+  @override
+  List<Object?> get props => [id, userName, userAvatar, body, createdAt];
 }
 
-class DiscussionThread {
+class DiscussionThread extends Equatable {
   final String id;
   final String userId;
   final String userName;
@@ -68,4 +93,50 @@ class DiscussionThread {
       createdAt: createdAt ?? this.createdAt,
     );
   }
+
+  factory DiscussionThread.fromDbMap(Map<String, dynamic> map, {List<DiscussionReply> replies = const []}) {
+    return DiscussionThread(
+      id: (map['thread_id'] ?? '').toString(),
+      userId: (map['user_id'] ?? '').toString(),
+      userName: (map['user_name'] ?? 'OtakuFan').toString(),
+      userBadge: (map['user_badge'] ?? 'Master Lorekeeper').toString(),
+      category: (map['category'] ?? 'Anime & Manga').toString(),
+      title: (map['title'] ?? '').toString(),
+      body: (map['body'] ?? '').toString(),
+      upvotes: (map['upvotes'] as num?)?.toInt() ?? 0,
+      isUpvoted: (map['is_upvoted'] as num?)?.toInt() == 1,
+      replies: replies,
+      createdAt: DateTime.fromMillisecondsSinceEpoch((map['created_at'] as num?)?.toInt() ?? 0),
+    );
+  }
+
+  Map<String, dynamic> toDbMap() {
+    return {
+      'thread_id': id,
+      'user_id': userId,
+      'user_name': userName,
+      'user_badge': userBadge,
+      'category': category,
+      'title': title,
+      'body': body,
+      'upvotes': upvotes,
+      'is_upvoted': isUpvoted ? 1 : 0,
+      'created_at': createdAt.millisecondsSinceEpoch,
+    };
+  }
+
+  @override
+  List<Object?> get props => [
+        id,
+        userId,
+        userName,
+        userBadge,
+        category,
+        title,
+        body,
+        upvotes,
+        isUpvoted,
+        replies,
+        createdAt,
+      ];
 }

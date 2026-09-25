@@ -11,6 +11,7 @@ import '../../domain/entities/product_entity.dart';
 import '../../../cart_checkout/presentation/bloc/cart_bloc.dart';
 import '../../../cart_checkout/presentation/bloc/cart_event.dart';
 import '../../../cart_checkout/presentation/bloc/cart_state.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 import 'product_detail_page.dart';
 
 class StorefrontPage extends StatefulWidget {
@@ -34,9 +35,10 @@ class _StorefrontPageState extends State<StorefrontPage> {
   @override
   void initState() {
     super.initState();
+    final userId = context.read<AuthBloc>().currentUser?.id ?? 'fan-01';
     context.read<StoreBloc>().add(const LoadProductCatalogEvent());
     context.read<CartBloc>().add(const LoadCartEvent());
-    context.read<CartBloc>().add(const LoadWishlistEvent('fan-01'));
+    context.read<CartBloc>().add(LoadWishlistEvent(userId));
   }
 
   @override
@@ -465,9 +467,10 @@ class _StorefrontPageState extends State<StorefrontPage> {
                           child: InkWell(
                             customBorder: const CircleBorder(),
                             onTap: () {
+                              final uid = context.read<AuthBloc>().currentUser?.id ?? 'fan-01';
                               context.read<CartBloc>().add(
                                     ToggleWishlistEvent(
-                                      userId: 'fan-01',
+                                      userId: uid,
                                       productId: product.id,
                                     ),
                                   );

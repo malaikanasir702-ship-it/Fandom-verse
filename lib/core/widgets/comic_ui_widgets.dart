@@ -407,10 +407,10 @@ class HeroPopOutBanner extends StatelessWidget {
 }
 
 /// ─────────────────────────────────────────────────────────────────────────────
-/// COMIC SOLID RED ACTION BUTTON ("READ NOW")
+/// COMIC SOLID RED ACTION BUTTON ("READ NOW") — Parallelogram/skewed shape
 /// Full-width solid red action button with bold italic text.
 /// ─────────────────────────────────────────────────────────────────────────────
-class ComicRedButton extends StatelessWidget {
+class ComicRedButton extends StatefulWidget {
   final String label;
   final VoidCallback? onPressed;
   final double height;
@@ -423,31 +423,122 @@ class ComicRedButton extends StatelessWidget {
   });
 
   @override
+  State<ComicRedButton> createState() => _ComicRedButtonState();
+}
+
+class _ComicRedButtonState extends State<ComicRedButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnim;
+
+  static const double _skew = 0.18;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 80),
+    );
+    _scaleAnim = Tween<double>(begin: 1.0, end: 0.96).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: height,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.comicRed,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-          padding: EdgeInsets.zero,
-        ),
-        onPressed: onPressed,
-        child: Text(
-          label.toUpperCase(),
-          style: const TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w900,
-            fontStyle: FontStyle.italic,
-            letterSpacing: 1.2,
+    const shadowColor = Color(0xFF8B0000); // dark red for 3D depth
+
+    return GestureDetector(
+      onTapDown: widget.onPressed != null
+          ? (_) => _controller.forward()
+          : null,
+      onTapUp: widget.onPressed != null
+          ? (_) {
+              _controller.reverse();
+              widget.onPressed!();
+            }
+          : null,
+      onTapCancel: () => _controller.reverse(),
+      child: AnimatedBuilder(
+        animation: _scaleAnim,
+        builder: (context, child) =>
+            Transform.scale(scale: _scaleAnim.value, child: child),
+        child: SizedBox(
+          width: double.infinity,
+          height: widget.height,
+          child: Stack(
+            children: [
+              // 3D shadow layer
+              Positioned(
+                left: 5,
+                top: 5,
+                right: 0,
+                bottom: 0,
+                child: ClipPath(
+                  clipper: _SkewedButtonClipper(skew: _skew),
+                  child: Container(color: shadowColor),
+                ),
+              ),
+              // Main face
+              Positioned(
+                left: 0,
+                top: 0,
+                right: 5,
+                bottom: 5,
+                child: ClipPath(
+                  clipper: _SkewedButtonClipper(skew: _skew),
+                  child: Material(
+                    color: AppColors.comicRed,
+                    child: InkWell(
+                      splashColor: Colors.white.withValues(alpha: 0.15),
+                      onTap: null,
+                      child: Center(
+                        child: Text(
+                          widget.label.toUpperCase(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
+                            fontStyle: FontStyle.italic,
+                            letterSpacing: 1.4,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
+}
+
+/// Parallelogram clipper — creates the skewed shape seen in the design.
+class _SkewedButtonClipper extends CustomClipper<Path> {
+  final double skew;
+  const _SkewedButtonClipper({required this.skew});
+
+  @override
+  Path getClip(Size size) {
+    final offset = size.height * skew;
+    return Path()
+      ..moveTo(offset, 0)
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width - offset, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+  }
+
+  @override
+  bool shouldReclip(_SkewedButtonClipper old) => old.skew != skew;
 }

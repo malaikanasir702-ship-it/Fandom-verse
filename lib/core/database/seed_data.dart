@@ -226,7 +226,7 @@ class SeedData {
       'total_amount': 204.49,
       'items_summary': 'Chrono Blade Neon Katana (x1), Mecha G-Zero Enamel Pin (x1)',
       'shipping_address': 'Alex Mercer, 742 Evergreen Terrace, Sector 7-G, Neo Tokyo',
-      'order_status': 'Simulated Completed',
+      'order_status': 'Completed',
     },
     {
       'order_id': 'FV-77104',
@@ -235,7 +235,7 @@ class SeedData {
       'total_amount': 62.55,
       'items_summary': 'Cyber Otaku Oversized Hoodie [Night City] (x1)',
       'shipping_address': 'Alex Mercer, 742 Evergreen Terrace, Sector 7-G, Neo Tokyo',
-      'order_status': 'Simulated Completed',
+      'order_status': 'Completed',
     },
   ];
 

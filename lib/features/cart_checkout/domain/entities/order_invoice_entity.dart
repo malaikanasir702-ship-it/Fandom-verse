@@ -28,7 +28,7 @@ class OrderInvoiceEntity extends Equatable {
     required this.shippingAddress,
     required this.paymentMethod,
     required this.items,
-    this.status = 'Simulated Completed',
+    this.status = 'Completed',
   });
 
   Map<String, dynamic> toDbMap() {
@@ -40,27 +40,34 @@ class OrderInvoiceEntity extends Equatable {
       'order_id': orderId,
       'user_id': userId,
       'order_date': orderDate.millisecondsSinceEpoch,
+      'subtotal': subtotal,
+      'shipping_fee': shippingFee,
+      'discount_amount': discountAmount,
+      'tax_amount': taxAmount,
       'total_amount': totalAmount,
+      'applied_coupon': appliedCoupon,
       'items_summary': summary,
       'shipping_address': shippingAddress,
+      'payment_method': paymentMethod,
       'order_status': status,
     };
   }
 
   factory OrderInvoiceEntity.fromDbMap(Map<String, dynamic> map) {
     return OrderInvoiceEntity(
-      orderId: map['order_id'] ?? '',
-      userId: map['user_id'] ?? '',
+      orderId: (map['order_id'] ?? '').toString(),
+      userId: (map['user_id'] ?? '').toString(),
       orderDate: DateTime.fromMillisecondsSinceEpoch((map['order_date'] as num?)?.toInt() ?? 0),
-      subtotal: (map['total_amount'] as num?)?.toDouble() ?? 0.0,
-      shippingFee: 0.0,
-      discountAmount: 0.0,
-      taxAmount: 0.0,
+      subtotal: (map['subtotal'] as num?)?.toDouble() ?? ((map['total_amount'] as num?)?.toDouble() ?? 0.0),
+      shippingFee: (map['shipping_fee'] as num?)?.toDouble() ?? 0.0,
+      discountAmount: (map['discount_amount'] as num?)?.toDouble() ?? 0.0,
+      taxAmount: (map['tax_amount'] as num?)?.toDouble() ?? 0.0,
       totalAmount: (map['total_amount'] as num?)?.toDouble() ?? 0.0,
-      shippingAddress: map['shipping_address'] ?? '',
-      paymentMethod: 'Simulated Fast Pay',
+      appliedCoupon: (map['applied_coupon'] ?? '').toString(),
+      shippingAddress: (map['shipping_address'] ?? '').toString(),
+      paymentMethod: (map['payment_method'] ?? 'Cash on Delivery').toString(),
       items: [],
-      status: map['order_status'] ?? 'Simulated Completed',
+      status: (map['order_status'] ?? 'Completed').toString(),
     );
   }
 

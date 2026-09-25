@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/db_constants.dart';
-import '../../../../core/database/sqlite_helper.dart';
+import '../../../../core/repositories/i_cart_repository.dart';
+import '../../../../core/repositories/cart_repository_impl.dart';
 import '../../domain/entities/cart_item_entity.dart';
 import '../../domain/entities/order_invoice_entity.dart';
 import '../../../store/domain/entities/product_entity.dart';
@@ -8,13 +9,13 @@ import 'cart_event.dart';
 import 'cart_state.dart';
 
 class CartBloc extends Bloc<CartEvent, CartState> {
-  final SqliteHelper _dbHelper;
+  final ICartRepository _repository;
   String _activeCoupon = '';
   double _couponDiscountRate = 0.0;
   List<ProductEntity> _cachedWishlist = [];
 
-  CartBloc({SqliteHelper? dbHelper})
-      : _dbHelper = dbHelper ?? SqliteHelper.instance,
+  CartBloc({ICartRepository? repository})
+      : _repository = repository ?? CartRepositoryImpl(),
         super(const CartInitial()) {
     on<LoadCartEvent>(_onLoadCart);
     on<AddToCartEvent>(_onAddToCart);
@@ -22,9 +23,17 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     on<RemoveCartItemEvent>(_onRemoveCartItem);
     on<ApplyCouponEvent>(_onApplyCoupon);
     on<ClearCartEvent>(_onClearCart);
-    on<ExecuteSimulatedCheckoutEvent>(_onExecuteCheckout);
+    on<ExecuteCheckoutEvent>(_onExecuteCheckout);
     on<LoadWishlistEvent>(_onLoadWishlist);
     on<ToggleWishlistEvent>(_onToggleWishlist);
+  }
+
+  /// Shared private calculation for consistent shipping fee (Bug 10.1)
+  double _calculateShippingFee(double subtotal) {
+    if (subtotal == 0.0 || subtotal > 50.0) {
+      return 0.0;
+    }
+    return 5.00;
   }
 
   Future<void> _onLoadCart(
@@ -32,11 +41,11 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     Emitter<CartState> emit,
   ) async {
     try {
-      final rawItems = await _dbHelper.getCartItems();
+      final rawItems = await _repository.getCartItems();
       final items = rawItems.map((e) => CartItemEntity.fromMap(e)).toList();
 
       final subtotal = items.fold<double>(0.0, (sum, item) => sum + item.totalPrice);
-      final shippingFee = subtotal > 50.0 || subtotal == 0.0 ? 0.0 : 5.00;
+      final shippingFee = _calculateShippingFee(subtotal);
       final discountAmount = subtotal * _couponDiscountRate;
       final taxAmount = (subtotal - discountAmount) * 0.08; // 8% sales tax
       final total = (subtotal - discountAmount + taxAmount + shippingFee).clamp(0.0, double.infinity);
@@ -61,7 +70,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     Emitter<CartState> emit,
   ) async {
     try {
-      await _dbHelper.addToCart(event.product.id, event.quantity, event.variant);
+      await _repository.addToCart(event.product.id, event.quantity, event.variant);
       add(const LoadCartEvent());
     } catch (e) {
       emit(CartError('Could not add to cart: ${e.toString()}'));
@@ -79,7 +88,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
           orElse: () => throw Exception('Item not found'),
         );
         final newQty = current.quantity + event.delta;
-        await _dbHelper.updateCartItemQuantity(event.cartId, newQty);
+        await _repository.updateCartItemQuantity(event.cartId, newQty);
         add(const LoadCartEvent());
       }
     } catch (e) {
@@ -92,7 +101,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     Emitter<CartState> emit,
   ) async {
     try {
-      await _dbHelper.removeCartItem(event.cartId);
+      await _repository.removeCartItem(event.cartId);
       add(const LoadCartEvent());
     } catch (e) {
       emit(CartError('Could not remove item: ${e.toString()}'));
@@ -131,7 +140,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     Emitter<CartState> emit,
   ) async {
     try {
-      await _dbHelper.clearCart();
+      await _repository.clearCart();
       _activeCoupon = '';
       _couponDiscountRate = 0.0;
       add(const LoadCartEvent());
@@ -141,12 +150,12 @@ class CartBloc extends Bloc<CartEvent, CartState> {
   }
 
   Future<void> _onExecuteCheckout(
-    ExecuteSimulatedCheckoutEvent event,
+    ExecuteCheckoutEvent event,
     Emitter<CartState> emit,
   ) async {
     emit(const CartLoading());
     try {
-      final rawItems = await _dbHelper.getCartItems();
+      final rawItems = await _repository.getCartItems();
       final items = rawItems.map((e) => CartItemEntity.fromMap(e)).toList();
 
       if (items.isEmpty) {
@@ -155,7 +164,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       }
 
       final subtotal = items.fold<double>(0.0, (sum, item) => sum + item.totalPrice);
-      final shippingFee = subtotal > 50.0 ? 0.0 : 5.00;
+      final shippingFee = _calculateShippingFee(subtotal);
       final discountAmount = subtotal * _couponDiscountRate;
       final taxAmount = (subtotal - discountAmount) * 0.08;
       final total = subtotal - discountAmount + taxAmount + shippingFee;
@@ -184,7 +193,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
             .toList(),
       );
 
-      await _dbHelper.createSimulatedOrder(invoice.toDbMap());
+      await _repository.createOrder(invoice.toDbMap());
 
       // Reset coupon
       _activeCoupon = '';
@@ -201,7 +210,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     Emitter<CartState> emit,
   ) async {
     try {
-      final wishes = await _dbHelper.getWishlist(event.userId);
+      final wishes = await _repository.getWishlist(event.userId);
       _cachedWishlist = wishes.map((w) => ProductEntity.fromMap(w['product'])).toList();
       add(const LoadCartEvent());
     } catch (_) {}
@@ -212,7 +221,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     Emitter<CartState> emit,
   ) async {
     try {
-      await _dbHelper.toggleWishlist(event.userId, event.productId);
+      await _repository.toggleWishlist(event.userId, event.productId);
       add(LoadWishlistEvent(event.userId));
     } catch (_) {}
   }

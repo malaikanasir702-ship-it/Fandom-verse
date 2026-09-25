@@ -1,4 +1,7 @@
-class FandomPost {
+import 'dart:convert';
+import 'package:equatable/equatable.dart';
+
+class FandomPost extends Equatable {
   final String id;
   final String category;
   final String title;
@@ -58,4 +61,69 @@ class FandomPost {
       isBookmarked: isBookmarked ?? this.isBookmarked,
     );
   }
+
+  factory FandomPost.fromDbMap(Map<String, dynamic> map) {
+    List<String> parsedTags = [];
+    final rawTags = map['tags'];
+    if (rawTags is String && rawTags.isNotEmpty) {
+      try {
+        if (rawTags.startsWith('[')) {
+          parsedTags = List<String>.from(jsonDecode(rawTags));
+        } else {
+          parsedTags = rawTags.split(',').map((e) => e.trim()).toList();
+        }
+      } catch (_) {
+        parsedTags = [rawTags];
+      }
+    } else if (rawTags is List) {
+      parsedTags = List<String>.from(rawTags);
+    }
+
+    return FandomPost(
+      id: (map['post_id'] ?? '').toString(),
+      category: (map['category_id'] ?? map['category'] ?? 'Anime & Manga').toString(),
+      title: (map['title'] ?? '').toString(),
+      contentBody: (map['content_body'] ?? '').toString(),
+      authorName: (map['author_name'] ?? 'Fandom Chronicler').toString(),
+      imageUrl: (map['image_url'] ?? '').toString(),
+      isTrending: (map['is_trending'] as num?)?.toInt() == 1,
+      isDeepDive: (map['is_deep_dive'] as num?)?.toInt() == 1,
+      readTimeMinutes: 5,
+      tags: parsedTags,
+      timestamp: DateTime.fromMillisecondsSinceEpoch((map['timestamp'] as num?)?.toInt() ?? 0),
+      isBookmarked: (map['is_bookmarked'] as num?)?.toInt() == 1,
+    );
+  }
+
+  Map<String, dynamic> toDbMap() {
+    return {
+      'post_id': id,
+      'category_id': category,
+      'title': title,
+      'content_body': contentBody,
+      'author_name': authorName,
+      'image_url': imageUrl,
+      'is_trending': isTrending ? 1 : 0,
+      'is_deep_dive': isDeepDive ? 1 : 0,
+      'tags': jsonEncode(tags),
+      'timestamp': timestamp.millisecondsSinceEpoch,
+      'is_bookmarked': isBookmarked ? 1 : 0,
+    };
+  }
+
+  @override
+  List<Object?> get props => [
+        id,
+        category,
+        title,
+        contentBody,
+        authorName,
+        imageUrl,
+        isTrending,
+        isDeepDive,
+        readTimeMinutes,
+        tags,
+        timestamp,
+        isBookmarked,
+      ];
 }

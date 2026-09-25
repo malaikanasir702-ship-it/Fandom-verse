@@ -5,11 +5,29 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../../domain/entities/order_invoice_entity.dart';
+import '../../../../core/services/notification_service.dart';
 
-class OrderSuccessPage extends StatelessWidget {
+class OrderSuccessPage extends StatefulWidget {
   final OrderInvoiceEntity invoice;
 
   const OrderSuccessPage({super.key, required this.invoice});
+
+  @override
+  State<OrderSuccessPage> createState() => _OrderSuccessPageState();
+}
+
+class _OrderSuccessPageState extends State<OrderSuccessPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Fire order confirmation push notification
+    NotificationService.showOrderConfirmation(
+      orderId: widget.invoice.orderId,
+      total: widget.invoice.totalAmount,
+    );
+  }
+
+  OrderInvoiceEntity get invoice => widget.invoice;
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +80,7 @@ class OrderSuccessPage extends StatelessWidget {
               const SizedBox(height: 14),
 
               Text(
-                'Simulated Order Confirmed!',
+                'Order Confirmed!',
                 style: AppTextStyles.displaySmall.copyWith(
                   fontWeight: FontWeight.bold,
                   color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
@@ -148,7 +166,7 @@ class OrderSuccessPage extends StatelessWidget {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: const Text(
-                            'SIMULATED PAID',
+                            'PAID',
                             style: TextStyle(
                               color: AppColors.success,
                               fontSize: 10,
@@ -259,7 +277,7 @@ class OrderSuccessPage extends StatelessWidget {
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Simulated invoice #${invoice.orderId} exported to PDF!'),
+                            content: Text('Invoice #${invoice.orderId} exported to PDF!'),
                             backgroundColor: AppColors.success,
                           ),
                         );

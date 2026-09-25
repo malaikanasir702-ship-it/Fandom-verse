@@ -49,7 +49,7 @@ class _CartPageState extends State<CartPage> {
           ],
         ),
         content: const Text(
-          'Are you sure you want to remove all merchandise from your simulated cart?',
+          'Are you sure you want to remove all items from your cart?',
           style: TextStyle(fontSize: 13),
         ),
         actions: [
@@ -105,7 +105,7 @@ class _CartPageState extends State<CartPage> {
               ),
               const SizedBox(height: 8),
               Text(
-                'You saved \$${savings.toStringAsFixed(2)} on this simulated fandom order.',
+                'You saved \$${savings.toStringAsFixed(2)} on this order.',
                 style: TextStyle(
                   fontSize: 13,
                   color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
@@ -155,7 +155,7 @@ class _CartPageState extends State<CartPage> {
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
       appBar: AppBar(
         title: Text(
-          'Simulated Cart',
+          'My Cart',
           style: AppTextStyles.titleLarge.copyWith(
             color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
             fontWeight: FontWeight.bold,
@@ -373,7 +373,7 @@ class _CartPageState extends State<CartPage> {
 
                       // Proceed to Checkout CTA
                       CustomButton(
-                        text: 'Proceed to Simulated Checkout',
+                        text: 'Proceed to Checkout',
                         icon: Iconsax.lock,
                         backgroundColor: isDark ? AppColors.darkPrimary : AppColors.lightPrimary,
                         onPressed: () {

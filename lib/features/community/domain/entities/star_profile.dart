@@ -1,4 +1,6 @@
-class StarProfile {
+import 'package:equatable/equatable.dart';
+
+class StarProfile extends Equatable {
   final String id;
   final String name;
   final String category;
@@ -49,4 +51,44 @@ class StarProfile {
       isBookmarked: isBookmarked ?? this.isBookmarked,
     );
   }
+
+  factory StarProfile.fromDbMap(Map<String, dynamic> map) {
+    return StarProfile(
+      id: (map['star_id'] ?? '').toString(),
+      name: (map['name'] ?? '').toString(),
+      category: (map['fandom_category'] ?? 'Anime & Manga').toString(),
+      roleTitle: (map['role_title'] ?? '').toString(),
+      bio: (map['bio'] ?? '').toString(),
+      imageUrl: (map['image_url'] ?? '').toString(),
+      socialHandle: (map['social_handle'] ?? '').toString(),
+      famousWorks: const [],
+      isBookmarked: (map['is_bookmarked'] as num?)?.toInt() == 1,
+    );
+  }
+
+  Map<String, dynamic> toDbMap() {
+    return {
+      'star_id': id,
+      'name': name,
+      'fandom_category': category,
+      'role_title': roleTitle,
+      'bio': bio,
+      'image_url': imageUrl,
+      'social_handle': socialHandle,
+      'is_bookmarked': isBookmarked ? 1 : 0,
+    };
+  }
+
+  @override
+  List<Object?> get props => [
+        id,
+        name,
+        category,
+        roleTitle,
+        bio,
+        imageUrl,
+        socialHandle,
+        famousWorks,
+        isBookmarked,
+      ];
 }

@@ -21,7 +21,33 @@ import '../../features/admin/presentation/pages/admin_products_page.dart';
 import '../../features/admin/presentation/pages/admin_product_edit_page.dart';
 import '../../features/admin/presentation/pages/admin_users_categories_page.dart';
 
+import '../di/service_locator.dart';
+import '../pages/access_denied_page.dart';
+import '../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../features/auth/presentation/bloc/auth_state.dart';
+import '../../features/auth/presentation/pages/login_page.dart';
+
 class AdminRoutes {
+  static Route<dynamic> guardAdminRoute(Widget page) {
+    if (!sl.isRegistered<AuthBloc>()) {
+      return MaterialPageRoute(builder: (_) => const LoginPage());
+    }
+    final authBloc = sl<AuthBloc>();
+    final state = authBloc.state;
+    final user = authBloc.currentUser;
+
+    if (state is Unauthenticated || (state is! AdminAuthenticated && user == null)) {
+      return MaterialPageRoute(builder: (_) => const LoginPage());
+    }
+
+    if (state is AdminAuthenticated || user?.isAdmin == true || user?.role == 'admin') {
+      return MaterialPageRoute(builder: (_) => page);
+    }
+
+    // Authenticated fan without admin role -> Access Denied
+    return MaterialPageRoute(builder: (_) => const AccessDeniedPage());
+  }
+
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       // Store & Checkout
@@ -58,34 +84,34 @@ class AdminRoutes {
       case '/order-history':
         return MaterialPageRoute(builder: (_) => const OrderHistoryPage());
 
-      // Admin Console
+      // Admin Console (Protected by Route Guard)
       case '/admin-dashboard':
       case '/admin/dashboard':
-        return MaterialPageRoute(builder: (_) => const AdminDashboardPage());
+        return guardAdminRoute(const AdminDashboardPage());
 
       case '/admin/content':
-        return MaterialPageRoute(builder: (_) => const AdminContentPage());
+        return guardAdminRoute(const AdminContentPage());
 
       case '/admin/content-edit':
         final article = settings.arguments as Map<String, dynamic>?;
-        return MaterialPageRoute(builder: (_) => AdminContentEditPage(existingArticle: article));
+        return guardAdminRoute(AdminContentEditPage(existingArticle: article));
 
       case '/admin/events':
-        return MaterialPageRoute(builder: (_) => const AdminEventsPage());
+        return guardAdminRoute(const AdminEventsPage());
 
       case '/admin/event-edit':
         final event = settings.arguments as Map<String, dynamic>?;
-        return MaterialPageRoute(builder: (_) => AdminEventEditPage(existingEvent: event));
+        return guardAdminRoute(AdminEventEditPage(existingEvent: event));
 
       case '/admin/products':
-        return MaterialPageRoute(builder: (_) => const AdminProductsPage());
+        return guardAdminRoute(const AdminProductsPage());
 
       case '/admin/product-edit':
         final product = settings.arguments as Map<String, dynamic>?;
-        return MaterialPageRoute(builder: (_) => AdminProductEditPage(existingProduct: product));
+        return guardAdminRoute(AdminProductEditPage(existingProduct: product));
 
       case '/admin/users-categories':
-        return MaterialPageRoute(builder: (_) => const AdminUsersCategoriesPage());
+        return guardAdminRoute(const AdminUsersCategoriesPage());
 
       default:
         return null;

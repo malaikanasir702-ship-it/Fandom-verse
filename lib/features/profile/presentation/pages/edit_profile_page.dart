@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_button.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../bloc/profile_bloc.dart';
+import '../bloc/profile_event.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -11,23 +15,39 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-  final _nameController = TextEditingController(text: 'Alex Rivera');
-  final _handleController = TextEditingController(text: 'OtakuMaster_99');
-  final _bioController = TextEditingController(
-    text: 'Die-hard Shonen anime fan, Soulsborne speedrun enthusiast, and Marvel comics archivist.',
-  );
-  final _cityController = TextEditingController(text: 'Los Angeles, CA');
+  late final TextEditingController _nameController;
+  late final TextEditingController _bioController;
+  late final TextEditingController _cityController;
+  late String _userId;
+
+  @override
+  void initState() {
+    super.initState();
+    final user = context.read<AuthBloc>().currentUser;
+    _userId = user?.id ?? 'fan-01';
+    _nameController = TextEditingController(text: user?.name ?? '');
+    _bioController = TextEditingController(text: user?.bio ?? '');
+    _cityController = TextEditingController();
+  }
 
   @override
   void dispose() {
     _nameController.dispose();
-    _handleController.dispose();
     _bioController.dispose();
     _cityController.dispose();
     super.dispose();
   }
 
   void _saveProfile() {
+    context.read<ProfileBloc>().add(
+          UpdateProfileDetailsEvent(
+            userId: _userId,
+            name: _nameController.text.trim(),
+            bio: _bioController.text.trim(),
+            avatarUrl: '',
+            selectedFandoms: context.read<AuthBloc>().currentUser?.selectedFandoms ?? [],
+          ),
+        );
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Profile updated successfully!'),

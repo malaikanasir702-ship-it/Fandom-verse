@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/di/service_locator.dart';
 import 'core/routes/app_router.dart';
+import 'core/services/notification_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/bloc/theme_bloc.dart';
 import 'core/theme/bloc/theme_state.dart';
@@ -20,6 +21,9 @@ void main() async {
 
   // Initialize Clean Architecture Service Locator (Dev A & Dev B)
   await initDependencies();
+
+  // Initialize Push Notifications
+  await NotificationService.initialize();
 
   runApp(const FandomVerseApp());
 }

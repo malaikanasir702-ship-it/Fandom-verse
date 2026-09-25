@@ -1,22 +1,29 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/database/sqlite_helper.dart';
+import 'package:stream_transform/stream_transform.dart';
+import '../../../../core/repositories/i_store_repository.dart';
+import '../../../../core/repositories/store_repository_impl.dart';
 import '../../domain/entities/product_entity.dart';
 import 'store_event.dart';
 import 'store_state.dart';
 
 class StoreBloc extends Bloc<StoreEvent, StoreState> {
-  final SqliteHelper _dbHelper;
+  final IStoreRepository _repository;
   String _currentCategory = 'All';
   String _currentSort = 'featured';
   String _currentQuery = '';
 
-  StoreBloc({SqliteHelper? dbHelper})
-      : _dbHelper = dbHelper ?? SqliteHelper.instance,
+  StoreBloc({IStoreRepository? repository})
+      : _repository = repository ?? StoreRepositoryImpl(),
         super(const StoreInitial()) {
     on<LoadProductCatalogEvent>(_onLoadProductCatalog);
     on<FilterProductsByCategoryEvent>(_onFilterByCategory);
     on<SortProductsByPriceEvent>(_onSortByPrice);
-    on<SearchProductsEvent>(_onSearchProducts);
+    on<SearchProductsEvent>(
+      _onSearchProducts,
+      transformer: (events, mapper) => events
+          .debounce(const Duration(milliseconds: 300))
+          .switchMap(mapper),
+    );
   }
 
   Future<void> _onLoadProductCatalog(
@@ -29,7 +36,7 @@ class StoreBloc extends Bloc<StoreEvent, StoreState> {
       if (event.sortBy != null) _currentSort = event.sortBy!;
       if (event.searchQuery != null) _currentQuery = event.searchQuery!;
 
-      final rawData = await _dbHelper.getAllMerchandise(
+      final rawData = await _repository.getMerchandise(
         category: _currentCategory == 'All' ? null : _currentCategory,
         sortBy: _currentSort,
         searchQuery: _currentQuery,

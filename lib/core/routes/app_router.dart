@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'fan_routes.dart';
 import 'admin_routes.dart';
@@ -17,7 +17,17 @@ class AppRouter {
       return adminRoute;
     }
 
-    // 2. Default Fallback Route
+    // 3. Fallback for unmapped /admin routes - protect with AdminRoutes.guardAdminRoute
+    if (settings.name != null && settings.name!.startsWith('/admin')) {
+      return AdminRoutes.guardAdminRoute(
+        Scaffold(
+          appBar: AppBar(title: const Text('Admin Area')),
+          body: const Center(child: Text('Admin area not found.')),
+        ),
+      );
+    }
+
+    // 4. Default Fallback Route
     return MaterialPageRoute(
       builder: (_) => Scaffold(
         appBar: AppBar(title: const Text('Page Not Found')),
@@ -35,6 +45,3 @@ class AppRouter {
     );
   }
 }
-
-
-

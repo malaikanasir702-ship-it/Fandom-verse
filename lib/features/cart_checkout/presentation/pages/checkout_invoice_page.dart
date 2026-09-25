@@ -9,6 +9,7 @@ import '../../../../core/widgets/glass_container.dart';
 import '../bloc/cart_bloc.dart';
 import '../bloc/cart_event.dart';
 import '../bloc/cart_state.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 import 'order_success_page.dart';
 
 class CheckoutInvoicePage extends StatefulWidget {
@@ -34,27 +35,39 @@ class CheckoutInvoicePage extends StatefulWidget {
 }
 
 class _CheckoutInvoicePageState extends State<CheckoutInvoicePage> {
-  final _nameController = TextEditingController(text: 'Alex Mercer');
-  final _addressController = TextEditingController(text: '742 Evergreen Terrace, Sector 7-G');
-  final _cityController = TextEditingController(text: 'Neo Tokyo');
-  final _phoneController = TextEditingController(text: '+1 (555) 019-2834');
+  late final TextEditingController _nameController;
+  late final TextEditingController _addressController;
+  late final TextEditingController _cityController;
+  late final TextEditingController _phoneController;
+  String _userId = 'fan-01';
 
-  String _selectedPaymentMethod = 'Cash on Convention';
+  String _selectedPaymentMethod = 'Cash on Delivery';
+
+  @override
+  void initState() {
+    super.initState();
+    final user = context.read<AuthBloc>().currentUser;
+    _userId = user?.id ?? 'fan-01';
+    _nameController = TextEditingController(text: user?.name ?? '');
+    _addressController = TextEditingController();
+    _cityController = TextEditingController();
+    _phoneController = TextEditingController();
+  }
 
   final List<Map<String, dynamic>> _paymentMethods = [
     {
-      'title': 'Cash on Convention',
-      'desc': 'Pay at physical event merchandise pick-up booth',
+      'title': 'Cash on Delivery',
+      'desc': 'Pay when your order arrives',
       'icon': Iconsax.shop,
     },
     {
-      'title': 'Credit Card Mock',
-      'desc': 'Simulated Visa / Mastercard token transaction',
+      'title': 'Credit / Debit Card',
+      'desc': 'Visa, Mastercard, or any debit card',
       'icon': Iconsax.card,
     },
     {
       'title': 'Fan Reward Points',
-      'desc': 'Redeem 2,800 Otaku Lore XP Points',
+      'desc': 'Redeem your Otaku Lore XP Points',
       'icon': Iconsax.star_1,
     },
   ];
@@ -86,7 +99,7 @@ class _CheckoutInvoicePageState extends State<CheckoutInvoicePage> {
         backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
         appBar: AppBar(
           title: Text(
-            'Simulated Checkout',
+            'Checkout',
             style: AppTextStyles.headlineMedium.copyWith(
               color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
               fontWeight: FontWeight.bold,
@@ -104,43 +117,6 @@ class _CheckoutInvoicePageState extends State<CheckoutInvoicePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Mandatory SRS Disclaimer Banner
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: AppColors.darkAccentGold.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.darkAccentGold.withValues(alpha: 0.35)),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Iconsax.shield_tick, color: AppColors.darkAccentGold, size: 24),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Simulated Fan Store Checkout',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                              color: AppColors.darkAccentGold,
-                            ),
-                          ),
-                          SizedBox(height: 2),
-                          Text(
-                            'Notice: No actual financial charge or real-world parcel delivery will take place. This simulates itemized invoice generation.',
-                            style: TextStyle(fontSize: 11, color: Colors.grey, height: 1.3),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-
               // Shipping Address Form
               Text(
                 'Shipping Destination',
@@ -196,7 +172,7 @@ class _CheckoutInvoicePageState extends State<CheckoutInvoicePage> {
 
               // Payment Method Picker
               Text(
-                'Simulated Payment Method',
+                'Payment Method',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
@@ -337,8 +313,8 @@ class _CheckoutInvoicePageState extends State<CheckoutInvoicePage> {
                           '${_nameController.text.trim()}, ${_addressController.text.trim()}, ${_cityController.text.trim()} (Phone: ${_phoneController.text.trim()})';
 
                       context.read<CartBloc>().add(
-                            ExecuteSimulatedCheckoutEvent(
-                              userId: 'fan-01',
+                            ExecuteCheckoutEvent(
+                              userId: _userId,
                               shippingAddress: fullAddress,
                               paymentMethod: _selectedPaymentMethod,
                             ),

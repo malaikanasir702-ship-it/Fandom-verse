@@ -1,9 +1,11 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/database/sqlite_helper.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 
 class OrderHistoryPage extends StatefulWidget {
   const OrderHistoryPage({super.key});
@@ -23,7 +25,9 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
   }
 
   Future<void> _loadOrders() async {
-    final orders = await SqliteHelper.instance.getUserOrders('fan-01');
+    final userId =
+        context.read<AuthBloc>().currentUser?.id ?? 'fan-01';
+    final orders = await SqliteHelper.instance.getUserOrders(userId);
     setState(() {
       _orders = orders;
       _isLoading = false;
@@ -38,7 +42,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
       appBar: AppBar(
         title: Text(
-          'Simulated Orders',
+          'Order History',
           style: AppTextStyles.headlineMedium.copyWith(
             color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
             fontWeight: FontWeight.bold,
@@ -70,7 +74,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'Items purchased in the simulated store will appear here.',
+                        'Items purchased from the store will appear here.',
                         style: TextStyle(
                           fontSize: 13,
                           color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,

@@ -201,7 +201,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
 
       emit(CheckoutSuccess(invoice));
     } catch (e) {
-      emit(CartError('Simulated checkout failed: ${e.toString()}'));
+      emit(CartError('Checkout failed: ${e.toString()}'));
     }
   }
 

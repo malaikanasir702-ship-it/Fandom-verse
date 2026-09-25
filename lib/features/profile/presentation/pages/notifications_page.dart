@@ -152,7 +152,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Iconsax.notification_slash,
+                  Icon(Iconsax.notification_bing,
                       size: 64,
                       color: isDark
                           ? AppColors.darkTextSecondary

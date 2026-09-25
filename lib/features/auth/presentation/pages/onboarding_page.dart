@@ -33,7 +33,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     {
       'title': 'Official Merchandise & AI Helper',
       'subtitle':
-          'Track authentic merchandise with wishlist drop alerts, simulated checkout invoices, and an AI Fan Assistant ready to answer deep universe lore.',
+          'Track authentic merchandise with wishlist drop alerts, real checkout invoices, and an AI Fan Assistant ready to answer deep universe lore.',
       'icon': Iconsax.shopping_bag,
       'color': AppColors.darkAccentGold,
     },

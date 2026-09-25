@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
-import '../../data/event_mock_data.dart';
 import '../../domain/entities/event_entity.dart';
+import '../../presentation/bloc/event_bloc.dart';
+import '../../presentation/bloc/event_state.dart';
 
 class EventsMapPage extends StatefulWidget {
   const EventsMapPage({super.key});
@@ -16,40 +18,22 @@ class EventsMapPage extends StatefulWidget {
 }
 
 class _EventsMapPageState extends State<EventsMapPage> {
-  // ── State ──────────────────────────────────────────────────────────────────
-  double _radarRadiusKm = 50.0;
+  MapLibreMapController? _mapController;
+  double _radarRadiusKm = 100.0;
   String _selectedType = 'All';
   EventEntity? _selectedEvent;
-
-  MapLibreMapController? _mapController;
+  final List<Symbol> _symbols = [];
   final List<String> _types = ['All', 'Anime', 'Comic Con', 'Gaming', 'K-Pop'];
 
-  // Track symbol IDs so we can clear/re-add on filter change
-  final List<Symbol> _symbols = [];
-
-  @override
-  void initState() {
-    super.initState();
-    if (EventMockData.events.isNotEmpty) {
-      _selectedEvent = EventMockData.events.first;
-    }
+  List<EventEntity> _filteredEvents(List<EventEntity> events) {
+    if (_selectedType == 'All') return events;
+    return events
+        .where((e) =>
+            e.category.toLowerCase().contains(_selectedType.toLowerCase()))
+        .toList();
   }
 
-  @override
-  void dispose() {
-    _mapController?.dispose();
-    super.dispose();
-  }
-
-  // ── Helpers ────────────────────────────────────────────────────────────────
-
-  List<EventEntity> get _filteredEvents => EventMockData.events.where((e) {
-        if (_selectedType == 'All') return true;
-        return e.category.toLowerCase().contains(_selectedType.toLowerCase());
-      }).toList();
-
-  /// Add circle markers for every filtered event onto the map.
-  Future<void> _addMarkers() async {
+  Future<void> _addMarkers(List<EventEntity> events) async {
     final ctrl = _mapController;
     if (ctrl == null) return;
 
@@ -59,13 +43,14 @@ class _EventsMapPageState extends State<EventsMapPage> {
     }
     _symbols.clear();
 
-    for (final event in _filteredEvents) {
+    for (final event in events) {
       final sym = await ctrl.addSymbol(
         SymbolOptions(
           geometry: LatLng(event.latitude, event.longitude),
           iconImage: 'marker-15',
           iconSize: 2.0,
-          iconColor: event.id == _selectedEvent?.id ? '#FFD700' : '#E53935',
+          iconColor:
+              event.id == _selectedEvent?.id ? '#FFD700' : '#E53935',
           textField: event.cityName,
           textSize: 11,
           textColor: '#FFFFFF',
@@ -78,7 +63,6 @@ class _EventsMapPageState extends State<EventsMapPage> {
     }
   }
 
-  /// Fly the camera to the selected event location.
   void _flyToEvent(EventEntity event) {
     _mapController?.animateCamera(
       CameraUpdate.newCameraPosition(
@@ -91,9 +75,7 @@ class _EventsMapPageState extends State<EventsMapPage> {
     );
   }
 
-  /// Fit the camera to show all filtered markers.
-  void _fitBounds() {
-    final events = _filteredEvents;
+  void _fitBounds(List<EventEntity> events) {
     if (events.isEmpty || _mapController == null) return;
 
     if (events.length == 1) {
@@ -127,340 +109,336 @@ class _EventsMapPageState extends State<EventsMapPage> {
         left: 60,
         top: 180,
         right: 60,
-        bottom: 200,
+        bottom: 220,
       ),
     );
   }
-
-  // ── Map callbacks ──────────────────────────────────────────────────────────
 
   void _onMapCreated(MapLibreMapController controller) {
     _mapController = controller;
     controller.onSymbolTapped.add(_onSymbolTapped);
   }
 
-  void _onStyleLoaded() async {
-    await _addMarkers();
-    _fitBounds();
+  void _onStyleLoaded(List<EventEntity> events) async {
+    final filtered = _filteredEvents(events);
+    await _addMarkers(filtered);
+    _fitBounds(filtered);
   }
 
   void _onSymbolTapped(Symbol symbol) {
-    // Find which event corresponds to this symbol index
+    final state = context.read<EventCalendarBloc>().state;
+    if (state is! EventLoaded) return;
+    final filtered = _filteredEvents(state.allEvents);
     final idx = _symbols.indexOf(symbol);
-    if (idx >= 0 && idx < _filteredEvents.length) {
-      final event = _filteredEvents[idx];
+    if (idx >= 0 && idx < filtered.length) {
+      final event = filtered[idx];
       setState(() => _selectedEvent = event);
       _flyToEvent(event);
-      // Refresh markers to update selected highlight color
-      _addMarkers();
+      _addMarkers(filtered);
     }
   }
-
-  // ── Build ──────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Live Radar Map',
-            style: TextStyle(fontWeight: FontWeight.w800)),
-        actions: [
-          // Fit-all button
-          IconButton(
-            tooltip: 'Fit All Events',
-            icon: const Icon(Iconsax.maximize_3),
-            onPressed: () {
-              _fitBounds();
-            },
-          ),
-          // Re-center on first event (simulates GPS)
-          IconButton(
-            tooltip: 'My Location',
-            icon: const Icon(Iconsax.location_tick),
-            onPressed: () {
-              final first = _filteredEvents.isNotEmpty
-                  ? _filteredEvents.first
-                  : null;
-              if (first != null) {
-                _mapController?.animateCamera(
-                  CameraUpdate.newLatLngZoom(
-                    LatLng(first.latitude, first.longitude),
-                    9,
-                  ),
-                );
-              }
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('📍 Centered on nearest event location'),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          // ── MapLibre GL Map ──────────────────────────────────────────────
-          MapLibreMap(
-            onMapCreated: _onMapCreated,
-            onStyleLoadedCallback: _onStyleLoaded,
-            styleString:
-                'https://demotiles.maplibre.org/style.json', // free tile style
-            initialCameraPosition: const CameraPosition(
-              target: LatLng(25.0, 30.0), // roughly world center
-              zoom: 1.5,
-            ),
-            compassEnabled: true,
-            rotateGesturesEnabled: true,
-            tiltGesturesEnabled: true,
-            scrollGesturesEnabled: true,
-            zoomGesturesEnabled: true,
-            myLocationEnabled: false, // skip runtime permission for now
-            trackCameraPosition: false,
-          ),
+    return BlocBuilder<EventCalendarBloc, EventCalendarState>(
+      builder: (context, state) {
+        final allEvents =
+            state is EventLoaded ? state.allEvents : <EventEntity>[];
+        final filtered = _filteredEvents(allEvents);
 
-          // ── Top Controls: Radius Slider + Category Filter ────────────────
-          Positioned(
-            top: 12,
-            left: 12,
-            right: 12,
-            child: GlassContainer(
-              padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Radius row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '📡 Radius: ${_radarRadiusKm.toInt()} km',
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w700, fontSize: 13),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: AppColors.success.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Text('Live GPS Active',
-                            style: TextStyle(
-                                color: AppColors.success,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700)),
-                      ),
-                    ],
-                  ),
-                  SliderTheme(
-                    data: SliderThemeData(
-                      activeTrackColor: AppColors.darkSecondary,
-                      thumbColor: AppColors.darkSecondary,
-                      inactiveTrackColor:
-                          AppColors.darkSecondary.withValues(alpha: 0.25),
-                      overlayColor:
-                          AppColors.darkSecondary.withValues(alpha: 0.15),
-                      trackHeight: 3,
-                    ),
-                    child: Slider(
-                      value: _radarRadiusKm,
-                      min: 10,
-                      max: 500,
-                      divisions: 49,
-                      onChanged: (val) {
-                        setState(() => _radarRadiusKm = val);
-                      },
-                    ),
-                  ),
-                  // Category chips
-                  SizedBox(
-                    height: 34,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: _types.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 6),
-                      itemBuilder: (context, i) {
-                        final type = _types[i];
-                        final isSel = _selectedType == type;
-                        return ChoiceChip(
-                          label: Text(type,
-                              style: const TextStyle(
-                                  fontSize: 11, fontWeight: FontWeight.w600)),
-                          selected: isSel,
-                          selectedColor: AppColors.darkSecondary,
-                          labelStyle: TextStyle(
-                            color: isSel
-                                ? Colors.white
-                                : (isDark
-                                    ? AppColors.darkTextPrimary
-                                    : AppColors.lightTextPrimary),
-                          ),
-                          onSelected: (_) async {
-                            setState(() => _selectedType = type);
-                            await _addMarkers();
-                            _fitBounds();
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                ],
+        if (_selectedEvent == null && filtered.isNotEmpty) {
+          _selectedEvent = filtered.first;
+        }
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Event Radar Map',
+                style: TextStyle(fontWeight: FontWeight.w800)),
+            actions: [
+              IconButton(
+                tooltip: 'Fit All Events',
+                icon: const Icon(Iconsax.maximize_3),
+                onPressed: () => _fitBounds(filtered),
               ),
-            ),
-          ),
-
-          // ── Bottom Event Preview Card ─────────────────────────────────────
-          if (_selectedEvent != null)
-            Positioned(
-              bottom: 20,
-              left: 14,
-              right: 14,
-              child: GlassContainer(
-                padding: const EdgeInsets.all(13),
-                child: Row(
-                  children: [
-                    // Thumbnail
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        _selectedEvent!.bannerUrl,
-                        width: 72,
-                        height: 72,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          width: 72,
-                          height: 72,
-                          color: AppColors.darkSurfaceElevated,
-                          child: const Icon(Iconsax.calendar_2),
-                        ),
+              IconButton(
+                tooltip: 'Center on First Event',
+                icon: const Icon(Iconsax.location_tick),
+                onPressed: () {
+                  if (filtered.isNotEmpty) {
+                    _mapController?.animateCamera(
+                      CameraUpdate.newLatLngZoom(
+                        LatLng(filtered.first.latitude,
+                            filtered.first.longitude),
+                        9,
                       ),
-                    ),
-                    const SizedBox(width: 12),
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
+          body: Stack(
+            children: [
+              // ── MapLibre GL Map ──────────────────────────────────────────
+              MapLibreMap(
+                onMapCreated: _onMapCreated,
+                onStyleLoadedCallback: () => _onStyleLoaded(allEvents),
+                styleString:
+                    'https://demotiles.maplibre.org/style.json',
+                initialCameraPosition: const CameraPosition(
+                  target: LatLng(25.0, 30.0),
+                  zoom: 1.5,
+                ),
+                compassEnabled: true,
+                rotateGesturesEnabled: true,
+                tiltGesturesEnabled: true,
+                scrollGesturesEnabled: true,
+                zoomGesturesEnabled: true,
+                myLocationEnabled: false,
+                trackCameraPosition: false,
+              ),
 
-                    // Info
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+              // ── Top Controls ─────────────────────────────────────────────
+              Positioned(
+                top: 12,
+                left: 12,
+                right: 12,
+                child: GlassContainer(
+                  padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color:
-                                      AppColors.darkPrimary.withValues(alpha: 0.18),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  _selectedEvent!.category,
-                                  style: const TextStyle(
-                                      fontSize: 9,
-                                      color: AppColors.darkPrimary,
-                                      fontWeight: FontWeight.w700),
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                _selectedEvent!.cityName,
-                                style: const TextStyle(
-                                    fontSize: 11, fontWeight: FontWeight.w600),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
                           Text(
-                            _selectedEvent!.title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTextStyles.titleMedium
-                                .copyWith(fontWeight: FontWeight.w700),
+                            '📡 Radius: ${_radarRadiusKm.toInt()} km',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w700, fontSize: 13),
                           ),
-                          const SizedBox(height: 3),
-                          Row(
-                            children: [
-                              const Icon(Iconsax.location,
-                                  size: 11, color: AppColors.darkSecondary),
-                              const SizedBox(width: 3),
-                              Expanded(
-                                child: Text(
-                                  _selectedEvent!.venueName,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: isDark
-                                        ? AppColors.darkTextSecondary
-                                        : AppColors.lightTextSecondary,
-                                  ),
-                                ),
-                              ),
-                            ],
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color:
+                                  AppColors.success.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              '${filtered.length} Events',
+                              style: const TextStyle(
+                                  color: AppColors.success,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700),
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(width: 8),
-
-                    // Details button
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.darkPrimary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                      SliderTheme(
+                        data: SliderThemeData(
+                          activeTrackColor: AppColors.darkSecondary,
+                          thumbColor: AppColors.darkSecondary,
+                          inactiveTrackColor: AppColors.darkSecondary
+                              .withValues(alpha: 0.25),
+                          overlayColor: AppColors.darkSecondary
+                              .withValues(alpha: 0.15),
+                          trackHeight: 3,
+                        ),
+                        child: Slider(
+                          value: _radarRadiusKm,
+                          min: 10,
+                          max: 500,
+                          divisions: 49,
+                          onChanged: (val) =>
+                              setState(() => _radarRadiusKm = val),
                         ),
                       ),
-                      onPressed: () {
-                        Navigator.of(context).pushNamed(
-                          '/event-detail',
-                          arguments: _selectedEvent,
-                        );
-                      },
-                      child: const Text('Details',
-                          style: TextStyle(
-                              fontSize: 12, fontWeight: FontWeight.w700)),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-          // ── Event count badge ─────────────────────────────────────────────
-          Positioned(
-            bottom: _selectedEvent != null ? 114 : 20,
-            right: 14,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.darkSecondary,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.darkSecondary.withValues(alpha: 0.4),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
+                      SizedBox(
+                        height: 34,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: _types.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(width: 6),
+                          itemBuilder: (context, i) {
+                            final type = _types[i];
+                            final isSel = _selectedType == type;
+                            return ChoiceChip(
+                              label: Text(type,
+                                  style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600)),
+                              selected: isSel,
+                              selectedColor: AppColors.darkSecondary,
+                              labelStyle: TextStyle(
+                                color: isSel
+                                    ? Colors.white
+                                    : (isDark
+                                        ? AppColors.darkTextPrimary
+                                        : AppColors.lightTextPrimary),
+                              ),
+                              onSelected: (_) async {
+                                setState(() => _selectedType = type);
+                                final newFiltered =
+                                    _filteredEvents(allEvents);
+                                await _addMarkers(newFiltered);
+                                _fitBounds(newFiltered);
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: Text(
-                '${_filteredEvents.length} Events',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
                 ),
               ),
-            ),
+
+              // ── Bottom Event Card ────────────────────────────────────────
+              if (_selectedEvent != null)
+                Positioned(
+                  bottom: 20,
+                  left: 14,
+                  right: 14,
+                  child: GlassContainer(
+                    padding: const EdgeInsets.all(13),
+                    child: Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            _selectedEvent!.bannerUrl,
+                            width: 72,
+                            height: 72,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              width: 72,
+                              height: 72,
+                              color: AppColors.darkSurfaceElevated,
+                              child: const Icon(Iconsax.calendar_2),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.darkPrimary
+                                          .withValues(alpha: 0.18),
+                                      borderRadius:
+                                          BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      _selectedEvent!.category,
+                                      style: const TextStyle(
+                                          fontSize: 9,
+                                          color: AppColors.darkPrimary,
+                                          fontWeight: FontWeight.w700),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(_selectedEvent!.cityName,
+                                      style: const TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600)),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _selectedEvent!.title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTextStyles.titleMedium.copyWith(
+                                    fontWeight: FontWeight.w700),
+                              ),
+                              const SizedBox(height: 3),
+                              Row(
+                                children: [
+                                  const Icon(Iconsax.location,
+                                      size: 11,
+                                      color: AppColors.darkSecondary),
+                                  const SizedBox(width: 3),
+                                  Expanded(
+                                    child: Text(
+                                      _selectedEvent!.venueName,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                          fontSize: 11,
+                                          color: isDark
+                                              ? AppColors.darkTextSecondary
+                                              : AppColors
+                                                  .lightTextSecondary),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.darkPrimary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 10),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                          ),
+                          onPressed: () => Navigator.of(context).pushNamed(
+                              '/event-detail',
+                              arguments: _selectedEvent),
+                          child: const Text('Details',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+              // ── Event count badge ────────────────────────────────────────
+              Positioned(
+                bottom: _selectedEvent != null ? 114 : 20,
+                right: 14,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.darkSecondary,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color:
+                            AppColors.darkSecondary.withValues(alpha: 0.4),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    '${filtered.length} Events',
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

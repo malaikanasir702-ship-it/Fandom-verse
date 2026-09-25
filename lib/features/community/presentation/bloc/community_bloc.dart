@@ -3,7 +3,6 @@ import '../../../../core/repositories/i_community_repository.dart';
 import '../../../../core/repositories/community_repository_impl.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../domain/entities/discussion_thread.dart';
-import '../../domain/entities/star_profile.dart';
 import 'community_event.dart';
 import 'community_state.dart';
 

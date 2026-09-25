@@ -27,8 +27,6 @@ class _HeroStoryViewerPageState extends State<HeroStoryViewerPage> {
     _currentHeroIndex = widget.initialIndex;
     _storyController = StoryController();
     _pageController = PageController(initialPage: widget.initialIndex);
-
-    // Mark current hero as seen
     widget.stories[_currentHeroIndex].seen = true;
   }
 
@@ -88,9 +86,7 @@ class _HeroStoryViewerPageState extends State<HeroStoryViewerPage> {
             fontWeight: FontWeight.w700,
             fontSize: 15,
             height: 1.5,
-            shadows: [
-              Shadow(color: Colors.black87, blurRadius: 10),
-            ],
+            shadows: [Shadow(color: Colors.black87, blurRadius: 10)],
           ),
         ),
         imageFit: BoxFit.cover,
@@ -128,6 +124,8 @@ class _HeroStoryViewerPageState extends State<HeroStoryViewerPage> {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+
 class _StoryPageContent extends StatelessWidget {
   final HeroStory hero;
   final List<StoryItem> storyItems;
@@ -150,27 +148,24 @@ class _StoryPageContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // StoryView
+        // ── StoryView ───────────────────────────────────────────────────────
         StoryView(
           storyItems: storyItems,
           controller: storyController,
           repeat: false,
           onComplete: onNextHero,
           onVerticalSwipeComplete: (direction) {
-            if (direction == Direction.down) {
-              onDismiss();
-            }
+            if (direction == Direction.down) onDismiss();
           },
           onStoryShow: (storyItem, idx) {},
         ),
 
-        // Top overlay: Avatar + Hero name + Close button
+        // ── Top Overlay: Avatar + Hero name + Close ─────────────────────────
         SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 50, 16, 0),
             child: Row(
               children: [
-                // Hero avatar with color ring
                 Container(
                   width: 42,
                   height: 42,
@@ -199,8 +194,6 @@ class _StoryPageContent extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 10),
-
-                // Hero name & category
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -212,7 +205,9 @@ class _StoryPageContent extends StatelessWidget {
                           color: Colors.white,
                           fontWeight: FontWeight.w900,
                           fontSize: 14,
-                          shadows: [Shadow(color: Colors.black54, blurRadius: 4)],
+                          shadows: [
+                            Shadow(color: Colors.black54, blurRadius: 4)
+                          ],
                         ),
                       ),
                       Text(
@@ -226,8 +221,6 @@ class _StoryPageContent extends StatelessWidget {
                     ],
                   ),
                 ),
-
-                // Close button
                 GestureDetector(
                   onTap: onDismiss,
                   child: Container(
@@ -237,7 +230,8 @@ class _StoryPageContent extends StatelessWidget {
                       color: Colors.black.withValues(alpha: 0.38),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.close, color: Colors.white, size: 18),
+                    child: const Icon(Icons.close,
+                        color: Colors.white, size: 18),
                   ),
                 ),
               ],
@@ -245,7 +239,7 @@ class _StoryPageContent extends StatelessWidget {
           ),
         ),
 
-        // Left swipe zone (prev hero)
+        // ── Left tap zone (prev hero) ────────────────────────────────────────
         Positioned(
           left: 0,
           top: 100,

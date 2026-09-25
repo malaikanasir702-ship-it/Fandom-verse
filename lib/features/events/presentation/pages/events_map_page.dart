@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:maplibre_gl/maplibre_gl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
@@ -14,11 +16,16 @@ class EventsMapPage extends StatefulWidget {
 }
 
 class _EventsMapPageState extends State<EventsMapPage> {
+  // ── State ──────────────────────────────────────────────────────────────────
   double _radarRadiusKm = 50.0;
   String _selectedType = 'All';
   EventEntity? _selectedEvent;
 
+  MapLibreMapController? _mapController;
   final List<String> _types = ['All', 'Anime', 'Comic Con', 'Gaming', 'K-Pop'];
+
+  // Track symbol IDs so we can clear/re-add on filter change
+  final List<Symbol> _symbols = [];
 
   @override
   void initState() {
@@ -29,24 +36,164 @@ class _EventsMapPageState extends State<EventsMapPage> {
   }
 
   @override
+  void dispose() {
+    _mapController?.dispose();
+    super.dispose();
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
+  List<EventEntity> get _filteredEvents => EventMockData.events.where((e) {
+        if (_selectedType == 'All') return true;
+        return e.category.toLowerCase().contains(_selectedType.toLowerCase());
+      }).toList();
+
+  /// Add circle markers for every filtered event onto the map.
+  Future<void> _addMarkers() async {
+    final ctrl = _mapController;
+    if (ctrl == null) return;
+
+    // Remove old symbols
+    for (final sym in _symbols) {
+      await ctrl.removeSymbol(sym);
+    }
+    _symbols.clear();
+
+    for (final event in _filteredEvents) {
+      final sym = await ctrl.addSymbol(
+        SymbolOptions(
+          geometry: LatLng(event.latitude, event.longitude),
+          iconImage: 'marker-15',
+          iconSize: 2.0,
+          iconColor: event.id == _selectedEvent?.id ? '#FFD700' : '#E53935',
+          textField: event.cityName,
+          textSize: 11,
+          textColor: '#FFFFFF',
+          textHaloColor: '#000000',
+          textHaloWidth: 1.5,
+          textOffset: const Offset(0, 1.8),
+        ),
+      );
+      _symbols.add(sym);
+    }
+  }
+
+  /// Fly the camera to the selected event location.
+  void _flyToEvent(EventEntity event) {
+    _mapController?.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: LatLng(event.latitude, event.longitude),
+          zoom: 10,
+          tilt: 30,
+        ),
+      ),
+    );
+  }
+
+  /// Fit the camera to show all filtered markers.
+  void _fitBounds() {
+    final events = _filteredEvents;
+    if (events.isEmpty || _mapController == null) return;
+
+    if (events.length == 1) {
+      _mapController!.animateCamera(
+        CameraUpdate.newLatLngZoom(
+          LatLng(events.first.latitude, events.first.longitude),
+          8,
+        ),
+      );
+      return;
+    }
+
+    double minLat = events.first.latitude;
+    double maxLat = events.first.latitude;
+    double minLng = events.first.longitude;
+    double maxLng = events.first.longitude;
+
+    for (final e in events) {
+      if (e.latitude < minLat) minLat = e.latitude;
+      if (e.latitude > maxLat) maxLat = e.latitude;
+      if (e.longitude < minLng) minLng = e.longitude;
+      if (e.longitude > maxLng) maxLng = e.longitude;
+    }
+
+    _mapController!.animateCamera(
+      CameraUpdate.newLatLngBounds(
+        LatLngBounds(
+          southwest: LatLng(minLat - 2, minLng - 2),
+          northeast: LatLng(maxLat + 2, maxLng + 2),
+        ),
+        left: 60,
+        top: 180,
+        right: 60,
+        bottom: 200,
+      ),
+    );
+  }
+
+  // ── Map callbacks ──────────────────────────────────────────────────────────
+
+  void _onMapCreated(MapLibreMapController controller) {
+    _mapController = controller;
+    controller.onSymbolTapped.add(_onSymbolTapped);
+  }
+
+  void _onStyleLoaded() async {
+    await _addMarkers();
+    _fitBounds();
+  }
+
+  void _onSymbolTapped(Symbol symbol) {
+    // Find which event corresponds to this symbol index
+    final idx = _symbols.indexOf(symbol);
+    if (idx >= 0 && idx < _filteredEvents.length) {
+      final event = _filteredEvents[idx];
+      setState(() => _selectedEvent = event);
+      _flyToEvent(event);
+      // Refresh markers to update selected highlight color
+      _addMarkers();
+    }
+  }
+
+  // ── Build ──────────────────────────────────────────────────────────────────
+
+  @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final filteredEvents = EventMockData.events.where((e) {
-      if (_selectedType == 'All') return true;
-      return e.category.toLowerCase().contains(_selectedType.toLowerCase());
-    }).toList();
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Live Radar Map', style: TextStyle(fontWeight: FontWeight.w800)),
+        title: const Text('Live Radar Map',
+            style: TextStyle(fontWeight: FontWeight.w800)),
         actions: [
+          // Fit-all button
           IconButton(
+            tooltip: 'Fit All Events',
+            icon: const Icon(Iconsax.maximize_3),
+            onPressed: () {
+              _fitBounds();
+            },
+          ),
+          // Re-center on first event (simulates GPS)
+          IconButton(
+            tooltip: 'My Location',
             icon: const Icon(Iconsax.location_tick),
             onPressed: () {
+              final first = _filteredEvents.isNotEmpty
+                  ? _filteredEvents.first
+                  : null;
+              if (first != null) {
+                _mapController?.animateCamera(
+                  CameraUpdate.newLatLngZoom(
+                    LatLng(first.latitude, first.longitude),
+                    9,
+                  ),
+                );
+              }
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Centered on your current location: Los Angeles, CA'),
+                  content: Text('📍 Centered on nearest event location'),
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -56,181 +203,109 @@ class _EventsMapPageState extends State<EventsMapPage> {
       ),
       body: Stack(
         children: [
-          // Simulated Radar / Geospatial Map Canvas
-          Container(
-            color: isDark ? const Color(0xFF0F121C) : const Color(0xFFE2E8F0),
-            child: Stack(
-              children: [
-                // Radar concentric grid circles
-                Center(
-                  child: Container(
-                    width: 320,
-                    height: 320,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: AppColors.darkSecondary.withValues(alpha: 0.15),
-                        width: 1.5,
-                      ),
-                    ),
-                  ),
-                ),
-                Center(
-                  child: Container(
-                    width: 220,
-                    height: 220,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: AppColors.darkSecondary.withValues(alpha: 0.25),
-                        width: 1.5,
-                      ),
-                    ),
-                  ),
-                ),
-                Center(
-                  child: Container(
-                    width: 110,
-                    height: 110,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.darkSecondary.withValues(alpha: 0.05),
-                      border: Border.all(
-                        color: AppColors.darkSecondary.withValues(alpha: 0.4),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: const Center(
-                      child: Icon(Iconsax.profile_circle, color: AppColors.darkSecondary, size: 28),
-                    ),
-                  ),
-                ),
-
-                // Simulated Event Radar Pins
-                ...List.generate(filteredEvents.length, (index) {
-                  final e = filteredEvents[index];
-                  // Calculate dynamic positions around the center
-                  final double angle = (index * (360 / (filteredEvents.isEmpty ? 1 : filteredEvents.length))) * (3.14159 / 180);
-                  final double distance = 90.0 + (index % 3) * 40;
-                  final double left = 180 + distance * (angle).abs().remainder(1.5) - 40;
-                  final double top = 220 + distance * (angle).remainder(1.2) - 30;
-
-                  final isSelected = _selectedEvent?.id == e.id;
-
-                  return Positioned(
-                    left: left.clamp(30.0, 320.0),
-                    top: top.clamp(90.0, 480.0),
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _selectedEvent = e;
-                        });
-                      },
-                      child: AnimatedScale(
-                        scale: isSelected ? 1.25 : 1.0,
-                        duration: const Duration(milliseconds: 200),
-                        child: Column(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: isSelected ? AppColors.darkSecondary : AppColors.darkPrimary,
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: (isSelected ? AppColors.darkSecondary : AppColors.darkPrimary)
-                                        .withValues(alpha: 0.5),
-                                    blurRadius: 10,
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Iconsax.ticket, size: 12, color: Colors.white),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    e.cityName,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Icon(
-                              Iconsax.location,
-                              color: isSelected ? AppColors.darkSecondary : AppColors.darkPrimary,
-                              size: 28,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-              ],
+          // ── MapLibre GL Map ──────────────────────────────────────────────
+          MapLibreMap(
+            onMapCreated: _onMapCreated,
+            onStyleLoadedCallback: _onStyleLoaded,
+            styleString:
+                'https://demotiles.maplibre.org/style.json', // free tile style
+            initialCameraPosition: const CameraPosition(
+              target: LatLng(25.0, 30.0), // roughly world center
+              zoom: 1.5,
             ),
+            compassEnabled: true,
+            rotateGesturesEnabled: true,
+            tiltGesturesEnabled: true,
+            scrollGesturesEnabled: true,
+            zoomGesturesEnabled: true,
+            myLocationEnabled: false, // skip runtime permission for now
+            trackCameraPosition: false,
           ),
 
-          // Top Controls (Radius Slider & Filters)
+          // ── Top Controls: Radius Slider + Category Filter ────────────────
           Positioned(
-            top: 16,
-            left: 16,
-            right: 16,
+            top: 12,
+            left: 12,
+            right: 12,
             child: GlassContainer(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Radius row
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '📡 Search Radius: ${_radarRadiusKm.toInt()} km',
-                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                        '📡 Radius: ${_radarRadiusKm.toInt()} km',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w700, fontSize: 13),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           color: AppColors.success.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Text('Live GPS Active', style: TextStyle(color: AppColors.success, fontSize: 10, fontWeight: FontWeight.w700)),
+                        child: const Text('Live GPS Active',
+                            style: TextStyle(
+                                color: AppColors.success,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700)),
                       ),
                     ],
                   ),
-                  Slider(
-                    value: _radarRadiusKm,
-                    min: 10,
-                    max: 200,
-                    divisions: 19,
-                    activeColor: AppColors.darkSecondary,
-                    onChanged: (val) {
-                      setState(() {
-                        _radarRadiusKm = val;
-                      });
-                    },
+                  SliderTheme(
+                    data: SliderThemeData(
+                      activeTrackColor: AppColors.darkSecondary,
+                      thumbColor: AppColors.darkSecondary,
+                      inactiveTrackColor:
+                          AppColors.darkSecondary.withValues(alpha: 0.25),
+                      overlayColor:
+                          AppColors.darkSecondary.withValues(alpha: 0.15),
+                      trackHeight: 3,
+                    ),
+                    child: Slider(
+                      value: _radarRadiusKm,
+                      min: 10,
+                      max: 500,
+                      divisions: 49,
+                      onChanged: (val) {
+                        setState(() => _radarRadiusKm = val);
+                      },
+                    ),
                   ),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: _types.map((type) {
+                  // Category chips
+                  SizedBox(
+                    height: 34,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _types.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 6),
+                      itemBuilder: (context, i) {
+                        final type = _types[i];
                         final isSel = _selectedType == type;
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 6.0),
-                          child: ChoiceChip(
-                            label: Text(type, style: const TextStyle(fontSize: 11)),
-                            selected: isSel,
-                            onSelected: (selected) {
-                              setState(() {
-                                _selectedType = type;
-                              });
-                            },
+                        return ChoiceChip(
+                          label: Text(type,
+                              style: const TextStyle(
+                                  fontSize: 11, fontWeight: FontWeight.w600)),
+                          selected: isSel,
+                          selectedColor: AppColors.darkSecondary,
+                          labelStyle: TextStyle(
+                            color: isSel
+                                ? Colors.white
+                                : (isDark
+                                    ? AppColors.darkTextPrimary
+                                    : AppColors.lightTextPrimary),
                           ),
+                          onSelected: (_) async {
+                            setState(() => _selectedType = type);
+                            await _addMarkers();
+                            _fitBounds();
+                          },
                         );
-                      }).toList(),
+                      },
                     ),
                   ),
                 ],
@@ -238,32 +313,35 @@ class _EventsMapPageState extends State<EventsMapPage> {
             ),
           ),
 
-          // Bottom Preview Card
+          // ── Bottom Event Preview Card ─────────────────────────────────────
           if (_selectedEvent != null)
             Positioned(
               bottom: 20,
-              left: 16,
-              right: 16,
+              left: 14,
+              right: 14,
               child: GlassContainer(
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.all(13),
                 child: Row(
                   children: [
+                    // Thumbnail
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: Image.network(
                         _selectedEvent!.bannerUrl,
-                        width: 75,
-                        height: 75,
+                        width: 72,
+                        height: 72,
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => Container(
-                          width: 75,
-                          height: 75,
+                          width: 72,
+                          height: 72,
                           color: AppColors.darkSurfaceElevated,
                           child: const Icon(Iconsax.calendar_2),
                         ),
                       ),
                     ),
                     const SizedBox(width: 12),
+
+                    // Info
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -271,20 +349,26 @@ class _EventsMapPageState extends State<EventsMapPage> {
                           Row(
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: AppColors.darkPrimary.withValues(alpha: 0.2),
+                                  color:
+                                      AppColors.darkPrimary.withValues(alpha: 0.18),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
                                   _selectedEvent!.category,
-                                  style: const TextStyle(fontSize: 9, color: AppColors.darkPrimary, fontWeight: FontWeight.w700),
+                                  style: const TextStyle(
+                                      fontSize: 9,
+                                      color: AppColors.darkPrimary,
+                                      fontWeight: FontWeight.w700),
                                 ),
                               ),
                               const SizedBox(width: 6),
                               Text(
                                 _selectedEvent!.cityName,
-                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                                style: const TextStyle(
+                                    fontSize: 11, fontWeight: FontWeight.w600),
                               ),
                             ],
                           ),
@@ -293,25 +377,45 @@ class _EventsMapPageState extends State<EventsMapPage> {
                             _selectedEvent!.title,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w700),
+                            style: AppTextStyles.titleMedium
+                                .copyWith(fontWeight: FontWeight.w700),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _selectedEvent!.venueName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                            ),
+                          const SizedBox(height: 3),
+                          Row(
+                            children: [
+                              const Icon(Iconsax.location,
+                                  size: 11, color: AppColors.darkSecondary),
+                              const SizedBox(width: 3),
+                              Expanded(
+                                child: Text(
+                                  _selectedEvent!.venueName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: isDark
+                                        ? AppColors.darkTextSecondary
+                                        : AppColors.lightTextSecondary,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(width: 8),
+
+                    // Details button
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        backgroundColor: AppColors.darkPrimary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                       onPressed: () {
                         Navigator.of(context).pushNamed(
@@ -319,15 +423,44 @@ class _EventsMapPageState extends State<EventsMapPage> {
                           arguments: _selectedEvent,
                         );
                       },
-                      child: const Text('Details', style: TextStyle(fontSize: 12)),
+                      child: const Text('Details',
+                          style: TextStyle(
+                              fontSize: 12, fontWeight: FontWeight.w700)),
                     ),
                   ],
                 ),
               ),
             ),
+
+          // ── Event count badge ─────────────────────────────────────────────
+          Positioned(
+            bottom: _selectedEvent != null ? 114 : 20,
+            right: 14,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.darkSecondary,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.darkSecondary.withValues(alpha: 0.4),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Text(
+                '${_filteredEvents.length} Events',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 }
-

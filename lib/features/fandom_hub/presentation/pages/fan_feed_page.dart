@@ -7,6 +7,10 @@ import '../../../../core/widgets/comic_ui_widgets.dart';
 import '../bloc/fandom_hub_bloc.dart';
 import '../bloc/fandom_hub_state.dart';
 import '../../domain/entities/fandom_post.dart';
+import '../../domain/entities/hero_story.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../widgets/hero_story_ring.dart';
+import 'hero_story_viewer_page.dart';
 
 class FanFeedPage extends StatelessWidget {
   const FanFeedPage({super.key});
@@ -27,50 +31,60 @@ class FanFeedPage extends StatelessWidget {
   }
 }
 
-class _FanFeedContent extends StatelessWidget {
+class _FanFeedContent extends StatefulWidget {
   final FandomHubLoaded state;
   const _FanFeedContent({required this.state});
 
-  // Sample favourite heroes with solid colors from comic references
-  static const List<Map<String, dynamic>> _favouriteHeroes = [
-    {
-      'name': 'Spider-Man',
-      'image': 'https://images.unsplash.com/photo-1635805737707-575885ab0820?w=400',
-      'color': AppColors.heroRed,
-    },
-    {
-      'name': 'Batman',
-      'image': 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=400',
-      'color': AppColors.heroBlue,
-    },
-    {
-      'name': 'Wolverine',
-      'image': 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=400',
-      'color': AppColors.heroYellow,
-    },
-    {
-      'name': 'Wonder Woman',
-      'image': 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=400',
-      'color': AppColors.heroRed,
-    },
-    {
-      'name': 'Deadpool',
-      'image': 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=400',
-      'color': AppColors.heroPurple,
-    },
-    {
-      'name': 'Paul Atreides',
-      'image': 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400',
-      'color': AppColors.heroOrange,
-    },
-  ];
+  @override
+  State<_FanFeedContent> createState() => _FanFeedContentState();
+}
+
+class _FanFeedContentState extends State<_FanFeedContent> {
+  // Local copy of stories so we can track seen state reactively
+  late final List<HeroStory> _stories;
+
+  @override
+  void initState() {
+    super.initState();
+    // Deep-copy so seen flag mutation triggers rebuild correctly
+    _stories = kHeroStories.map((s) => HeroStory(
+      heroName: s.heroName,
+      category: s.category,
+      avatarUrl: s.avatarUrl,
+      ringColor: s.ringColor,
+      slides: s.slides,
+      seen: s.seen,
+    )).toList();
+  }
+
+  void _openStory(int index) {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => HeroStoryViewerPage(
+          stories: _stories,
+          initialIndex: index,
+        ),
+        transitionDuration: const Duration(milliseconds: 300),
+        transitionsBuilder: (_, animation, __, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+      ),
+    ).then((_) {
+      // Refresh rings after returning from story viewer
+      if (mounted) setState(() {});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final state = widget.state;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final featuredPost = state.trendingPosts.isNotEmpty
         ? state.trendingPosts.first
         : (state.latestNews.isNotEmpty ? state.latestNews.first : null);
+
+    final currentUser = context.watch<AuthBloc>().currentUser;
+    final hasAvatar = currentUser?.avatarUrl != null && currentUser!.avatarUrl!.trim().isNotEmpty;
 
     return CustomScrollView(
       slivers: [
@@ -140,12 +154,28 @@ class _FanFeedContent extends StatelessWidget {
                           child: Container(
                             width: 38,
                             height: 38,
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               color: AppColors.comicRed,
                               shape: BoxShape.circle,
+                              border: Border.all(
+                                color: AppColors.comicYellow,
+                                width: 1.5,
+                              ),
                             ),
-                            child: const Center(
-                              child: Icon(Iconsax.user, color: Colors.white, size: 18),
+                            child: ClipOval(
+                              child: hasAvatar
+                                  ? Image.network(
+                                      currentUser.avatarUrl!,
+                                      fit: BoxFit.cover,
+                                      width: 38,
+                                      height: 38,
+                                      errorBuilder: (_, __, ___) => const Center(
+                                        child: Icon(Iconsax.user, color: Colors.white, size: 18),
+                                      ),
+                                    )
+                                  : const Center(
+                                      child: Icon(Iconsax.user, color: Colors.white, size: 18),
+                                    ),
                             ),
                           ),
                         ),
@@ -176,7 +206,7 @@ class _FanFeedContent extends StatelessWidget {
 
               const SizedBox(height: 12),
 
-              // 2. YOUR FAVOURITE HEROES (Image Section 1)
+              // 2. YOUR FAVOURITE HEROES — Instagram-style Stories
               ComicSectionHeader(
                 title: 'YOUR FAVOURITE HEROES',
                 actionColor: AppColors.comicYellow,
@@ -184,18 +214,15 @@ class _FanFeedContent extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               SizedBox(
-                height: 105,
+                height: 112,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  itemCount: _favouriteHeroes.length,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  itemCount: _stories.length,
                   itemBuilder: (context, index) {
-                    final hero = _favouriteHeroes[index];
-                    return HeroAvatarRing(
-                      name: hero['name'] as String,
-                      imageUrl: hero['image'] as String,
-                      ringColor: hero['color'] as Color,
-                      onTap: () => Navigator.of(context).pushNamed('/stars-directory'),
+                    return HeroStoryRing(
+                      story: _stories[index],
+                      onTap: () => _openStory(index),
                     );
                   },
                 ),

@@ -42,3 +42,18 @@ class SelectStarterBadgeEvent extends AuthEvent {
 class LogoutEvent extends AuthEvent {
   const LogoutEvent();
 }
+
+class UpdateUserProfileEvent extends AuthEvent {
+  final String? name;
+  final String? bio;
+  final String? avatarUrl;
+  final bool removeAvatar;
+
+  const UpdateUserProfileEvent({
+    this.name,
+    this.bio,
+    this.avatarUrl,
+    this.removeAvatar = false,
+  });
+}
+

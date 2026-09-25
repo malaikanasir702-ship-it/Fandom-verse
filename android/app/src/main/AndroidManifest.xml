@@ -1,4 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Internet for MapLibre tile loading -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Location for GPS centering -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <application
         android:label="fandom_verse"
         android:name="${applicationName}"

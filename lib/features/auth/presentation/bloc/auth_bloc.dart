@@ -20,6 +20,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AdminLoginSubmittedEvent>(_onAdminLoginSubmitted);
     on<UpdateUserInterestsEvent>(_onUpdateUserInterests);
     on<SelectStarterBadgeEvent>(_onSelectStarterBadge);
+    on<UpdateUserProfileEvent>(_onUpdateUserProfile);
     on<LogoutEvent>(_onLogout);
   }
 
@@ -236,6 +237,48 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       // Persist badge to Firebase
       await _authService.addBadge(_currentUser!.id, event.badgeTitle);
       emit(FanAuthenticated(_currentUser!));
+    }
+  }
+
+  Future<void> _onUpdateUserProfile(
+    UpdateUserProfileEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    UserEntity user = _currentUser ?? const UserEntity(
+      id: 'fan-01',
+      name: 'Alex Rivera',
+      email: 'fan@fandomverse.com',
+      avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400',
+      bio: 'Die-hard Shonen anime fan, Soulsborne speedrun enthusiast, and Marvel comics archivist.',
+      selectedFandoms: ['Anime & Manga', 'Gaming & Esports'],
+    );
+
+    final updatedAvatar = event.removeAvatar ? null : (event.avatarUrl ?? user.avatarUrl);
+    final updatedName = (event.name != null && event.name!.trim().isNotEmpty)
+        ? event.name!.trim()
+        : user.name;
+    final updatedBio = event.bio ?? user.bio;
+
+    user = user.copyWith(
+      name: updatedName,
+      bio: updatedBio,
+      avatarUrl: updatedAvatar,
+      clearAvatar: event.removeAvatar,
+    );
+    _currentUser = user;
+
+    await _authService.updateUserProfile(
+      uid: user.id,
+      name: updatedName,
+      bio: updatedBio,
+      avatarUrl: updatedAvatar,
+      removeAvatar: event.removeAvatar,
+    );
+
+    if (user.isAdmin) {
+      emit(AdminAuthenticated(user));
+    } else {
+      emit(FanAuthenticated(user));
     }
   }
 

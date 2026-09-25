@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -6,9 +6,46 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
+import '../widgets/profile_picture_sheet.dart';
 
 class FanProfilePage extends StatelessWidget {
   const FanProfilePage({super.key});
+
+  void _openAvatarPicker(BuildContext context, String? currentAvatarUrl) {
+    ProfilePictureSheet.show(
+      context: context,
+      currentAvatarUrl: currentAvatarUrl,
+      onSelectedUrl: (newUrl) {
+        context.read<AuthBloc>().add(
+          UpdateUserProfileEvent(
+            avatarUrl: newUrl,
+            removeAvatar: false,
+          ),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile picture updated successfully!'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      },
+      onRemoveAvatar: () {
+        context.read<AuthBloc>().add(
+          const UpdateUserProfileEvent(
+            removeAvatar: true,
+          ),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile picture removed.'),
+            backgroundColor: AppColors.comicBlack,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      },
+    );
+  }
 
   void _showLogoutDialog(BuildContext context) {
     showDialog(
@@ -126,46 +163,86 @@ class FanProfilePage extends StatelessWidget {
             Center(
               child: Column(
                 children: [
-                  Stack(
-                    children: [
-                      Container(
-                        width: 96,
-                        height: 96,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.comicRed,
-                          border: Border.all(
-                            color: isDark ? AppColors.darkBorder : Colors.white,
-                            width: 3,
-                          ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
-                            style: const TextStyle(
-                              fontSize: 42,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
+                  GestureDetector(
+                    onTap: () => _openAvatarPicker(context, user?.avatarUrl),
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Container(
+                          width: 104,
+                          height: 104,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.comicRed,
+                            border: Border.all(
+                              color: AppColors.comicYellow,
+                              width: 3.5,
                             ),
                           ),
+                          child: ClipOval(
+                            child: (user?.avatarUrl != null && user!.avatarUrl!.trim().isNotEmpty)
+                                ? Image.network(
+                                    user.avatarUrl!,
+                                    fit: BoxFit.cover,
+                                    width: 104,
+                                    height: 104,
+                                    loadingBuilder: (context, child, progress) {
+                                      if (progress == null) return child;
+                                      return const Center(
+                                        child: SizedBox(
+                                          width: 24,
+                                          height: 24,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    errorBuilder: (_, __, ___) => Center(
+                                      child: Text(
+                                        displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
+                                        style: const TextStyle(
+                                          fontSize: 44,
+                                          fontWeight: FontWeight.w900,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : Center(
+                                    child: Text(
+                                      displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
+                                      style: const TextStyle(
+                                        fontSize: 44,
+                                        fontWeight: FontWeight.w900,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                          ),
                         ),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: GestureDetector(
-                          onTap: () => Navigator.of(context).pushNamed('/edit-profile'),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
                           child: Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: const BoxDecoration(
+                            width: 34,
+                            height: 34,
+                            decoration: BoxDecoration(
                               color: AppColors.comicYellow,
                               shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isDark ? AppColors.darkBackground : Colors.white,
+                                width: 2.5,
+                              ),
                             ),
-                            child: const Icon(Iconsax.edit, size: 16, color: AppColors.comicBlack),
+                            child: const Center(
+                              child: Icon(Iconsax.camera, size: 16, color: Colors.black),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -181,28 +258,64 @@ class FanProfilePage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: AppColors.comicYellow,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Iconsax.cup, size: 14, color: AppColors.comicBlack),
-                        SizedBox(width: 6),
-                        Text(
-                          'LORE MASTER TIER III',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.comicBlack,
-                            letterSpacing: 0.5,
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: AppColors.comicYellow,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Iconsax.cup, size: 14, color: AppColors.comicBlack),
+                            SizedBox(width: 6),
+                            Text(
+                              'LORE MASTER TIER III',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.comicBlack,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () => Navigator.of(context).pushNamed('/edit-profile'),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: isDark ? AppColors.darkSurfaceElevated : AppColors.comicGrayLight,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: isDark ? AppColors.darkBorder : AppColors.comicBorderColor,
+                              width: 1,
+                            ),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Iconsax.edit, size: 13, color: AppColors.comicRed),
+                              SizedBox(width: 4),
+                              Text(
+                                'Edit Profile',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.comicRed,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -233,7 +346,9 @@ class FanProfilePage extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Die-hard Shonen anime fan, Soulsborne speedrun enthusiast, and Marvel comics archivist. Always looking for new convention meetups!',
+                    user?.bio?.isNotEmpty == true
+                        ? user!.bio!
+                        : 'Die-hard Shonen anime fan, Soulsborne speedrun enthusiast, and Marvel comics archivist. Always looking for new convention meetups!',
                     style: AppTextStyles.bodySmall.copyWith(
                       height: 1.5,
                       color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,

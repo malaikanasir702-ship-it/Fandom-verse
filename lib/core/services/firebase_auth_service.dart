@@ -249,6 +249,74 @@ class FirebaseAuthService {
     } catch (_) {}
   }
 
+  /// Update user profile (name, bio, avatar_url) in SQLite & Firestore
+  Future<void> updateUserProfile({
+    required String uid,
+    String? name,
+    String? bio,
+    String? avatarUrl,
+    bool removeAvatar = false,
+  }) async {
+    final Map<String, dynamic> sqliteUpdates = {};
+    final Map<String, dynamic> firestoreUpdates = {};
+
+    if (name != null) {
+      sqliteUpdates['name'] = name;
+      firestoreUpdates['name'] = name;
+    }
+    if (bio != null) {
+      sqliteUpdates['bio'] = bio;
+      firestoreUpdates['bio'] = bio;
+    }
+    if (removeAvatar) {
+      sqliteUpdates['avatar_url'] = null;
+      firestoreUpdates['avatar_url'] = null;
+      firestoreUpdates['avatarUrl'] = null;
+    } else if (avatarUrl != null) {
+      sqliteUpdates['avatar_url'] = avatarUrl;
+      firestoreUpdates['avatar_url'] = avatarUrl;
+      firestoreUpdates['avatarUrl'] = avatarUrl;
+    }
+
+    // 1. Update SQLite
+    try {
+      if (sqliteUpdates.isNotEmpty) {
+        await SqliteHelper.instance.update(
+          DbConstants.tableUsers,
+          'user_id',
+          uid,
+          sqliteUpdates,
+        );
+      }
+    } catch (e) {
+      debugPrint('[FirebaseAuthService] SQLite update error: $e');
+    }
+
+    // 2. Update Firestore
+    if (_firestore != null && firestoreUpdates.isNotEmpty) {
+      try {
+        await _firestore!.collection('users').doc(uid).set(
+          firestoreUpdates,
+          SetOptions(merge: true),
+        );
+      } catch (e) {
+        debugPrint('[FirebaseAuthService] Firestore update error: $e');
+      }
+    }
+
+    // 3. Update Firebase Auth displayName / photoURL
+    try {
+      if (name != null) {
+        await _auth?.currentUser?.updateDisplayName(name);
+      }
+      if (removeAvatar) {
+        await _auth?.currentUser?.updatePhotoURL(null);
+      } else if (avatarUrl != null) {
+        await _auth?.currentUser?.updatePhotoURL(avatarUrl);
+      }
+    } catch (_) {}
+  }
+
   /// Add a badge in Firestore and SQLite
   Future<void> addBadge(String uid, String badgeTitle) async {
     if (_firestore != null) {

@@ -316,13 +316,6 @@ class _FanFeedContentState extends State<_FanFeedContent> {
                       color: AppColors.heroPurple,
                       onTap: () => Navigator.of(context).pushNamed('/store'),
                     ),
-                    const SizedBox(width: 10),
-                    _SolidQuickChip(
-                      icon: Iconsax.security_user,
-                      label: 'Admin Portal',
-                      color: AppColors.comicBlack,
-                      onTap: () => Navigator.of(context).pushNamed('/admin-dashboard'),
-                    ),
                   ],
                 ),
               ),

@@ -14,11 +14,11 @@
       },
       "oauth_client": [
         {
-          "client_id": "987727308455-s8lklviqvuqigp92ga0kcotalckpfek8.apps.googleusercontent.com",
+          "client_id": "987727308455-hcul6unmqjv8co2gce1be5ddjehvda73.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.fandomverse.fandom_verse",
-            "certificate_hash": "a1e0bb46e7e05493cd6d665aa853b8eeff48cd90"
+            "certificate_hash": "7ae2a6407503bb70b7ebfe13d5fd9e2c2dba2e0d"
           }
         },
         {

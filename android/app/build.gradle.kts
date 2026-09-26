@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -5,6 +8,13 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
     // Google Services plugin for Firebase
     id("com.google.gms.google-services")
+}
+
+// ── Load key.properties ────────────────────────────────────────────────────
+val keyPropertiesFile = rootProject.file("key.properties")
+val keyProperties = Properties()
+if (keyPropertiesFile.exists()) {
+    keyProperties.load(FileInputStream(keyPropertiesFile))
 }
 
 android {
@@ -22,11 +32,18 @@ android {
         jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
+    // ── Signing Configs ────────────────────────────────────────────────────
+    signingConfigs {
+        create("release") {
+            keyAlias     = keyProperties["keyAlias"]     as String? ?: "androiddebugkey"
+            keyPassword  = keyProperties["keyPassword"]  as String? ?: "android"
+            storeFile    = file(keyProperties["storeFile"] as String? ?: (System.getProperty("user.home") + "/.android/debug.keystore"))
+            storePassword = keyProperties["storePassword"] as String? ?: "android"
+        }
+    }
+
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.fandomverse.fandom_verse"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -35,8 +52,10 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            signingConfig = signingConfigs.getByName("release")
+        }
+        debug {
+            // Debug keeps its own keystore for SHA-1 fingerprint
             signingConfig = signingConfigs.getByName("debug")
         }
     }

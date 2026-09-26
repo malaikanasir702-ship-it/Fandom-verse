@@ -21,6 +21,8 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     on<UpdateStockQuickEvent>(_onUpdateStockQuick);
     on<ToggleUserStatusEvent>(_onToggleUserStatus);
     on<CreateCategoryEvent>(_onCreateCategory);
+    on<UpdateCategoryEvent>(_onUpdateCategory);
+    on<DeleteCategoryEvent>(_onDeleteCategory);
     on<BroadcastNotificationEvent>(_onBroadcastNotification);
   }
 
@@ -247,6 +249,50 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
       add(const LoadAdminDashboardStatsEvent());
     } catch (e) {
       emit(AdminError('Failed to create category: ${e.toString()}'));
+    }
+  }
+
+  Future<void> _onUpdateCategory(
+    UpdateCategoryEvent event,
+    Emitter<AdminState> emit,
+  ) async {
+    try {
+      final cat = event.category;
+      await _repository.update(
+        DbConstants.tableCategories,
+        'category_id',
+        cat['category_id'],
+        cat,
+      );
+      await _repository.logAdminAction(
+        actionType: 'UPDATE',
+        entityType: 'Category',
+        description: 'Updated fandom category "${cat['name']}"',
+      );
+      add(const LoadAdminDashboardStatsEvent());
+    } catch (e) {
+      emit(AdminError('Failed to update category: ${e.toString()}'));
+    }
+  }
+
+  Future<void> _onDeleteCategory(
+    DeleteCategoryEvent event,
+    Emitter<AdminState> emit,
+  ) async {
+    try {
+      await _repository.delete(
+        DbConstants.tableCategories,
+        'category_id',
+        event.categoryId,
+      );
+      await _repository.logAdminAction(
+        actionType: 'DELETE',
+        entityType: 'Category',
+        description: 'Deleted fandom category ${event.categoryId}',
+      );
+      add(const LoadAdminDashboardStatsEvent());
+    } catch (e) {
+      emit(AdminError('Failed to delete category: ${e.toString()}'));
     }
   }
 

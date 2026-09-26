@@ -97,6 +97,24 @@ class CreateCategoryEvent extends AdminEvent {
   List<Object?> get props => [category];
 }
 
+class UpdateCategoryEvent extends AdminEvent {
+  final Map<String, dynamic> category;
+
+  const UpdateCategoryEvent(this.category);
+
+  @override
+  List<Object?> get props => [category];
+}
+
+class DeleteCategoryEvent extends AdminEvent {
+  final String categoryId;
+
+  const DeleteCategoryEvent(this.categoryId);
+
+  @override
+  List<Object?> get props => [categoryId];
+}
+
 class BroadcastNotificationEvent extends AdminEvent {
   final String title;
   final String message;

@@ -8,6 +8,7 @@ import '../bloc/admin_bloc.dart';
 import '../bloc/admin_event.dart';
 import '../bloc/admin_state.dart';
 import '../widgets/admin_image_picker_field.dart';
+import '../widgets/admin_modals.dart';
 
 class AdminUsersCategoriesPage extends StatefulWidget {
   const AdminUsersCategoriesPage({super.key});
@@ -33,10 +34,17 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
   }
 
   void _showAddCategoryDialog() {
-    final nameCtrl = TextEditingController();
-    final descCtrl = TextEditingController();
-    final colorCtrl = TextEditingController(text: '#7C4DFF');
-    String bannerPathOrUrl = 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800';
+    _showCategoryDialog(existingCategory: null);
+  }
+
+  void _showCategoryDialog({Map<String, dynamic>? existingCategory}) {
+    final isEdit = existingCategory != null;
+    final nameCtrl = TextEditingController(text: isEdit ? existingCategory['name'] ?? '' : '');
+    final descCtrl = TextEditingController(text: isEdit ? existingCategory['description'] ?? '' : '');
+    final colorCtrl = TextEditingController(text: isEdit ? existingCategory['color_hex'] ?? '#7C4DFF' : '#7C4DFF');
+    String bannerPathOrUrl = isEdit
+        ? (existingCategory['banner_url'] ?? 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800')
+        : 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800';
 
     showDialog(
       context: context,
@@ -45,9 +53,9 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
           return AlertDialog(
             backgroundColor: Colors.white,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            title: const Text(
-              'Add Fandom Pillar Category',
-              style: TextStyle(color: AppColors.adminLightTextPrimary, fontSize: 16, fontWeight: FontWeight.bold),
+            title: Text(
+              isEdit ? 'Edit Fandom Category' : 'Add Fandom Pillar Category',
+              style: const TextStyle(color: AppColors.adminLightTextPrimary, fontSize: 16, fontWeight: FontWeight.bold),
             ),
             content: SingleChildScrollView(
               child: Column(
@@ -98,22 +106,39 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
                 onPressed: () {
                   final name = nameCtrl.text.trim();
                   if (name.isNotEmpty) {
-                    final catData = {
-                      'category_id': 'cat_${name.toLowerCase().replaceAll(' ', '_')}',
-                      'name': name,
-                      'description': descCtrl.text.trim(),
-                      'icon_name': 'auto_awesome',
-                      'banner_url': bannerPathOrUrl.trim(),
-                      'color_hex': colorCtrl.text.trim(),
-                    };
-                    context.read<AdminBloc>().add(CreateCategoryEvent(catData));
-                    Navigator.of(ctx).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Created category "$name"!'), backgroundColor: AppColors.success),
-                    );
+                    if (isEdit) {
+                      final catData = Map<String, dynamic>.from(
+                          existingCategory as Map<String, dynamic>);
+                      catData['name'] = name;
+                      catData['description'] = descCtrl.text.trim();
+                      catData['banner_url'] = bannerPathOrUrl.trim();
+                      catData['color_hex'] = colorCtrl.text.trim();
+                      context.read<AdminBloc>().add(UpdateCategoryEvent(catData));
+                      Navigator.of(ctx).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Updated category "$name"!'), backgroundColor: AppColors.success),
+                      );
+                    } else {
+                      final catData = {
+                        'category_id': 'cat_${name.toLowerCase().replaceAll(' ', '_')}',
+                        'name': name,
+                        'description': descCtrl.text.trim(),
+                        'icon_name': 'auto_awesome',
+                        'banner_url': bannerPathOrUrl.trim(),
+                        'color_hex': colorCtrl.text.trim(),
+                      };
+                      context.read<AdminBloc>().add(CreateCategoryEvent(catData));
+                      Navigator.of(ctx).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Created category "$name"!'), backgroundColor: AppColors.success),
+                      );
+                    }
                   }
                 },
-                child: const Text('Add Category', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                child: Text(
+                  isEdit ? 'Save Changes' : 'Add Category',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
               ),
             ],
           );
@@ -303,6 +328,9 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
             separatorBuilder: (_, __) => const SizedBox(height: 10),
             itemBuilder: (context, index) {
               final cat = categories[index];
+              final catColor = Color(
+                int.tryParse((cat['color_hex'] ?? '#7C4DFF').replaceAll('#', '0xFF')) ?? 0xFF7C4DFF,
+              );
               return Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -323,7 +351,7 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
                       width: 14,
                       height: 14,
                       decoration: BoxDecoration(
-                        color: Color(int.tryParse((cat['color_hex'] ?? '#7C4DFF').replaceAll('#', '0xFF')) ?? 0xFF7C4DFF),
+                        color: catColor,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -334,19 +362,53 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
                         children: [
                           Text(
                             cat['name'] ?? '',
-                            style: const TextStyle(color: AppColors.adminLightTextPrimary, fontWeight: FontWeight.bold, fontSize: 13),
+                            style: const TextStyle(
+                              color: AppColors.adminLightTextPrimary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             cat['description'] ?? '',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(color: AppColors.adminLightTextSecondary, fontSize: 11),
+                            style: const TextStyle(
+                              color: AppColors.adminLightTextSecondary,
+                              fontSize: 11,
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    const Icon(Iconsax.tick_circle, color: AppColors.success, size: 18),
+                    // Edit button
+                    IconButton(
+                      icon: const Icon(Iconsax.edit_2, color: Color(0xFF2563EB), size: 18),
+                      tooltip: 'Edit Category',
+                      onPressed: () => _showCategoryDialog(existingCategory: cat),
+                    ),
+                    // Delete button
+                    IconButton(
+                      icon: const Icon(Iconsax.trash, color: AppColors.error, size: 18),
+                      tooltip: 'Delete Category',
+                      onPressed: () {
+                        AdminModals.showDeleteBarrierDialog(
+                          context: context,
+                          itemName: cat['name'] ?? 'Category',
+                          onConfirmed: () {
+                            context.read<AdminBloc>().add(
+                                  DeleteCategoryEvent(cat['category_id'] ?? ''),
+                                );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Deleted "${cat['name']}"'),
+                                backgroundColor: AppColors.error,
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
                   ],
                 ),
               );

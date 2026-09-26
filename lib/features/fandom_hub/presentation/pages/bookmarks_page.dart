@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../bloc/fandom_hub_bloc.dart';
 import '../bloc/fandom_hub_event.dart';
 import '../bloc/fandom_hub_state.dart';
 import '../../domain/entities/fandom_post.dart';
+import '../../../events/presentation/bloc/event_bloc.dart';
+import '../../../events/presentation/bloc/event_event.dart';
+import '../../../events/presentation/bloc/event_state.dart';
+import '../../../events/domain/entities/event_entity.dart';
 
 class BookmarksPage extends StatefulWidget {
   const BookmarksPage({super.key});
@@ -260,10 +265,171 @@ class _BookmarksPageState extends State<BookmarksPage> with SingleTickerProvider
                     ),
 
               // ─── TAB 3: EVENTS ───
-              const _EmptyBookmark(
-                icon: Iconsax.calendar,
-                title: 'No Events Saved',
-                subtitle: 'Go to Events Calendar or Event Radar to bookmark exciting fandom cons!',
+              BlocBuilder<EventCalendarBloc, EventCalendarState>(
+                builder: (context, eventState) {
+                  final bookmarkedEvents = eventState is EventLoaded
+                      ? eventState.bookmarkedEvents
+                      : <EventEntity>[];
+
+                  if (bookmarkedEvents.isEmpty) {
+                    return const _EmptyBookmark(
+                      icon: Iconsax.calendar,
+                      title: 'No Events Saved',
+                      subtitle:
+                          'Go to Events Calendar or Event Radar to bookmark exciting fandom cons!',
+                    );
+                  }
+
+                  return ListView.separated(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: bookmarkedEvents.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, i) {
+                      final event = bookmarkedEvents[i];
+                      final dateStr = DateFormat('MMM dd, yyyy')
+                          .format(event.eventDate);
+                      final daysUntil =
+                          event.eventDate.difference(DateTime.now()).inDays;
+                      return GestureDetector(
+                        onTap: () => Navigator.of(context)
+                            .pushNamed('/event-detail', arguments: event),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppColors.darkSurface
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: isDark
+                                  ? AppColors.darkBorder
+                                  : AppColors.comicBorderColor,
+                              width: 1.2,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              // Banner thumbnail
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Image.network(
+                                  event.bannerUrl,
+                                  width: 74,
+                                  height: 74,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    width: 74,
+                                    height: 74,
+                                    color: AppColors.comicGrayLight,
+                                    child: const Icon(Iconsax.calendar_2,
+                                        color: AppColors.comicGray),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    // Category + countdown row
+                                    Row(
+                                      children: [
+                                        Container(
+                                          padding:
+                                              const EdgeInsets.symmetric(
+                                                  horizontal: 6,
+                                                  vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.comicRed,
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                          ),
+                                          child: Text(
+                                            event.category.toUpperCase(),
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.w900,
+                                            ),
+                                          ),
+                                        ),
+                                        if (daysUntil > 0) ...[
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            'In $daysUntil days',
+                                            style: const TextStyle(
+                                              color: AppColors.success,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      event.title,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 14,
+                                        height: 1.25,
+                                        color: isDark
+                                            ? Colors.white
+                                            : AppColors.comicBlack,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        const Icon(Iconsax.location,
+                                            size: 12,
+                                            color: AppColors.comicGray),
+                                        const SizedBox(width: 3),
+                                        Text(
+                                          '${event.cityName} • $dateStr',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: isDark
+                                                ? AppColors.darkTextSecondary
+                                                : AppColors.comicGray,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Remove bookmark button
+                              IconButton(
+                                icon: const Icon(Iconsax.bookmark,
+                                    color: AppColors.comicYellow, size: 20),
+                                tooltip: 'Remove bookmark',
+                                onPressed: () {
+                                  context
+                                      .read<EventCalendarBloc>()
+                                      .add(ToggleEventBookmarkEvent(
+                                          event.id));
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                          'Event removed from bookmarks.'),
+                                      backgroundColor: AppColors.comicBlack,
+                                      behavior: SnackBarBehavior.floating,
+                                      duration: Duration(seconds: 1),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
             ],
           );

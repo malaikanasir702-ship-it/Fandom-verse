@@ -45,5 +45,9 @@ class LoadProfileOrdersEvent extends ProfileEvent {
 }
 
 class ClearLocalCacheStorageEvent extends ProfileEvent {
-  const ClearLocalCacheStorageEvent();
+  final String userId;
+  const ClearLocalCacheStorageEvent({required this.userId});
+
+  @override
+  List<Object?> get props => [userId];
 }

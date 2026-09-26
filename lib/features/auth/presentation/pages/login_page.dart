@@ -123,8 +123,50 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  void _showGuestModeDialog() {
+  void _showAppleSignInUnavailable() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor:
+            isDark ? AppColors.darkSurface : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+          ),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.apple, size: 24),
+            SizedBox(width: 10),
+            Text(
+              'Apple Sign-In',
+              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
+            ),
+          ],
+        ),
+        content: const Text(
+          'Apple Sign-In is available on iOS devices only. Please use Google Sign-In or Email & Password to continue on Android.',
+          style: TextStyle(fontSize: 14, height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text(
+              'Got it',
+              style: TextStyle(
+                color: AppColors.darkSecondary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showGuestModeDialog() {    showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Continue as Guest?'),
@@ -345,7 +387,48 @@ class _LoginPageState extends State<LoginPage> {
 
                   const SizedBox(height: 12),
 
-                  // Guest Mode Button
+                  // Apple Sign-In Button
+                  GestureDetector(
+                    onTap: isLoading ? null : _showAppleSignInUnavailable,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1C1C1E) : Colors.black,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: isDark
+                              ? AppColors.darkBorder
+                              : Colors.black,
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.12),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.apple, color: Colors.white, size: 22),
+                          SizedBox(width: 10),
+                          Text(
+                            'Continue with Apple',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
                   GlassContainer(
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     onTap: _showGuestModeDialog,

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
@@ -26,6 +27,10 @@ class _EventsMapPageState extends State<EventsMapPage> {
   final List<Symbol> _symbols = [];
   final List<String> _types = ['All', 'Anime', 'Comic Con', 'Gaming', 'K-Pop'];
 
+  // GPS location state
+  bool _locationEnabled = false;
+  bool _locationLoading = false;
+
   List<EventEntity> _filteredEvents(List<EventEntity> events) {
     if (_selectedType == 'All') return events;
     return events
@@ -38,20 +43,21 @@ class _EventsMapPageState extends State<EventsMapPage> {
     final ctrl = _mapController;
     if (ctrl == null) return;
 
-    // Remove old symbols
     for (final sym in _symbols) {
-      await ctrl.removeSymbol(sym);
+      try {
+        await ctrl.removeSymbol(sym);
+      } catch (_) {}
     }
     _symbols.clear();
 
     for (final event in events) {
+      final isSelected = event.id == _selectedEvent?.id;
       final sym = await ctrl.addSymbol(
         SymbolOptions(
           geometry: LatLng(event.latitude, event.longitude),
           iconImage: 'marker-15',
-          iconSize: 2.0,
-          iconColor:
-              event.id == _selectedEvent?.id ? '#FFD700' : '#E53935',
+          iconSize: isSelected ? 2.8 : 2.0,
+          iconColor: isSelected ? '#FFD700' : '#E53935',
           textField: event.cityName,
           textSize: 11,
           textColor: '#FFFFFF',
@@ -115,6 +121,64 @@ class _EventsMapPageState extends State<EventsMapPage> {
     );
   }
 
+  /// Request user's GPS location via MapLibre's location tracking.
+  /// Falls back gracefully if permission denied.
+  Future<void> _requestUserLocation() async {
+    if (_locationLoading) return;
+    setState(() => _locationLoading = true);
+
+    try {
+      final ctrl = _mapController;
+      if (ctrl == null) {
+        _showLocationError('Map is not ready yet. Please try again.');
+        return;
+      }
+
+      // Enable my-location layer on the map
+      await ctrl.updateMyLocationTrackingMode(
+        MyLocationTrackingMode.trackingGps,
+      );
+
+      setState(() {
+        _locationEnabled = true;
+        _locationLoading = false;
+      });
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('📍 Showing your location on the map!'),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } on PlatformException catch (e) {
+      _showLocationError(
+        e.code == 'PERMISSION_DENIED'
+            ? 'Location permission denied. Enable it in device Settings → App → Permissions.'
+            : 'Could not get GPS location: ${e.message}',
+      );
+    } catch (_) {
+      _showLocationError(
+        'Location unavailable. Make sure GPS is enabled on your device.',
+      );
+    }
+  }
+
+  void _showLocationError(String msg) {
+    if (!mounted) return;
+    setState(() => _locationLoading = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 4),
+      ),
+    );
+  }
+
   void _onMapCreated(MapLibreMapController controller) {
     _mapController = controller;
     controller.onSymbolTapped.add(_onSymbolTapped);
@@ -158,36 +222,44 @@ class _EventsMapPageState extends State<EventsMapPage> {
             title: const Text('Event Radar Map',
                 style: TextStyle(fontWeight: FontWeight.w800)),
             actions: [
+              // GPS "Near Me" button
+              IconButton(
+                tooltip: _locationEnabled
+                    ? 'Location Active'
+                    : 'Show My Location',
+                icon: _locationLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.darkSecondary,
+                        ),
+                      )
+                    : Icon(
+                        _locationEnabled
+                            ? Iconsax.location_tick
+                            : Iconsax.location,
+                        color: _locationEnabled
+                            ? AppColors.darkSecondary
+                            : null,
+                      ),
+                onPressed: _locationLoading ? null : _requestUserLocation,
+              ),
               IconButton(
                 tooltip: 'Fit All Events',
                 icon: const Icon(Iconsax.maximize_3),
                 onPressed: () => _fitBounds(filtered),
               ),
-              IconButton(
-                tooltip: 'Center on First Event',
-                icon: const Icon(Iconsax.location_tick),
-                onPressed: () {
-                  if (filtered.isNotEmpty) {
-                    _mapController?.animateCamera(
-                      CameraUpdate.newLatLngZoom(
-                        LatLng(filtered.first.latitude,
-                            filtered.first.longitude),
-                        9,
-                      ),
-                    );
-                  }
-                },
-              ),
             ],
           ),
           body: Stack(
             children: [
-              // ── MapLibre GL Map ──────────────────────────────────────────
+              // ── MapLibre GL Map ─────────────────────────────────────────
               MapLibreMap(
                 onMapCreated: _onMapCreated,
                 onStyleLoadedCallback: () => _onStyleLoaded(allEvents),
-                styleString:
-                    'https://demotiles.maplibre.org/style.json',
+                styleString: 'https://demotiles.maplibre.org/style.json',
                 initialCameraPosition: const CameraPosition(
                   target: LatLng(25.0, 30.0),
                   zoom: 1.5,
@@ -197,11 +269,16 @@ class _EventsMapPageState extends State<EventsMapPage> {
                 tiltGesturesEnabled: true,
                 scrollGesturesEnabled: true,
                 zoomGesturesEnabled: true,
-                myLocationEnabled: false,
+                // GPS location layer enabled
+                myLocationEnabled: true,
+                myLocationTrackingMode: _locationEnabled
+                    ? MyLocationTrackingMode.trackingGps
+                    : MyLocationTrackingMode.none,
+                myLocationRenderMode: MyLocationRenderMode.compass,
                 trackCameraPosition: false,
               ),
 
-              // ── Top Controls ─────────────────────────────────────────────
+              // ── Top Controls ────────────────────────────────────────────
               Positioned(
                 top: 12,
                 left: 12,
@@ -214,26 +291,95 @@ class _EventsMapPageState extends State<EventsMapPage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            '📡 Radius: ${_radarRadiusKm.toInt()} km',
-                            style: const TextStyle(
-                                fontWeight: FontWeight.w700, fontSize: 13),
+                          Row(
+                            children: [
+                              const Text(
+                                '📡 Radius: ',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 13),
+                              ),
+                              Text(
+                                '${_radarRadiusKm.toInt()} km',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 13,
+                                  color: AppColors.darkSecondary,
+                                ),
+                              ),
+                            ],
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color:
-                                  AppColors.success.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              '${filtered.length} Events',
-                              style: const TextStyle(
-                                  color: AppColors.success,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700),
-                            ),
+                          Row(
+                            children: [
+                              // GPS Near Me mini-chip
+                              GestureDetector(
+                                onTap: _locationLoading
+                                    ? null
+                                    : _requestUserLocation,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: _locationEnabled
+                                        ? AppColors.darkSecondary
+                                            .withValues(alpha: 0.15)
+                                        : AppColors.comicRed
+                                            .withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: _locationEnabled
+                                          ? AppColors.darkSecondary
+                                          : AppColors.comicRed,
+                                      width: 0.8,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        _locationEnabled
+                                            ? Iconsax.location_tick
+                                            : Iconsax.location,
+                                        size: 12,
+                                        color: _locationEnabled
+                                            ? AppColors.darkSecondary
+                                            : AppColors.comicRed,
+                                      ),
+                                      const SizedBox(width: 3),
+                                      Text(
+                                        _locationEnabled
+                                            ? 'GPS On'
+                                            : 'Near Me',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w700,
+                                          color: _locationEnabled
+                                              ? AppColors.darkSecondary
+                                              : AppColors.comicRed,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: AppColors.success
+                                      .withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  '${filtered.length} Events',
+                                  style: const TextStyle(
+                                      color: AppColors.success,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -296,7 +442,7 @@ class _EventsMapPageState extends State<EventsMapPage> {
                 ),
               ),
 
-              // ── Bottom Event Card ────────────────────────────────────────
+              // ── Bottom Selected Event Card ───────────────────────────────
               if (_selectedEvent != null)
                 Positioned(
                   bottom: 20,
@@ -357,8 +503,8 @@ class _EventsMapPageState extends State<EventsMapPage> {
                                 _selectedEvent!.title,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: AppTextStyles.titleMedium.copyWith(
-                                    fontWeight: FontWeight.w700),
+                                style: AppTextStyles.titleMedium
+                                    .copyWith(fontWeight: FontWeight.w700),
                               ),
                               const SizedBox(height: 3),
                               Row(
@@ -376,8 +522,7 @@ class _EventsMapPageState extends State<EventsMapPage> {
                                           fontSize: 11,
                                           color: isDark
                                               ? AppColors.darkTextSecondary
-                                              : AppColors
-                                                  .lightTextSecondary),
+                                              : AppColors.lightTextSecondary),
                                     ),
                                   ),
                                 ],
@@ -400,7 +545,7 @@ class _EventsMapPageState extends State<EventsMapPage> {
                   ),
                 ),
 
-              // ── Event count badge ────────────────────────────────────────
+              // ── Floating event count badge ───────────────────────────────
               Positioned(
                 bottom: _selectedEvent != null ? 114 : 20,
                 right: 14,
@@ -412,8 +557,7 @@ class _EventsMapPageState extends State<EventsMapPage> {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color:
-                            AppColors.darkSecondary.withValues(alpha: 0.4),
+                        color: AppColors.darkSecondary.withValues(alpha: 0.4),
                         blurRadius: 8,
                         offset: const Offset(0, 3),
                       ),

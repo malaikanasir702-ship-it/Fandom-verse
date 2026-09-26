@@ -330,6 +330,14 @@ class _FanProfilePageState extends State<FanProfilePage> {
                     route: '/order-history',
                     color: AppColors.heroBlue),
                 _buildProfileNavTile(context,
+                    icon: Iconsax.wifi_square,
+                    title: 'Offline Content',
+                    subtitle: profileLoaded != null
+                        ? '${profileLoaded.offlinePostsCount} articles · ${profileLoaded.offlineEventsCount} events · ${profileLoaded.cacheSizeMB} MB cached'
+                        : 'Cached articles, events & glossary',
+                    route: '/offline-content',
+                    color: AppColors.heroGreen),
+                _buildProfileNavTile(context,
                     icon: Iconsax.heart,
                     title: 'Saved Merch Wishlist',
                     subtitle: profileLoaded != null

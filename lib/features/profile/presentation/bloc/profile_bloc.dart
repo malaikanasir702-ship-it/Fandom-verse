@@ -52,12 +52,22 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         whereArgs: [event.userId],
       );
 
+      // Offline content counts (all locally cached data)
+      final allPosts = await _dbHelper.query(DbConstants.tablePosts);
+      final allEvents = await _dbHelper.query(DbConstants.tableEvents);
+      final allGlossary = await _dbHelper.query(DbConstants.tableGlossary);
+      final cacheSizeMB = await _dbHelper.calculateCacheSizeMB();
+
       emit(ProfileLoaded(
         user: user,
         orders: orders,
         wishlistCount: wishes.length,
         bookmarksCount: bookmarkedPosts.length,
         discussionCount: discussions.length,
+        offlinePostsCount: allPosts.length,
+        offlineEventsCount: allEvents.length,
+        offlineGlossaryCount: allGlossary.length,
+        cacheSizeMB: cacheSizeMB,
       ));
     } catch (e) {
       emit(ProfileError('Failed to load profile: ${e.toString()}'));
@@ -95,6 +105,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           bookmarksCount: 0,
           wishlistCount: current.wishlistCount,
           discussionCount: current.discussionCount,
+          offlinePostsCount: 0,
+          offlineEventsCount: 0,
+          offlineGlossaryCount: 0,
+          cacheSizeMB: 0.0,
           statusMessage: 'Cache cleared successfully!',
         ));
       }

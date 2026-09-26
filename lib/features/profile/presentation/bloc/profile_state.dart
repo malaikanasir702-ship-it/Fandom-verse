@@ -22,6 +22,10 @@ class ProfileLoaded extends ProfileState {
   final int wishlistCount;
   final int discussionCount;
   final String? statusMessage;
+  final int offlinePostsCount;
+  final int offlineEventsCount;
+  final int offlineGlossaryCount;
+  final double cacheSizeMB;
 
   const ProfileLoaded({
     required this.user,
@@ -30,6 +34,10 @@ class ProfileLoaded extends ProfileState {
     this.wishlistCount = 0,
     this.discussionCount = 0,
     this.statusMessage,
+    this.offlinePostsCount = 0,
+    this.offlineEventsCount = 0,
+    this.offlineGlossaryCount = 0,
+    this.cacheSizeMB = 0.0,
   });
 
   @override
@@ -40,6 +48,10 @@ class ProfileLoaded extends ProfileState {
         wishlistCount,
         discussionCount,
         statusMessage,
+        offlinePostsCount,
+        offlineEventsCount,
+        offlineGlossaryCount,
+        cacheSizeMB,
       ];
 }
 

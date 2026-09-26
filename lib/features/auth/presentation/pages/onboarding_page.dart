@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/skewed_button.dart';
@@ -45,6 +46,15 @@ class _OnboardingPageState extends State<OnboardingPage> {
     super.dispose();
   }
 
+  /// Mark onboarding as seen and navigate to login
+  Future<void> _finishOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('onboarding_seen', true);
+    if (mounted) {
+      Navigator.of(context).pushReplacementNamed('/login');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -66,9 +76,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pushReplacementNamed('/login');
-                    },
+                    onPressed: _finishOnboarding,
                     child: Text(
                       'Skip',
                       style: TextStyle(
@@ -183,7 +191,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         curve: Curves.easeInOut,
                       );
                     } else {
-                      Navigator.of(context).pushReplacementNamed('/login');
+                      _finishOnboarding();
                     }
                   },
                 ),

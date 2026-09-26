@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -68,8 +69,15 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
           Navigator.of(context).pushReplacementNamed('/admin-dashboard');
         } else if (state is Unauthenticated || state is AuthFailure) {
           // Delay so splash animation has time to show
-          Future.delayed(const Duration(milliseconds: 1800), () {
-            if (context.mounted) {
+          Future.delayed(const Duration(milliseconds: 1800), () async {
+            if (!context.mounted) return;
+            // Check if user has seen onboarding before
+            final prefs = await SharedPreferences.getInstance();
+            final seen = prefs.getBool('onboarding_seen') ?? false;
+            if (!context.mounted) return;
+            if (seen) {
+              Navigator.of(context).pushReplacementNamed('/login');
+            } else {
               Navigator.of(context).pushReplacementNamed('/onboarding');
             }
           });

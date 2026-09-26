@@ -305,11 +305,30 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(FanAuthenticated(_currentUser!));
       }
     } catch (e) {
-      debugPrint('[AuthBloc] Google Sign-In error: $e');
-      final msg = e.toString().contains('cancelled')
-          ? 'Google Sign-In was cancelled.'
-          : 'Google Sign-In failed. Please try again.';
-      emit(AuthFailure(msg));
+      // Log the FULL error so we can diagnose
+      debugPrint('[AuthBloc] Google Sign-In FULL error: ${e.runtimeType} → $e');
+
+      final errStr = e.toString().toLowerCase();
+
+      if (errStr.contains('cancelled') || errStr.contains('sign_in_canceled')) {
+        emit(const AuthFailure('Google Sign-In was cancelled.'));
+      } else if (errStr.contains('network') || errStr.contains('socket')) {
+        emit(const AuthFailure('Network error. Please check your internet connection.'));
+      } else if (errStr.contains('sign_in_failed') || errStr.contains('10:')) {
+        // PlatformException code 10 = SHA-1 mismatch / OAuth not configured
+        emit(const AuthFailure(
+          'Google Sign-In configuration error (code 10).\n'
+          'SHA-1 fingerprint may not match Firebase Console.\n'
+          'Check Firebase Console → Authentication → Sign-in method → Google.',
+        ));
+      } else if (errStr.contains('operation-not-allowed') || errStr.contains('not enabled')) {
+        emit(const AuthFailure(
+          'Google Sign-In is not enabled in Firebase Console.\n'
+          'Go to Firebase → Authentication → Sign-in method → Enable Google.',
+        ));
+      } else {
+        emit(AuthFailure('Google Sign-In failed: ${e.toString()}'));
+      }
     }
   }
 

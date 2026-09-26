@@ -473,15 +473,26 @@ class FirebaseAuthService {
       throw Exception('Google Sign-In requires Firebase. Please check your connection.');
     }
 
-    final googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
+    final googleSignIn = GoogleSignIn(
+      scopes: ['email', 'profile'],
+      // serverClientId is the Web client ID (client_type: 3) from google-services.json
+      serverClientId: '987727308455-cl92q4lomnq87rbhbv2mgun3evpttrp7.apps.googleusercontent.com',
+    );
+
+    debugPrint('[GoogleSignIn] Starting Google Sign-In flow...');
 
     // Trigger the Google account picker
     final googleUser = await googleSignIn.signIn();
     if (googleUser == null) {
+      debugPrint('[GoogleSignIn] User cancelled the sign-in dialog.');
       throw Exception('Google Sign-In was cancelled.');
     }
 
+    debugPrint('[GoogleSignIn] Got Google user: ${googleUser.email}');
+
     final googleAuth = await googleUser.authentication;
+    debugPrint('[GoogleSignIn] Got tokens — idToken: ${googleAuth.idToken != null}, accessToken: ${googleAuth.accessToken != null}');
+
     final credential = GoogleAuthProvider.credential(
       accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
@@ -490,6 +501,8 @@ class FirebaseAuthService {
     final userCredential = await _auth!
         .signInWithCredential(credential)
         .timeout(_kNetworkTimeout);
+
+    debugPrint('[GoogleSignIn] Firebase sign-in success: ${userCredential.user?.uid}');
 
     final token = await userCredential.user
         ?.getIdToken()
@@ -506,7 +519,6 @@ class FirebaseAuthService {
     // Check if profile already exists
     final existing = await getUserProfile(uid, email: email);
     if (existing != null) {
-      // Update avatar if Google has a newer one
       if (photoUrl != null && (existing['avatar_url'] == null || existing['avatar_url'].toString().isEmpty)) {
         await updateUserProfile(uid: uid, avatarUrl: photoUrl);
       }

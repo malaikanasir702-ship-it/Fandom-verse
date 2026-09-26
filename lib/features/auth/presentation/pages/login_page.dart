@@ -325,15 +325,17 @@ class _LoginPageState extends State<LoginPage> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Google "G" logo using coloured text
-                          const _GoogleLogo(),
-                          const SizedBox(width: 10),
+                          CustomPaint(
+                            size: const Size(24, 24),
+                            painter: _GoogleLogoPainter(),
+                          ),
+                          const SizedBox(width: 12),
                           Text(
                             'Continue with Google',
                             style: TextStyle(
                               fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                              color: isDark ? Colors.white : AppColors.comicBlack,
+                              fontSize: 15,
+                              color: isDark ? Colors.white : const Color(0xFF3C4043),
                             ),
                           ),
                         ],
@@ -393,24 +395,79 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
-/// Renders the colourful Google "G" logo using RichText
-class _GoogleLogo extends StatelessWidget {
-  const _GoogleLogo();
+/// Draws the real Google "G" logo using CustomPaint — matches the official SVG exactly
+class _GoogleLogoPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+
+    // Blue path — top right arc
+    final blue = Paint()..color = const Color(0xFF4285F4);
+    // Red path — bottom left arc
+    final red = Paint()..color = const Color(0xFFEA4335);
+    // Yellow path — bottom left
+    final yellow = Paint()..color = const Color(0xFFFBBC05);
+    // Green path — bottom right
+    final green = Paint()..color = const Color(0xFF34A853);
+
+    // Scale factor
+    final sx = w / 24;
+    final sy = h / 24;
+
+    // Blue — right side G shape
+    final bluePath = Path()
+      ..moveTo(23.745 * sx, 12.285 * sy)
+      ..cubicTo(23.745 * sx, 11.335 * sy, 23.663 * sx, 10.745 * sy, 23.49 * sx, 10.127 * sy)
+      ..lineTo(12.255 * sx, 10.127 * sy)
+      ..lineTo(12.255 * sx, 14.753 * sy)
+      ..lineTo(18.96 * sx, 14.753 * sy)
+      ..cubicTo(18.69 * sx, 16.288 * sy, 17.57 * sx, 18.09 * sy, 15.975 * sx, 18.9 * sy)
+      ..lineTo(15.975 * sx, 21.83 * sy)
+      ..lineTo(19.965 * sx, 21.83 * sy)
+      ..cubicTo(22.358 * sx, 19.63 * sy, 23.745 * sx, 16.245 * sy, 23.745 * sx, 12.285 * sy)
+      ..close();
+    canvas.drawPath(bluePath, blue);
+
+    // Green — bottom right
+    final greenPath = Path()
+      ..moveTo(12.255 * sx, 24 * sy)
+      ..cubicTo(15.6 * sx, 24 * sy, 18.39 * sx, 22.91 * sy, 19.965 * sx, 21.83 * sy)
+      ..lineTo(15.975 * sx, 18.9 * sy)
+      ..cubicTo(15.03 * sx, 19.545 * sy, 13.77 * sx, 19.965 * sy, 12.255 * sx, 19.965 * sy)
+      ..cubicTo(8.985 * sx, 19.965 * sy, 6.255 * sx, 17.745 * sy, 5.265 * sx, 14.79 * sy)
+      ..lineTo(1.14 * sx, 14.79 * sy)
+      ..lineTo(1.14 * sx, 17.82 * sy)
+      ..cubicTo(3.63 * sx, 22.5 * sy, 7.635 * sx, 24 * sy, 12.255 * sx, 24 * sy)
+      ..close();
+    canvas.drawPath(greenPath, green);
+
+    // Yellow — left arc
+    final yellowPath = Path()
+      ..moveTo(5.265 * sx, 14.79 * sy)
+      ..cubicTo(5.01 * sx, 14.04 * sy, 4.875 * sx, 13.245 * sy, 4.875 * sx, 12 * sy)
+      ..cubicTo(4.875 * sx, 10.755 * sy, 5.01 * sx, 9.96 * sy, 5.265 * sx, 9.21 * sy)
+      ..lineTo(5.265 * sx, 6.18 * sy)
+      ..lineTo(1.14 * sx, 6.18 * sy)
+      ..cubicTo(0.3 * sx, 7.755 * sy, 0 * sx, 9.795 * sy, 0 * sx, 12 * sy)
+      ..cubicTo(0 * sx, 14.205 * sy, 0.3 * sx, 16.245 * sy, 1.14 * sx, 17.82 * sy)
+      ..lineTo(5.265 * sx, 14.79 * sy)
+      ..close();
+    canvas.drawPath(yellowPath, yellow);
+
+    // Red — top left
+    final redPath = Path()
+      ..moveTo(12.255 * sx, 4.035 * sy)
+      ..cubicTo(14.415 * sx, 4.035 * sy, 15.9 * sx, 4.92 * sy, 16.68 * sx, 5.64 * sy)
+      ..lineTo(20.01 * sx, 2.37 * sy)
+      ..cubicTo(18.0 * sx, 0.48 * sy, 15.345 * sx, 0 * sy, 12.255 * sx, 0 * sy)
+      ..cubicTo(7.635 * sx, 0 * sy, 3.63 * sx, 1.5 * sy, 1.14 * sx, 6.18 * sy)
+      ..lineTo(5.265 * sx, 9.21 * sy)
+      ..cubicTo(6.255 * sx, 6.255 * sy, 8.985 * sx, 4.035 * sy, 12.255 * sx, 4.035 * sy)
+      ..close();
+    canvas.drawPath(redPath, red);
+  }
 
   @override
-  Widget build(BuildContext context) {
-    return RichText(
-      text: const TextSpan(
-        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
-        children: [
-          TextSpan(text: 'G', style: TextStyle(color: Color(0xFF4285F4))),
-          TextSpan(text: 'o', style: TextStyle(color: Color(0xFFEA4335))),
-          TextSpan(text: 'o', style: TextStyle(color: Color(0xFFFBBC05))),
-          TextSpan(text: 'g', style: TextStyle(color: Color(0xFF4285F4))),
-          TextSpan(text: 'l', style: TextStyle(color: Color(0xFF34A853))),
-          TextSpan(text: 'e', style: TextStyle(color: Color(0xFFEA4335))),
-        ],
-      ),
-    );
-  }
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

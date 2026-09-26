@@ -259,8 +259,7 @@ class AboutUsPage extends StatelessWidget {
                 .map((m) => Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: _buildMemberCard(m, isDark),
-                    ))
-                .toList(),
+                    )),
             const SizedBox(height: 24),
 
             // ── Competition ────────────────────────────────────────────────

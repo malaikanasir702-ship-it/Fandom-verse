@@ -1,10 +1,11 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/comic_ui_widgets.dart';
 import '../../../../core/widgets/skewed_button.dart';
+import '../../../../core/widgets/app_display_image.dart';
 import '../bloc/fandom_hub_bloc.dart';
 import '../bloc/fandom_hub_event.dart';
 import '../bloc/fandom_hub_state.dart';
@@ -152,10 +153,10 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                         ),
                       ),
                       clipBehavior: Clip.antiAlias,
-                      child: Image.network(
-                        post.imageUrl,
+                      child: AppDisplayImage(
+                        pathOrUrl: post.imageUrl,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Center(
+                        placeholder: const Center(
                           child: Icon(Iconsax.book, size: 50, color: AppColors.comicGray),
                         ),
                       ),
@@ -493,7 +494,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
               const SizedBox(height: 16),
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.network(post.imageUrl, fit: BoxFit.cover),
+                child: AppDisplayImage(pathOrUrl: post.imageUrl, fit: BoxFit.cover),
               ),
               const SizedBox(height: 20),
               Text(

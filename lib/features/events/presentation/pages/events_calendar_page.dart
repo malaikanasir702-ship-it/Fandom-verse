@@ -1,9 +1,10 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/app_display_image.dart';
 import '../bloc/event_bloc.dart';
 import '../bloc/event_event.dart';
 import '../bloc/event_state.dart';
@@ -143,10 +144,10 @@ class _EventCard extends StatelessWidget {
             SizedBox(
               height: 200,
               width: double.infinity,
-              child: Image.network(
-                event.bannerUrl,
+              child: AppDisplayImage(
+                pathOrUrl: event.bannerUrl,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
+                placeholder: Container(
                   color: AppColors.darkSurface,
                   child: const Icon(Iconsax.calendar_2, size: 48, color: Colors.white30),
                 ),

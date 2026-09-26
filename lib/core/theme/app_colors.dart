@@ -60,4 +60,14 @@ class AppColors {
   static const Color marvelRed = Color(0xFFE51924);
   static const Color kpopPink = Color(0xFFD81B60);
   static const Color comicsAmber = Color(0xFFFF8F00);
+
+  // ─── Admin Light Palette ───
+  static const Color adminLightBackground = Color(0xFFF8FAFC);
+  static const Color adminLightSurface = Color(0xFFFFFFFF);
+  static const Color adminLightSurfaceElevated = Color(0xFFF1F5F9);
+  static const Color adminLightBorder = Color(0xFFE2E8F0);
+  static const Color adminLightTextPrimary = Color(0xFF0F172A);
+  static const Color adminLightTextSecondary = Color(0xFF64748B);
+  static const Color adminLightTextMuted = Color(0xFF94A3B8);
+  static const Color adminLightCardBorder = Color(0xFFE2E8F0);
 }

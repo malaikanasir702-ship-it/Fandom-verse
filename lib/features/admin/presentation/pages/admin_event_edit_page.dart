@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -6,6 +6,7 @@ import '../../../../core/widgets/skewed_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../bloc/admin_bloc.dart';
 import '../bloc/admin_event.dart';
+import '../widgets/admin_image_picker_field.dart';
 
 class AdminEventEditPage extends StatefulWidget {
   final Map<String, dynamic>? existingEvent;
@@ -23,8 +24,9 @@ class _AdminEventEditPageState extends State<AdminEventEditPage> {
   final _latController = TextEditingController(text: '35.6298');
   final _lngController = TextEditingController(text: '139.7942');
   final _ticketUrlController = TextEditingController(text: 'https://tickets.fandomverse.com');
-  final _bannerController = TextEditingController();
   final _descController = TextEditingController();
+
+  String _bannerPathOrUrl = '';
 
   @override
   void initState() {
@@ -37,10 +39,10 @@ class _AdminEventEditPageState extends State<AdminEventEditPage> {
       _latController.text = (ev['latitude'] ?? 0.0).toString();
       _lngController.text = (ev['longitude'] ?? 0.0).toString();
       _ticketUrlController.text = ev['ticket_link'] ?? '';
-      _bannerController.text = ev['banner_url'] ?? '';
+      _bannerPathOrUrl = ev['banner_url'] ?? '';
       _descController.text = ev['description'] ?? '';
     } else {
-      _bannerController.text = 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=800';
+      _bannerPathOrUrl = 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=800';
     }
   }
 
@@ -52,7 +54,6 @@ class _AdminEventEditPageState extends State<AdminEventEditPage> {
     _latController.dispose();
     _lngController.dispose();
     _ticketUrlController.dispose();
-    _bannerController.dispose();
     _descController.dispose();
     super.dispose();
   }
@@ -62,16 +63,21 @@ class _AdminEventEditPageState extends State<AdminEventEditPage> {
     final isEdit = widget.existingEvent != null;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF090C12),
+      backgroundColor: AppColors.adminLightBackground,
       appBar: AppBar(
         title: Text(
           isEdit ? 'Edit Convention' : 'Schedule New Convention',
-          style: const TextStyle(color: Colors.white, fontSize: 16),
+          style: const TextStyle(
+            color: AppColors.adminLightTextPrimary,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        scrolledUnderElevation: 1,
         leading: IconButton(
-          icon: const Icon(Iconsax.arrow_left, color: Colors.white70, size: 20),
+          icon: const Icon(Iconsax.arrow_left, color: AppColors.adminLightTextPrimary, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -85,7 +91,7 @@ class _AdminEventEditPageState extends State<AdminEventEditPage> {
               label: 'Convention / Expo Title',
               hintText: 'e.g. World Otaku Summit & Anime Expo 2026',
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
 
             Row(
               children: [
@@ -106,7 +112,7 @@ class _AdminEventEditPageState extends State<AdminEventEditPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
 
             Row(
               children: [
@@ -129,21 +135,27 @@ class _AdminEventEditPageState extends State<AdminEventEditPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
 
             CustomTextField(
               controller: _ticketUrlController,
               label: 'Official Ticketing Web Link',
               hintText: 'https://...',
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
 
-            CustomTextField(
-              controller: _bannerController,
-              label: 'High-Res Event Banner URL',
-              hintText: 'https://images.unsplash.com/...',
+            // Image Picker from Mobile (replacing banner URL textfield)
+            AdminImagePickerField(
+              label: 'High-Res Event Banner',
+              helperText: 'Pick banner from your mobile gallery or take a photo',
+              initialImagePathOrUrl: _bannerPathOrUrl,
+              onImageSelected: (path) {
+                setState(() {
+                  _bannerPathOrUrl = path;
+                });
+              },
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
 
             CustomTextField(
               controller: _descController,
@@ -157,8 +169,9 @@ class _AdminEventEditPageState extends State<AdminEventEditPage> {
               text: isEdit ? 'Update Convention' : 'Publish to Global Event Radar',
               icon: Iconsax.radar,
               height: 52,
-              fontSize: 12,
-              backgroundColor: AppColors.darkAccentGold,
+              fontSize: 13,
+              backgroundColor: const Color(0xFFF59E0B),
+              textColor: Colors.black,
               onPressed: () {
                 final title = _titleController.text.trim();
                 final city = _cityController.text.trim();
@@ -181,7 +194,7 @@ class _AdminEventEditPageState extends State<AdminEventEditPage> {
                   'longitude': double.tryParse(_lngController.text.trim()) ?? 139.7942,
                   'event_date': DateTime.now().add(const Duration(days: 90)).millisecondsSinceEpoch,
                   'ticket_link': _ticketUrlController.text.trim(),
-                  'banner_url': _bannerController.text.trim(),
+                  'banner_url': _bannerPathOrUrl.trim(),
                   'description': _descController.text.trim(),
                   'is_bookmarked': 0,
                 };
@@ -206,4 +219,3 @@ class _AdminEventEditPageState extends State<AdminEventEditPage> {
     );
   }
 }
-

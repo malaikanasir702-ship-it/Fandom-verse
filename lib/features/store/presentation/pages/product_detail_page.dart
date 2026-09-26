@@ -1,9 +1,10 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/skewed_button.dart';
+import '../../../../core/widgets/app_display_image.dart';
 import '../../domain/entities/product_entity.dart';
 import '../../../cart_checkout/presentation/bloc/cart_bloc.dart';
 import '../../../cart_checkout/presentation/bloc/cart_event.dart';
@@ -100,10 +101,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
                       children: [
                         AspectRatio(
                           aspectRatio: 1.1,
-                          child: Image.network(
-                            product.imageUrl,
+                          child: AppDisplayImage(
+                            pathOrUrl: product.imageUrl,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => Container(
+                            placeholder: Container(
                               color: Colors.grey.withValues(alpha: 0.2),
                               child: const Icon(Iconsax.gallery_slash, size: 48),
                             ),

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -47,11 +47,12 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
         final isLoading = state is AuthLoading;
 
         return Scaffold(
-          backgroundColor: const Color(0xFF07090E),
+          backgroundColor: AppColors.adminLightBackground,
           appBar: AppBar(
             backgroundColor: Colors.transparent,
+            elevation: 0,
             leading: IconButton(
-              icon: const Icon(Iconsax.arrow_left, color: Colors.white70, size: 20),
+              icon: const Icon(Iconsax.arrow_left, color: AppColors.adminLightTextPrimary, size: 20),
               onPressed: () => Navigator.of(context).pop(),
             ),
             actions: [
@@ -59,9 +60,9 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                 margin: const EdgeInsets.only(right: 16),
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.error.withValues(alpha: 0.15),
+                  color: AppColors.error.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.error.withValues(alpha: 0.4)),
+                  border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
                 ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
@@ -90,43 +91,53 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                     height: 64,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.darkPrimary.withValues(alpha: 0.15),
-                      border: Border.all(color: AppColors.darkPrimary, width: 1.5),
+                      color: AppColors.comicRed.withValues(alpha: 0.1),
+                      border: Border.all(color: AppColors.comicRed.withValues(alpha: 0.3), width: 1.5),
                     ),
                     child: const Center(
-                      child: Icon(Iconsax.code, color: AppColors.darkPrimary, size: 32),
+                      child: Icon(Iconsax.code, color: AppColors.comicRed, size: 32),
                     ),
                   ),
                   const SizedBox(height: 20),
 
                   Text(
                     'Admin Command Console',
-                    style: AppTextStyles.displaySmall.copyWith(color: Colors.white),
+                    style: AppTextStyles.displaySmall.copyWith(
+                      color: AppColors.adminLightTextPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   const Text(
                     'Authentication restricted to authorized content curators, convention directors & store moderators.',
-                    style: TextStyle(color: Colors.white60, fontSize: 13, height: 1.45),
+                    style: TextStyle(color: AppColors.adminLightTextSecondary, fontSize: 13, height: 1.45),
                   ),
 
                   const SizedBox(height: 24),
 
-                  // Security notice (no credentials shown)
+                  // Security notice
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: AppColors.darkPrimary.withValues(alpha: 0.08),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.darkPrimary.withValues(alpha: 0.3)),
+                      border: Border.all(color: AppColors.adminLightBorder),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.02),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: const Row(
                       children: [
-                        Icon(Iconsax.shield_tick, color: AppColors.darkPrimary, size: 22),
+                        Icon(Iconsax.shield_tick, color: Color(0xFF2563EB), size: 22),
                         SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             'Admin access is role-restricted. Your account must have administrator privileges to proceed.',
-                            style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.4),
+                            style: TextStyle(color: AppColors.adminLightTextSecondary, fontSize: 12, height: 1.4),
                           ),
                         ),
                       ],
@@ -135,40 +146,70 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
 
                   const SizedBox(height: 28),
 
-                  const Text('Admin Account ID', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600)),
+                  const Text(
+                    'Admin Account ID',
+                    style: TextStyle(color: AppColors.adminLightTextPrimary, fontWeight: FontWeight.w600, fontSize: 13),
+                  ),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _emailController,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: AppColors.adminLightTextPrimary, fontSize: 14),
                     keyboardType: TextInputType.emailAddress,
                     autocorrect: false,
                     decoration: InputDecoration(
-                      fillColor: const Color(0xFF131722),
-                      prefixIcon: const Icon(Iconsax.card, color: Colors.white54, size: 20),
+                      fillColor: Colors.white,
+                      filled: true,
+                      prefixIcon: const Icon(Iconsax.card, color: AppColors.adminLightTextSecondary, size: 20),
                       hintText: 'Enter admin email address',
-                      hintStyle: const TextStyle(color: Colors.white30),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                      hintStyle: const TextStyle(color: AppColors.adminLightTextMuted, fontSize: 13),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: AppColors.adminLightBorder),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: AppColors.adminLightBorder),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: AppColors.comicRed, width: 1.5),
+                      ),
                     ),
                   ),
 
                   const SizedBox(height: 20),
 
-                  const Text('Security Passcode', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600)),
+                  const Text(
+                    'Security Passcode',
+                    style: TextStyle(color: AppColors.adminLightTextPrimary, fontWeight: FontWeight.w600, fontSize: 13),
+                  ),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _passwordController,
                     obscureText: _obscurePassword,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: AppColors.adminLightTextPrimary, fontSize: 14),
                     decoration: InputDecoration(
-                      fillColor: const Color(0xFF131722),
-                      prefixIcon: const Icon(Iconsax.key, color: Colors.white54, size: 20),
+                      fillColor: Colors.white,
+                      filled: true,
+                      prefixIcon: const Icon(Iconsax.key, color: AppColors.adminLightTextSecondary, size: 20),
                       hintText: '••••••••',
-                      hintStyle: const TextStyle(color: Colors.white30),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                      hintStyle: const TextStyle(color: AppColors.adminLightTextMuted, fontSize: 13),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: AppColors.adminLightBorder),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: AppColors.adminLightBorder),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: AppColors.comicRed, width: 1.5),
+                      ),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscurePassword ? Iconsax.eye_slash : Iconsax.eye,
-                          color: Colors.white54,
+                          color: AppColors.adminLightTextSecondary,
                           size: 20,
                         ),
                         onPressed: () {
@@ -187,7 +228,8 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                     icon: Iconsax.key_square,
                     height: 52,
                     fontSize: 13,
-                    backgroundColor: AppColors.darkPrimary,
+                    backgroundColor: AppColors.comicRed,
+                    textColor: Colors.white,
                     onPressed: isLoading ? null : () {
                       context.read<AuthBloc>().add(
                             AdminLoginSubmittedEvent(
@@ -203,7 +245,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                   Center(
                     child: Text(
                       'All console actions are audited and logged with timestamps.',
-                      style: AppTextStyles.bodySmall.copyWith(color: Colors.white38, fontSize: 11),
+                      style: AppTextStyles.bodySmall.copyWith(color: AppColors.adminLightTextMuted, fontSize: 11),
                     ),
                   ),
                 ],
@@ -215,6 +257,3 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
     );
   }
 }
-
-
-

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:intl/intl.dart';
@@ -8,6 +8,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/skewed_button.dart';
 import '../../../../core/widgets/glass_container.dart';
+import '../../../../core/widgets/app_display_image.dart';
 import '../../domain/entities/event_entity.dart';
 import '../bloc/event_bloc.dart';
 import '../bloc/event_event.dart';
@@ -181,10 +182,10 @@ class _EventDetailPageState extends State<EventDetailPage> {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.network(
-                    widget.event.bannerUrl,
+                  AppDisplayImage(
+                    pathOrUrl: widget.event.bannerUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(color: AppColors.darkSurface),
+                    placeholder: Container(color: AppColors.darkSurface),
                   ),
                   Container(
                     decoration: BoxDecoration(

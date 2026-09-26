@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -7,6 +7,7 @@ import '../../../../core/widgets/custom_text_field.dart';
 import '../bloc/admin_bloc.dart';
 import '../bloc/admin_event.dart';
 import '../bloc/admin_state.dart';
+import '../widgets/admin_image_picker_field.dart';
 
 class AdminUsersCategoriesPage extends StatefulWidget {
   const AdminUsersCategoriesPage({super.key});
@@ -35,63 +36,88 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
     final nameCtrl = TextEditingController();
     final descCtrl = TextEditingController();
     final colorCtrl = TextEditingController(text: '#7C4DFF');
+    String bannerPathOrUrl = 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800';
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF161B26),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Add Fandom Pillar Category', style: TextStyle(color: Colors.white, fontSize: 16)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CustomTextField(
-              controller: nameCtrl,
-              label: 'Category Name',
-              hintText: 'e.g. Tabletop & D&D Lore',
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: const Text(
+              'Add Fandom Pillar Category',
+              style: TextStyle(color: AppColors.adminLightTextPrimary, fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 10),
-            CustomTextField(
-              controller: descCtrl,
-              label: 'Description',
-              hintText: 'Campaign books, miniature painting, dice rolls...',
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomTextField(
+                    controller: nameCtrl,
+                    label: 'Category Name',
+                    hintText: 'e.g. Tabletop & D&D Lore',
+                  ),
+                  const SizedBox(height: 12),
+                  CustomTextField(
+                    controller: descCtrl,
+                    label: 'Description',
+                    hintText: 'Campaign books, miniature painting, dice rolls...',
+                  ),
+                  const SizedBox(height: 12),
+                  CustomTextField(
+                    controller: colorCtrl,
+                    label: 'Hex Color Accent',
+                    hintText: '#7C4DFF',
+                  ),
+                  const SizedBox(height: 12),
+                  AdminImagePickerField(
+                    label: 'Category Banner Image',
+                    helperText: 'Pick from your mobile gallery or camera',
+                    previewHeight: 120,
+                    initialImagePathOrUrl: bannerPathOrUrl,
+                    onImageSelected: (path) {
+                      setDialogState(() {
+                        bannerPathOrUrl = path;
+                      });
+                    },
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 10),
-            CustomTextField(
-              controller: colorCtrl,
-              label: 'Hex Color Accent',
-              hintText: '#7C4DFF',
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.darkPrimary),
-            onPressed: () {
-              final name = nameCtrl.text.trim();
-              if (name.isNotEmpty) {
-                final catData = {
-                  'category_id': 'cat_${name.toLowerCase().replaceAll(' ', '_')}',
-                  'name': name,
-                  'description': descCtrl.text.trim(),
-                  'icon_name': 'auto_awesome',
-                  'banner_url': 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800',
-                  'color_hex': colorCtrl.text.trim(),
-                };
-                context.read<AdminBloc>().add(CreateCategoryEvent(catData));
-                Navigator.of(ctx).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Created category "$name"!'), backgroundColor: AppColors.success),
-                );
-              }
-            },
-            child: const Text('Add Category', style: TextStyle(color: Colors.white)),
-          ),
-        ],
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('Cancel', style: TextStyle(color: AppColors.adminLightTextSecondary)),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.comicRed,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                onPressed: () {
+                  final name = nameCtrl.text.trim();
+                  if (name.isNotEmpty) {
+                    final catData = {
+                      'category_id': 'cat_${name.toLowerCase().replaceAll(' ', '_')}',
+                      'name': name,
+                      'description': descCtrl.text.trim(),
+                      'icon_name': 'auto_awesome',
+                      'banner_url': bannerPathOrUrl.trim(),
+                      'color_hex': colorCtrl.text.trim(),
+                    };
+                    context.read<AdminBloc>().add(CreateCategoryEvent(catData));
+                    Navigator.of(ctx).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Created category "$name"!'), backgroundColor: AppColors.success),
+                    );
+                  }
+                },
+                child: const Text('Add Category', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -99,20 +125,28 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF090C12),
+      backgroundColor: AppColors.adminLightBackground,
       appBar: AppBar(
-        title: const Text('User & Category Moderation', style: TextStyle(color: Colors.white, fontSize: 16)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+        title: const Text(
+          'User & Category Moderation',
+          style: TextStyle(
+            color: AppColors.adminLightTextPrimary,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        scrolledUnderElevation: 1,
         leading: IconButton(
-          icon: const Icon(Iconsax.arrow_left, color: Colors.white70, size: 20),
+          icon: const Icon(Iconsax.arrow_left, color: AppColors.adminLightTextPrimary, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: AppColors.darkSecondary,
-          labelColor: AppColors.darkSecondary,
-          unselectedLabelColor: Colors.white60,
+          indicatorColor: AppColors.comicRed,
+          labelColor: AppColors.comicRed,
+          unselectedLabelColor: AppColors.adminLightTextSecondary,
           tabs: const [
             Tab(icon: Icon(Iconsax.people, size: 18), text: 'Registered Fans'),
             Tab(icon: Icon(Iconsax.category, size: 18), text: 'Fandom Categories'),
@@ -122,7 +156,7 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
       body: BlocBuilder<AdminBloc, AdminState>(
         builder: (context, state) {
           if (state is AdminLoading) {
-            return const Center(child: CircularProgressIndicator(color: AppColors.darkSecondary));
+            return const Center(child: CircularProgressIndicator(color: AppColors.comicRed));
           }
 
           final users = state is AdminStatsLoaded ? state.users : <Map<String, dynamic>>[];
@@ -155,19 +189,26 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
         return Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: const Color(0xFF131722),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: isBanned ? AppColors.error.withValues(alpha: 0.4) : Colors.white10,
+              color: isBanned ? AppColors.error.withValues(alpha: 0.4) : AppColors.adminLightBorder,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Row(
             children: [
               CircleAvatar(
-                backgroundColor: AppColors.darkPrimary.withValues(alpha: 0.2),
+                backgroundColor: AppColors.comicRed.withValues(alpha: 0.1),
                 child: Text(
                   (u['name'] ?? 'F')[0].toUpperCase(),
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: AppColors.comicRed, fontWeight: FontWeight.bold),
                 ),
               ),
               const SizedBox(width: 12),
@@ -179,15 +220,15 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
                       children: [
                         Text(
                           u['name'] ?? '',
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                          style: const TextStyle(color: AppColors.adminLightTextPrimary, fontWeight: FontWeight.bold, fontSize: 13),
                         ),
                         const SizedBox(width: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: isBanned
-                                ? AppColors.error.withValues(alpha: 0.2)
-                                : AppColors.success.withValues(alpha: 0.15),
+                                ? AppColors.error.withValues(alpha: 0.1)
+                                : AppColors.success.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -202,11 +243,11 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
                       ],
                     ),
                     const SizedBox(height: 2),
-                    Text(u['email'] ?? '', style: const TextStyle(color: Colors.white60, fontSize: 11)),
+                    Text(u['email'] ?? '', style: const TextStyle(color: AppColors.adminLightTextSecondary, fontSize: 11)),
                     const SizedBox(height: 2),
                     Text(
                       'Role: ${(u['role'] ?? 'fan').toUpperCase()}',
-                      style: const TextStyle(color: AppColors.darkSecondary, fontSize: 10),
+                      style: const TextStyle(color: Color(0xFF2563EB), fontSize: 10, fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
@@ -222,7 +263,7 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
                           ToggleUserStatusEvent(u['user_id'], newStatus),
                         );
                   },
-                  child: Text(isBanned ? 'Unban' : 'Suspend', style: const TextStyle(fontSize: 11)),
+                  child: Text(isBanned ? 'Unban' : 'Suspend', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                 ),
             ],
           ),
@@ -241,14 +282,15 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
             children: [
               Text(
                 '${categories.length} Fandom Pillars Configured',
-                style: const TextStyle(color: Colors.white60, fontSize: 12),
+                style: const TextStyle(color: AppColors.adminLightTextSecondary, fontSize: 12, fontWeight: FontWeight.w500),
               ),
               SkewedButton(
                 text: '+ Add Pillar',
                 icon: Iconsax.add,
                 height: 40,
                 fontSize: 11,
-                backgroundColor: AppColors.darkPrimary,
+                backgroundColor: AppColors.comicRed,
+                textColor: Colors.white,
                 onPressed: _showAddCategoryDialog,
               ),
             ],
@@ -264,9 +306,16 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
               return Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF131722),
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.white10),
+                  border: Border.all(color: AppColors.adminLightBorder),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.02),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [
@@ -285,14 +334,14 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
                         children: [
                           Text(
                             cat['name'] ?? '',
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                            style: const TextStyle(color: AppColors.adminLightTextPrimary, fontWeight: FontWeight.bold, fontSize: 13),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             cat['description'] ?? '',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(color: Colors.white60, fontSize: 11),
+                            style: const TextStyle(color: AppColors.adminLightTextSecondary, fontSize: 11),
                           ),
                         ],
                       ),
@@ -308,4 +357,3 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
     );
   }
 }
-

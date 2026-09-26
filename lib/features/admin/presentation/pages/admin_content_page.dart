@@ -1,7 +1,8 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/app_display_image.dart';
 import '../bloc/admin_bloc.dart';
 import '../bloc/admin_event.dart';
 import '../bloc/admin_state.dart';
@@ -34,18 +35,26 @@ class _AdminContentPageState extends State<AdminContentPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF090C12),
+      backgroundColor: AppColors.adminLightBackground,
       appBar: AppBar(
-        title: const Text('Lore & Content Manager', style: TextStyle(color: Colors.white, fontSize: 16)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+        title: const Text(
+          'Lore & Content Manager',
+          style: TextStyle(
+            color: AppColors.adminLightTextPrimary,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        scrolledUnderElevation: 1,
         leading: IconButton(
-          icon: const Icon(Iconsax.arrow_left, color: Colors.white70, size: 20),
+          icon: const Icon(Iconsax.arrow_left, color: AppColors.adminLightTextPrimary, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.darkPrimary,
+        backgroundColor: AppColors.comicRed,
         icon: const Icon(Iconsax.add_circle, color: Colors.white),
         label: const Text('New Article', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         onPressed: () {
@@ -59,12 +68,11 @@ class _AdminContentPageState extends State<AdminContentPage> {
       body: BlocBuilder<AdminBloc, AdminState>(
         builder: (context, state) {
           if (state is AdminLoading) {
-            return const Center(child: CircularProgressIndicator(color: AppColors.darkPrimary));
+            return const Center(child: CircularProgressIndicator(color: AppColors.comicRed));
           }
 
           final allArticles = state is AdminStatsLoaded ? state.articles : [];
 
-          // Filter by category and search
           final query = _searchController.text.toLowerCase().trim();
           final filtered = allArticles.where((a) {
             final matchesCat = _selectedCategory == 'All' || a['category_id'] == _selectedCategory;
@@ -78,19 +86,26 @@ class _AdminContentPageState extends State<AdminContentPage> {
             children: [
               // Search & Filter Header
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: TextField(
                   controller: _searchController,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  style: const TextStyle(color: AppColors.adminLightTextPrimary, fontSize: 13),
                   onChanged: (_) => setState(() {}),
                   decoration: InputDecoration(
                     hintText: 'Search articles, theories, lore guides...',
-                    hintStyle: const TextStyle(color: Colors.white30, fontSize: 12),
-                    prefixIcon: const Icon(Iconsax.search_normal, color: Colors.white54, size: 18),
-                    fillColor: const Color(0xFF131722),
+                    hintStyle: const TextStyle(color: AppColors.adminLightTextMuted, fontSize: 12),
+                    prefixIcon: const Icon(Iconsax.search_normal, color: AppColors.adminLightTextSecondary, size: 18),
+                    fillColor: Colors.white,
                     filled: true,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: AppColors.adminLightBorder),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: AppColors.adminLightBorder),
+                    ),
                   ),
                 ),
               ),
@@ -115,18 +130,21 @@ class _AdminContentPageState extends State<AdminContentPage> {
                       child: ChoiceChip(
                         label: Text(cat == 'All' ? 'All Fandoms' : cat.replaceAll('cat_', '').toUpperCase()),
                         selected: isSel,
-                        selectedColor: AppColors.darkPrimary,
+                        selectedColor: AppColors.comicRed,
                         labelStyle: TextStyle(
-                          color: isSel ? Colors.white : Colors.white60,
+                          color: isSel ? Colors.white : AppColors.adminLightTextSecondary,
                           fontSize: 11,
                           fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
                         ),
-                        backgroundColor: const Color(0xFF131722),
+                        backgroundColor: Colors.white,
+                        side: BorderSide(
+                          color: isSel ? AppColors.comicRed : AppColors.adminLightBorder,
+                        ),
                         onSelected: (_) => setState(() => _selectedCategory = cat),
                       ),
                     );
                   }).toList(),
-              ),
+                ),
               ),
               const SizedBox(height: 10),
 
@@ -138,7 +156,7 @@ class _AdminContentPageState extends State<AdminContentPage> {
                   children: [
                     Text(
                       '${filtered.length} Articles in Database',
-                      style: const TextStyle(color: Colors.white54, fontSize: 11),
+                      style: const TextStyle(color: AppColors.adminLightTextSecondary, fontSize: 11, fontWeight: FontWeight.w500),
                     ),
                   ],
                 ),
@@ -148,10 +166,10 @@ class _AdminContentPageState extends State<AdminContentPage> {
               // Articles List
               Expanded(
                 child: filtered.isEmpty
-                    ? Center(
+                    ? const Center(
                         child: Text(
                           'No articles found matching filters.',
-                          style: TextStyle(color: Colors.white.withValues(alpha: 0.4)),
+                          style: TextStyle(color: AppColors.adminLightTextSecondary),
                         ),
                       )
                     : ListView.separated(
@@ -175,26 +193,27 @@ class _AdminContentPageState extends State<AdminContentPage> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF131722),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: AppColors.adminLightBorder),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
-            child: Image.network(
-              article['image_url'] ?? '',
+            child: AppDisplayImage(
+              pathOrUrl: article['image_url'] ?? '',
               width: 60,
               height: 60,
               fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => Container(
-                width: 60,
-                height: 60,
-                color: Colors.white12,
-                child: const Icon(Iconsax.document_text, color: Colors.white38),
-              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -207,12 +226,12 @@ class _AdminContentPageState extends State<AdminContentPage> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: AppColors.darkPrimary.withValues(alpha: 0.2),
+                        color: AppColors.comicRed.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
                         (article['category_id'] ?? '').toString().toUpperCase(),
-                        style: const TextStyle(color: AppColors.darkPrimary, fontSize: 9, fontWeight: FontWeight.bold),
+                        style: const TextStyle(color: AppColors.comicRed, fontSize: 9, fontWeight: FontWeight.bold),
                       ),
                     ),
                     if (article['is_trending'] == 1) ...[
@@ -220,12 +239,12 @@ class _AdminContentPageState extends State<AdminContentPage> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: AppColors.darkAccentGold.withValues(alpha: 0.2),
+                          color: const Color(0xFFD97706).withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: const Text(
                           'TRENDING',
-                          style: TextStyle(color: AppColors.darkAccentGold, fontSize: 8, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: Color(0xFFD97706), fontSize: 8, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],
@@ -236,12 +255,12 @@ class _AdminContentPageState extends State<AdminContentPage> {
                   article['title'] ?? '',
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: AppColors.adminLightTextPrimary, fontSize: 13, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   'Author: ${article['author_name'] ?? 'Fandom Staff'}',
-                  style: const TextStyle(color: Colors.white38, fontSize: 10),
+                  style: const TextStyle(color: AppColors.adminLightTextSecondary, fontSize: 10),
                 ),
               ],
             ),
@@ -249,7 +268,7 @@ class _AdminContentPageState extends State<AdminContentPage> {
           Column(
             children: [
               IconButton(
-                icon: const Icon(Iconsax.edit_2, color: AppColors.darkSecondary, size: 18),
+                icon: const Icon(Iconsax.edit_2, color: Color(0xFF2563EB), size: 18),
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
@@ -277,7 +296,3 @@ class _AdminContentPageState extends State<AdminContentPage> {
     );
   }
 }
-
-
-
-

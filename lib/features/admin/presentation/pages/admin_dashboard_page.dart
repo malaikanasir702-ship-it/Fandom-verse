@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -29,20 +29,21 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF090C12), // High-security dark console theme
+      backgroundColor: AppColors.adminLightBackground,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        scrolledUnderElevation: 1,
         leading: Padding(
           padding: const EdgeInsets.all(10),
           child: Container(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.darkPrimary.withValues(alpha: 0.2),
-              border: Border.all(color: AppColors.darkPrimary),
+              color: AppColors.comicRed.withValues(alpha: 0.1),
+              border: Border.all(color: AppColors.comicRed.withValues(alpha: 0.3)),
             ),
             child: const Center(
-              child: Icon(Iconsax.shield_tick, size: 16, color: AppColors.darkPrimary),
+              child: Icon(Iconsax.shield_tick, size: 16, color: AppColors.comicRed),
             ),
           ),
         ),
@@ -59,11 +60,15 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               children: [
                 const Text(
                   'Command Console',
-                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: AppColors.adminLightTextPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 Text(
                   '$adminEmail • $adminName',
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 10),
+                  style: const TextStyle(color: AppColors.adminLightTextSecondary, fontSize: 10),
                 ),
               ],
             );
@@ -71,13 +76,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Iconsax.refresh, color: Colors.white70, size: 20),
+            icon: const Icon(Iconsax.refresh, color: AppColors.adminLightTextSecondary, size: 20),
             tooltip: 'Refresh Metrics',
             onPressed: () => context.read<AdminBloc>().add(const LoadAdminDashboardStatsEvent()),
           ),
           // ── Seed Firestore Button ──
           IconButton(
-            icon: const Icon(Iconsax.cloud_connection, color: AppColors.darkSecondary, size: 20),
+            icon: const Icon(Iconsax.cloud_connection, color: Color(0xFF2563EB), size: 20),
             tooltip: 'Seed Firestore Database',
             onPressed: () => _showSeedDialog(context),
           ),
@@ -102,7 +107,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         },
         builder: (context, state) {
           if (state is AdminLoading) {
-            return const Center(child: CircularProgressIndicator(color: AppColors.darkSecondary));
+            return const Center(child: CircularProgressIndicator(color: AppColors.comicRed));
           }
 
           final metrics = state is AdminStatsLoaded
@@ -117,7 +122,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           final logs = state is AdminStatsLoaded ? state.recentLogs : <Map<String, dynamic>>[];
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -126,10 +131,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 const SizedBox(height: 20),
 
                 // Real-time KPI Metric Grid (4 Cards)
-                Text(
+                const Text(
                   'REAL-TIME PLATFORM METRICS',
                   style: TextStyle(
-                    color: AppColors.darkSecondary.withValues(alpha: 0.9),
+                    color: AppColors.adminLightTextSecondary,
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1.0,
@@ -144,7 +149,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         count: '${metrics['totalFans']}',
                         subtext: '+48 this week',
                         icon: Iconsax.people,
-                        color: AppColors.darkSecondary,
+                        color: const Color(0xFF2563EB),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -154,7 +159,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         count: '${metrics['publishedArticles']}',
                         subtext: 'Across 6 fandoms',
                         icon: Iconsax.book_1,
-                        color: AppColors.darkPrimary,
+                        color: AppColors.comicRed,
                       ),
                     ),
                   ],
@@ -168,7 +173,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         count: '${metrics['upcomingEvents']}',
                         subtext: 'Tokyo, SDCC, Seoul',
                         icon: Iconsax.radar,
-                        color: AppColors.darkAccentGold,
+                        color: const Color(0xFFD97706),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -186,10 +191,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 const SizedBox(height: 24),
 
                 // Operations Navigation Grid
-                Text(
+                const Text(
                   'MANAGEMENT MODULES',
                   style: TextStyle(
-                    color: AppColors.darkSecondary.withValues(alpha: 0.9),
+                    color: AppColors.adminLightTextSecondary,
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1.0,
@@ -201,14 +206,14 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   title: 'Content & Lore Moderation',
                   subtitle: 'Add, edit, or delete articles, guides & glossary terms',
                   route: '/admin/content',
-                  accentColor: AppColors.darkPrimary,
+                  accentColor: AppColors.comicRed,
                 ),
                 _buildModuleTile(
                   icon: Iconsax.calendar_2,
                   title: 'Convention & Event Radar',
                   subtitle: 'Manage convention schedules, venues, GPS & ticketing',
                   route: '/admin/events',
-                  accentColor: AppColors.darkAccentGold,
+                  accentColor: const Color(0xFFD97706),
                 ),
                 _buildModuleTile(
                   icon: Iconsax.box,
@@ -222,7 +227,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   title: 'User Moderation & Categories',
                   subtitle: 'Inspect fan profiles, ban users & configure categories',
                   route: '/admin/users-categories',
-                  accentColor: AppColors.darkSecondary,
+                  accentColor: const Color(0xFF2563EB),
                 ),
                 const SizedBox(height: 24),
 
@@ -230,10 +235,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    const Text(
                       'RECENT AUDIT ACTIVITY',
                       style: TextStyle(
-                        color: AppColors.darkSecondary.withValues(alpha: 0.9),
+                        color: AppColors.adminLightTextSecondary,
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 1.0,
@@ -244,7 +249,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         context: context,
                         logs: logs,
                       ),
-                      child: const Text('View All', style: TextStyle(color: AppColors.darkSecondary, fontSize: 12)),
+                      child: const Text('View All', style: TextStyle(color: Color(0xFF2563EB), fontSize: 12, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
@@ -263,20 +268,27 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF131722),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.adminLightBorder),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Row(
             children: [
-              Icon(Iconsax.flash_1, color: AppColors.darkAccentGold, size: 20),
+              Icon(Iconsax.flash_1, color: Color(0xFFD97706), size: 20),
               SizedBox(width: 8),
               Text(
                 'Quick Operations Hub',
-                style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                style: TextStyle(color: AppColors.adminLightTextPrimary, fontSize: 14, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -288,14 +300,14 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 _buildQuickChip(
                   label: '+ New Article',
                   icon: Iconsax.document_text,
-                  color: AppColors.darkPrimary,
+                  color: AppColors.comicRed,
                   onTap: () => Navigator.of(context).pushNamed('/admin/content-edit'),
                 ),
                 const SizedBox(width: 8),
                 _buildQuickChip(
                   label: '+ New Event',
                   icon: Iconsax.location_add,
-                  color: AppColors.darkAccentGold,
+                  color: const Color(0xFFD97706),
                   onTap: () => Navigator.of(context).pushNamed('/admin/event-edit'),
                 ),
                 const SizedBox(width: 8),
@@ -309,7 +321,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 _buildQuickChip(
                   label: 'Push Alert',
                   icon: Iconsax.notification_bing,
-                  color: AppColors.darkSecondary,
+                  color: const Color(0xFF2563EB),
                   onTap: () {
                     AdminModals.showBroadcastModal(
                       context: context,
@@ -351,9 +363,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.12),
+          color: color.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: color.withValues(alpha: 0.4)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Row(
           children: [
@@ -376,9 +388,16 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF131722),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.adminLightBorder),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -386,17 +405,24 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(title, style: const TextStyle(color: Colors.white60, fontSize: 11)),
-              Icon(icon, color: color, size: 18),
+              Text(title, style: const TextStyle(color: AppColors.adminLightTextSecondary, fontSize: 12, fontWeight: FontWeight.w500)),
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: color, size: 16),
+              ),
             ],
           ),
           const SizedBox(height: 8),
           Text(
             count,
-            style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+            style: const TextStyle(color: AppColors.adminLightTextPrimary, fontSize: 22, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 2),
-          Text(subtext, style: TextStyle(color: color.withValues(alpha: 0.8), fontSize: 10)),
+          Text(subtext, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -417,16 +443,23 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: const Color(0xFF131722),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.white10),
+            border: Border.all(color: AppColors.adminLightBorder),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: accentColor.withValues(alpha: 0.15),
+                  color: accentColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: accentColor, size: 20),
@@ -436,13 +469,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                    Text(title, style: const TextStyle(color: AppColors.adminLightTextPrimary, fontSize: 13, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 2),
-                    Text(subtitle, style: const TextStyle(color: Colors.white60, fontSize: 11)),
+                    Text(subtitle, style: const TextStyle(color: AppColors.adminLightTextSecondary, fontSize: 11)),
                   ],
                 ),
               ),
-              const Icon(Iconsax.arrow_right_1, color: Colors.white30, size: 14),
+              const Icon(Iconsax.arrow_right_1, color: AppColors.adminLightTextMuted, size: 14),
             ],
           ),
         ),
@@ -455,11 +488,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF131722),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.adminLightBorder),
         ),
         child: const Center(
-          child: Text('No recent operations logged.', style: TextStyle(color: Colors.white38, fontSize: 12)),
+          child: Text('No recent operations logged.', style: TextStyle(color: AppColors.adminLightTextSecondary, fontSize: 12)),
         ),
       );
     }
@@ -467,17 +501,17 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     final top3 = logs.take(3).toList();
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF131722),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: AppColors.adminLightBorder),
       ),
       child: Column(
         children: top3.map((l) {
           return ListTile(
             dense: true,
-        leading: const Icon(Iconsax.activity, color: AppColors.darkSecondary, size: 16),
-            title: Text(l['description'] ?? '', style: const TextStyle(color: Colors.white, fontSize: 11)),
-            subtitle: Text(l['admin_email'] ?? '', style: const TextStyle(color: Colors.white38, fontSize: 9)),
+            leading: const Icon(Iconsax.activity, color: Color(0xFF2563EB), size: 16),
+            title: Text(l['description'] ?? '', style: const TextStyle(color: AppColors.adminLightTextPrimary, fontSize: 12, fontWeight: FontWeight.w600)),
+            subtitle: Text(l['admin_email'] ?? '', style: const TextStyle(color: AppColors.adminLightTextSecondary, fontSize: 10)),
           );
         }).toList(),
       ),
@@ -485,21 +519,21 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // FIRESTORE SEED DIALOG
+  // FIRESTORE SEED DIALOG (Light Theme)
   // ─────────────────────────────────────────────────────────────────────────
 
   void _showSeedDialog(BuildContext ctx) {
     showDialog(
       context: ctx,
       builder: (dialogCtx) => AlertDialog(
-        backgroundColor: const Color(0xFF131722),
+        backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Row(
           children: [
-            Icon(Iconsax.cloud_notif, color: AppColors.darkSecondary),
+            Icon(Iconsax.cloud_notif, color: Color(0xFF2563EB)),
             SizedBox(width: 10),
             Text('Seed Firestore Database',
-                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                style: TextStyle(color: AppColors.adminLightTextPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
           ],
         ),
         content: const Text(
@@ -516,20 +550,20 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           '• 3 Audit Logs\n\n'
           'Firebase Auth accounts will also be created.\n'
           'Existing documents will be merged (safe).',
-          style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.5),
+          style: TextStyle(color: AppColors.adminLightTextSecondary, fontSize: 12, height: 1.5),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogCtx).pop(),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+            child: const Text('Cancel', style: TextStyle(color: AppColors.adminLightTextSecondary)),
           ),
           SkewedButton(
             text: 'Seed Now',
             icon: Iconsax.send_2,
             height: 44,
             fontSize: 12,
-            backgroundColor: AppColors.darkSecondary,
-            textColor: Colors.black,
+            backgroundColor: const Color(0xFF2563EB),
+            textColor: Colors.white,
             onPressed: () async {
               Navigator.of(dialogCtx).pop();
               await _runSeeding(ctx);
@@ -549,7 +583,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         canPop: false,
         child: Center(
           child: Card(
-            color: Color(0xFF131722),
+            color: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(16)),
             ),
@@ -558,16 +592,16 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircularProgressIndicator(color: AppColors.darkSecondary),
+                  CircularProgressIndicator(color: Color(0xFF2563EB)),
                   SizedBox(height: 20),
                   Text(
                     'Seeding Firestore...',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                    style: TextStyle(color: AppColors.adminLightTextPrimary, fontWeight: FontWeight.w600),
                   ),
                   SizedBox(height: 6),
                   Text(
                     'Creating collections & Auth accounts',
-                    style: TextStyle(color: Colors.white54, fontSize: 11),
+                    style: TextStyle(color: AppColors.adminLightTextSecondary, fontSize: 11),
                   ),
                 ],
               ),
@@ -613,13 +647,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     );
 
     if (success) {
-      // Reload metrics
       if (ctx.mounted) {
         ctx.read<AdminBloc>().add(const LoadAdminDashboardStatsEvent());
       }
     }
   }
 }
-
-
-

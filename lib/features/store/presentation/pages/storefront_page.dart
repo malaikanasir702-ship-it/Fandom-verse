@@ -1,10 +1,11 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../../../../core/widgets/skewed_button.dart';
+import '../../../../core/widgets/app_display_image.dart';
 import '../bloc/store_bloc.dart';
 import '../bloc/store_event.dart';
 import '../bloc/store_state.dart';
@@ -427,10 +428,10 @@ class _StorefrontPageState extends State<StorefrontPage> {
                 children: [
                   ClipRRect(
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                    child: Image.network(
-                      product.imageUrl,
+                    child: AppDisplayImage(
+                      pathOrUrl: product.imageUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => Container(
+                      placeholder: Container(
                         color: Colors.grey.withValues(alpha: 0.2),
                         child: const Icon(Iconsax.gallery_slash),
                       ),

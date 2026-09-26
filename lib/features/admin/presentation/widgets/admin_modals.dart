@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/skewed_button.dart';
@@ -22,16 +22,16 @@ class AdminModals {
         return StatefulBuilder(
           builder: (context, setModalState) {
             return AlertDialog(
-              backgroundColor: const Color(0xFF161B26),
+              backgroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: AppColors.error.withValues(alpha: 0.4)),
+                side: BorderSide(color: AppColors.error.withValues(alpha: 0.3)),
               ),
               title: const Row(
                 children: [
-              Icon(Iconsax.warning_2, color: AppColors.error, size: 24),
+                  Icon(Iconsax.warning_2, color: AppColors.error, size: 24),
                   SizedBox(width: 8),
-                  Text('Destructive Action', style: TextStyle(color: Colors.white, fontSize: 16)),
+                  Text('Destructive Action', style: TextStyle(color: AppColors.adminLightTextPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
                 ],
               ),
               content: Column(
@@ -40,17 +40,17 @@ class AdminModals {
                 children: [
                   Text(
                     'Are you sure you want to permanently delete "$itemName"? This cannot be undone.',
-                    style: const TextStyle(color: Colors.white70, fontSize: 13),
+                    style: const TextStyle(color: AppColors.adminLightTextSecondary, fontSize: 13),
                   ),
                   const SizedBox(height: 14),
                   const Text(
                     'Type "DELETE" below to unlock removal:',
-                    style: TextStyle(color: Colors.white60, fontSize: 11, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: AppColors.adminLightTextPrimary, fontSize: 11, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   TextField(
                     controller: controller,
-                    style: const TextStyle(color: Colors.white, fontFamily: 'monospace'),
+                    style: const TextStyle(color: AppColors.adminLightTextPrimary, fontFamily: 'monospace', fontWeight: FontWeight.bold),
                     onChanged: (val) {
                       setModalState(() {
                         canDelete = val.trim() == 'DELETE';
@@ -58,10 +58,17 @@ class AdminModals {
                     },
                     decoration: InputDecoration(
                       hintText: 'DELETE',
-                      hintStyle: const TextStyle(color: Colors.white30),
-                      fillColor: const Color(0xFF0F131C),
+                      hintStyle: const TextStyle(color: AppColors.adminLightTextMuted),
+                      fillColor: const Color(0xFFF8FAFC),
                       filled: true,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: AppColors.adminLightBorder),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: AppColors.adminLightBorder),
+                      ),
                     ),
                   ),
                 ],
@@ -69,11 +76,11 @@ class AdminModals {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(),
-                  child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+                  child: const Text('Cancel', style: TextStyle(color: AppColors.adminLightTextSecondary)),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: canDelete ? AppColors.error : Colors.grey.withValues(alpha: 0.3),
+                    backgroundColor: canDelete ? AppColors.error : Colors.grey.shade300,
                   ),
                   onPressed: canDelete
                       ? () {
@@ -81,7 +88,7 @@ class AdminModals {
                           onConfirmed();
                         }
                       : null,
-                  child: const Text('Delete Permanently', style: TextStyle(color: Colors.white)),
+                  child: const Text('Delete Permanently', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ],
             );
@@ -105,7 +112,7 @@ class AdminModals {
           height: MediaQuery.of(ctx).size.height * 0.75,
           padding: const EdgeInsets.all(20),
           decoration: const BoxDecoration(
-            color: Color(0xFF131722),
+            color: Colors.white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
           child: Column(
@@ -116,7 +123,7 @@ class AdminModals {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.white24,
+                    color: const Color(0xFFCBD5E1),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -124,28 +131,28 @@ class AdminModals {
               const SizedBox(height: 16),
               const Row(
                 children: [
-                  Icon(Iconsax.clock, color: AppColors.darkSecondary, size: 22),
+                  Icon(Iconsax.clock, color: Color(0xFF2563EB), size: 22),
                   SizedBox(width: 8),
                   Text(
                     'Operations Audit Trail',
-                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: AppColors.adminLightTextPrimary, fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
               const SizedBox(height: 6),
               const Text(
                 'Chronological log of administrative actions, edits and broadcasts.',
-                style: TextStyle(color: Colors.white60, fontSize: 12),
+                style: TextStyle(color: AppColors.adminLightTextSecondary, fontSize: 12),
               ),
-              const Divider(height: 24, color: Colors.white12),
+              const Divider(height: 24, color: AppColors.adminLightBorder),
               Expanded(
                 child: logs.isEmpty
                     ? const Center(
-                        child: Text('No audit entries recorded yet.', style: TextStyle(color: Colors.white38)),
+                        child: Text('No audit entries recorded yet.', style: TextStyle(color: AppColors.adminLightTextMuted)),
                       )
                     : ListView.separated(
                         itemCount: logs.length,
-                        separatorBuilder: (_, __) => const Divider(color: Colors.white10),
+                        separatorBuilder: (_, __) => const Divider(color: AppColors.adminLightBorder),
                         itemBuilder: (context, index) {
                           final log = logs[index];
                           final time = DateTime.fromMillisecondsSinceEpoch(
@@ -156,28 +163,28 @@ class AdminModals {
                             leading: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: AppColors.darkPrimary.withValues(alpha: 0.15),
+                                color: const Color(0xFF2563EB).withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: const Icon(Iconsax.flash_1, color: AppColors.darkSecondary, size: 20),
+                              child: const Icon(Iconsax.flash_1, color: Color(0xFF2563EB), size: 20),
                             ),
                             title: Text(
                               log['description'] ?? 'Admin action',
-                              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                              style: const TextStyle(color: AppColors.adminLightTextPrimary, fontSize: 12, fontWeight: FontWeight.w600),
                             ),
                             subtitle: Text(
                               '${log['admin_email']} • ${time.hour}:${time.minute.toString().padLeft(2, '0')}:${time.second.toString().padLeft(2, '0')}',
-                              style: const TextStyle(color: Colors.white38, fontSize: 10),
+                              style: const TextStyle(color: AppColors.adminLightTextSecondary, fontSize: 10),
                             ),
                             trailing: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: Colors.white10,
+                                color: const Color(0xFFF1F5F9),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
                                 log['action_type'] ?? 'OP',
-                                style: const TextStyle(color: Colors.white70, fontSize: 9, fontWeight: FontWeight.bold),
+                                style: const TextStyle(color: AppColors.adminLightTextPrimary, fontSize: 9, fontWeight: FontWeight.bold),
                               ),
                             ),
                           );
@@ -206,24 +213,24 @@ class AdminModals {
         return StatefulBuilder(
           builder: (context, setModalState) {
             return AlertDialog(
-              backgroundColor: const Color(0xFF161B26),
+              backgroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              title: const Text('Fast Stock Restock', style: TextStyle(color: Colors.white, fontSize: 16)),
+              title: const Text('Fast Stock Restock', style: TextStyle(color: AppColors.adminLightTextPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     productName,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                    style: const TextStyle(color: AppColors.adminLightTextSecondary, fontSize: 12),
                   ),
                   const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       IconButton(
-                        style: IconButton.styleFrom(backgroundColor: Colors.white10),
-                        icon: const Icon(Iconsax.minus_square, color: Colors.white),
+                        style: IconButton.styleFrom(backgroundColor: const Color(0xFFF1F5F9)),
+                        icon: const Icon(Iconsax.minus_square, color: AppColors.adminLightTextPrimary),
                         onPressed: stock > 0
                             ? () => setModalState(() => stock--)
                             : null,
@@ -235,13 +242,13 @@ class AdminModals {
                           style: const TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.darkAccentGold,
+                            color: Color(0xFFD97706),
                           ),
                         ),
                       ),
                       IconButton(
-                        style: IconButton.styleFrom(backgroundColor: Colors.white10),
-                        icon: const Icon(Iconsax.add_square, color: Colors.white),
+                        style: IconButton.styleFrom(backgroundColor: const Color(0xFFF1F5F9)),
+                        icon: const Icon(Iconsax.add_square, color: AppColors.adminLightTextPrimary),
                         onPressed: () => setModalState(() => stock++),
                       ),
                     ],
@@ -251,11 +258,19 @@ class AdminModals {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: AppColors.adminLightBorder),
+                          foregroundColor: AppColors.adminLightTextPrimary,
+                        ),
                         onPressed: () => setModalState(() => stock += 5),
                         child: const Text('+5'),
                       ),
                       const SizedBox(width: 8),
                       OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: AppColors.adminLightBorder),
+                          foregroundColor: AppColors.adminLightTextPrimary,
+                        ),
                         onPressed: () => setModalState(() => stock += 10),
                         child: const Text('+10'),
                       ),
@@ -266,15 +281,15 @@ class AdminModals {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(),
-                  child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+                  child: const Text('Cancel', style: TextStyle(color: AppColors.adminLightTextSecondary)),
                 ),
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.darkPrimary),
+                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.comicRed),
                   onPressed: () {
                     Navigator.of(ctx).pop();
                     onStockUpdated(stock);
                   },
-                  child: const Text('Save Stock', style: TextStyle(color: Colors.white)),
+                  child: const Text('Save Stock', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ],
             );
@@ -303,7 +318,7 @@ class AdminModals {
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: const BoxDecoration(
-              color: Color(0xFF131722),
+              color: Colors.white,
               borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
             ),
             child: Column(
@@ -315,7 +330,7 @@ class AdminModals {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.white24,
+                      color: const Color(0xFFCBD5E1),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -323,11 +338,11 @@ class AdminModals {
                 const SizedBox(height: 16),
                 const Row(
                   children: [
-                    Icon(Iconsax.notification_bing, color: AppColors.darkSecondary, size: 24),
+                    Icon(Iconsax.notification_bing, color: Color(0xFF2563EB), size: 24),
                     SizedBox(width: 8),
                     Text(
                       'Broadcast Push Notification',
-                      style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: AppColors.adminLightTextPrimary, fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -347,22 +362,22 @@ class AdminModals {
                 const SizedBox(height: 12),
                 const Text(
                   'Target Audience Segment',
-                  style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+                  style: TextStyle(color: AppColors.adminLightTextSecondary, fontSize: 12, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 6),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1A1F2C),
+                    color: const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white12),
+                    border: Border.all(color: AppColors.adminLightBorder),
                   ),
                   child: DropdownButton<String>(
                     value: audience,
                     isExpanded: true,
-                    dropdownColor: const Color(0xFF1A1F2C),
+                    dropdownColor: Colors.white,
                     underline: const SizedBox(),
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    style: const TextStyle(color: AppColors.adminLightTextPrimary, fontSize: 13),
                     items: const [
                       DropdownMenuItem(value: 'All Fans (1,240 Registered)', child: Text('All Fans (1,240 Registered)')),
                       DropdownMenuItem(value: 'Anime & Manga Enthusiasts', child: Text('Anime & Manga Enthusiasts')),
@@ -380,7 +395,8 @@ class AdminModals {
                   icon: Iconsax.send_1,
                   height: 52,
                   fontSize: 13,
-                  backgroundColor: AppColors.darkPrimary,
+                  backgroundColor: AppColors.comicRed,
+                  textColor: Colors.white,
                   onPressed: () {
                     final t = titleController.text.trim();
                     final m = messageController.text.trim();
@@ -399,5 +415,3 @@ class AdminModals {
     );
   }
 }
-
-

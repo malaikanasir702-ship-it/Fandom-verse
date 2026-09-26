@@ -229,6 +229,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   route: '/admin/users-categories',
                   accentColor: const Color(0xFF2563EB),
                 ),
+                _buildModuleTile(
+                  icon: Iconsax.story,
+                  title: 'Hero Stories & Backstories',
+                  subtitle: 'Publish hero origins, life history & powers visible in fan stories',
+                  route: '/admin/stories',
+                  accentColor: const Color(0xFF8B5CF6),
+                ),
                 const SizedBox(height: 24),
 
                 // Recent Operations Audit Log Strip
@@ -316,6 +323,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   icon: Iconsax.add_square,
                   color: AppColors.success,
                   onTap: () => Navigator.of(context).pushNamed('/admin/product-edit'),
+                ),
+                const SizedBox(width: 8),
+                _buildQuickChip(
+                  label: '+ Hero Story',
+                  icon: Iconsax.story,
+                  color: const Color(0xFF8B5CF6),
+                  onTap: () => Navigator.of(context).pushNamed('/admin/story-edit'),
                 ),
                 const SizedBox(width: 8),
                 _buildQuickChip(

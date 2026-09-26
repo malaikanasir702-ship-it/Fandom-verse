@@ -7,6 +7,7 @@ import '../utils/password_hasher.dart';
 import 'database_tables.dart';
 import 'seed_data.dart';
 import 'seed_data_extended.dart';
+import 'seed_hero_stories.dart';
 
 class SqliteHelper {
   static final SqliteHelper instance = SqliteHelper._internal();
@@ -38,6 +39,10 @@ class SqliteHelper {
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
+
+    // Ensure hero_stories table exists (supports non-reinstalled/upgraded dev databases)
+    await _db!.execute(DatabaseTables.createHeroStoriesTable);
+    await _seedHeroStoriesIfEmpty(_db!);
 
     debugPrint('✅ [SqliteHelper] Database ready at: $fullPath');
   }
@@ -486,6 +491,58 @@ class SqliteHelper {
       'upcomingEvents': events,
       'storeProducts': products,
     };
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // HERO STORIES CRUD
+  // ─────────────────────────────────────────────────────────────────────────
+
+  Future<void> _seedHeroStoriesIfEmpty(Database db) async {
+    try {
+      final count = Sqflite.firstIntValue(
+        await db.rawQuery('SELECT COUNT(*) FROM ${DbConstants.tableHeroStories}'),
+      ) ?? 0;
+      if (count == 0) {
+        final batch = db.batch();
+        for (final story in SeedHeroStories.defaultStories) {
+          batch.insert(
+            DbConstants.tableHeroStories,
+            story, // already a Map<String, dynamic>
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        }
+        await batch.commit(noResult: true);
+        debugPrint('🦸 [SqliteHelper] Seeded ${SeedHeroStories.defaultStories.length} hero stories with rich backstories.');
+      }
+    } catch (e) {
+      debugPrint('[SqliteHelper] Error seeding hero stories: $e');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getHeroStories() async {
+    await initDatabase();
+    return _database.query(
+      DbConstants.tableHeroStories,
+      orderBy: 'created_at ASC',
+    );
+  }
+
+  Future<void> saveHeroStory(Map<String, dynamic> storyMap) async {
+    await initDatabase();
+    await _database.insert(
+      DbConstants.tableHeroStories,
+      storyMap,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> deleteHeroStory(String storyId) async {
+    await initDatabase();
+    await _database.delete(
+      DbConstants.tableHeroStories,
+      where: 'story_id = ?',
+      whereArgs: [storyId],
+    );
   }
 
   // ─────────────────────────────────────────────────────────────────────────

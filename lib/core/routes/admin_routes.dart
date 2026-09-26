@@ -20,6 +20,8 @@ import '../../features/admin/presentation/pages/admin_event_edit_page.dart';
 import '../../features/admin/presentation/pages/admin_products_page.dart';
 import '../../features/admin/presentation/pages/admin_product_edit_page.dart';
 import '../../features/admin/presentation/pages/admin_users_categories_page.dart';
+import '../../features/admin/presentation/pages/admin_stories_page.dart';
+import '../../features/admin/presentation/pages/admin_story_edit_page.dart';
 
 import '../di/service_locator.dart';
 import '../pages/access_denied_page.dart';
@@ -112,6 +114,13 @@ class AdminRoutes {
 
       case '/admin/users-categories':
         return guardAdminRoute(const AdminUsersCategoriesPage());
+
+      case '/admin/stories':
+        return guardAdminRoute(const AdminStoriesPage());
+
+      case '/admin/story-edit':
+        final storyArg = settings.arguments as Map<String, dynamic>?;
+        return guardAdminRoute(AdminStoryEditPage(existingStory: storyArg));
 
       default:
         return null;

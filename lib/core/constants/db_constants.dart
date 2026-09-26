@@ -18,6 +18,7 @@ class DbConstants {
   static const String tableStarProfiles = 'star_profiles';
   static const String tableSimulatedOrders = 'simulated_orders';
   static const String tableAuditLogs = 'admin_audit_logs';
+  static const String tableHeroStories = 'hero_stories';
 
   // Default Pre-configured Coupons
   static const Map<String, double> validCoupons = {

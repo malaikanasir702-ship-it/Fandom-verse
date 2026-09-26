@@ -24,6 +24,8 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     on<UpdateCategoryEvent>(_onUpdateCategory);
     on<DeleteCategoryEvent>(_onDeleteCategory);
     on<BroadcastNotificationEvent>(_onBroadcastNotification);
+    on<CreateOrUpdateHeroStoryEvent>(_onCreateOrUpdateHeroStory);
+    on<DeleteHeroStoryEvent>(_onDeleteHeroStory);
   }
 
   Future<void> _onLoadDashboard(
@@ -39,6 +41,7 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
       final products = await _repository.query(DbConstants.tableMerchandise);
       final users = await _repository.query(DbConstants.tableUsers);
       final categories = await _repository.query(DbConstants.tableCategories);
+      final heroStories = await _repository.query(DbConstants.tableHeroStories, orderBy: 'created_at ASC');
 
       emit(AdminStatsLoaded(
         metrics: metrics,
@@ -48,6 +51,7 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
         products: products,
         users: users,
         categories: categories,
+        heroStories: heroStories,
       ));
     } catch (e) {
       emit(AdminError('Failed to load admin dashboard: ${e.toString()}'));
@@ -309,6 +313,55 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
       add(const LoadAdminDashboardStatsEvent());
     } catch (e) {
       emit(AdminError('Broadcast alert failed: ${e.toString()}'));
+    }
+  }
+
+  Future<void> _onCreateOrUpdateHeroStory(
+    CreateOrUpdateHeroStoryEvent event,
+    Emitter<AdminState> emit,
+  ) async {
+    try {
+      final story = event.story;
+      if (event.isEdit) {
+        await _repository.update(
+          DbConstants.tableHeroStories,
+          'story_id',
+          story['story_id'],
+          story,
+        );
+        await _repository.logAdminAction(
+          actionType: 'UPDATE',
+          entityType: 'HeroStory',
+          description: 'Updated hero story for "${story['hero_name']}"',
+        );
+      } else {
+        await _repository.insert(DbConstants.tableHeroStories, story);
+        await _repository.logAdminAction(
+          actionType: 'CREATE',
+          entityType: 'HeroStory',
+          description: 'Published new hero story for "${story['hero_name']}"',
+        );
+      }
+      add(const LoadAdminDashboardStatsEvent());
+    } catch (e) {
+      emit(AdminError('Failed to save hero story: ${e.toString()}'));
+    }
+  }
+
+  Future<void> _onDeleteHeroStory(
+    DeleteHeroStoryEvent event,
+    Emitter<AdminState> emit,
+  ) async {
+    try {
+      await _repository.delete(DbConstants.tableHeroStories, 'story_id', event.storyId);
+      await _repository.logAdminAction(
+        actionType: 'DELETE',
+        entityType: 'HeroStory',
+        description: 'Deleted hero story ${event.storyId}',
+      );
+      add(const LoadAdminDashboardStatsEvent());
+    } catch (e) {
+      emit(AdminError('Failed to delete hero story: ${e.toString()}'));
     }
   }
 }

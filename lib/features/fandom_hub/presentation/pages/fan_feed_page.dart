@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/comic_ui_widgets.dart';
 import '../../../../core/widgets/skewed_button.dart';
+import '../../../../core/database/sqlite_helper.dart';
 import '../bloc/fandom_hub_bloc.dart';
 import '../bloc/fandom_hub_state.dart';
 import '../../domain/entities/fandom_post.dart';
@@ -41,21 +42,28 @@ class _FanFeedContent extends StatefulWidget {
 }
 
 class _FanFeedContentState extends State<_FanFeedContent> {
-  // Local copy of stories so we can track seen state reactively
-  late final List<HeroStory> _stories;
+  List<HeroStory> _stories = [];
+  bool _storiesLoaded = false;
 
   @override
   void initState() {
     super.initState();
-    // Deep-copy so seen flag mutation triggers rebuild correctly
-    _stories = kHeroStories.map((s) => HeroStory(
-      heroName: s.heroName,
-      category: s.category,
-      avatarUrl: s.avatarUrl,
-      ringColor: s.ringColor,
-      slides: s.slides,
-      seen: s.seen,
-    )).toList();
+    _loadHeroStories();
+  }
+
+  Future<void> _loadHeroStories() async {
+    try {
+      final rows = await SqliteHelper.instance.getHeroStories();
+      final stories = rows.map((r) => HeroStory.fromMap(r)).toList();
+      if (mounted) {
+        setState(() {
+          _stories = stories;
+          _storiesLoaded = true;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _storiesLoaded = true);
+    }
   }
 
   void _openStory(int index) {
@@ -216,17 +224,28 @@ class _FanFeedContentState extends State<_FanFeedContent> {
               const SizedBox(height: 8),
               SizedBox(
                 height: 112,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  itemCount: _stories.length,
-                  itemBuilder: (context, index) {
-                    return HeroStoryRing(
-                      story: _stories[index],
-                      onTap: () => _openStory(index),
-                    );
-                  },
-                ),
+                child: !_storiesLoaded
+                    ? const Center(
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.comicYellow,
+                          ),
+                        ),
+                      )
+                    : ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        itemCount: _stories.length,
+                        itemBuilder: (context, index) {
+                          return HeroStoryRing(
+                            story: _stories[index],
+                            onTap: () => _openStory(index),
+                          );
+                        },
+                      ),
               ),
 
               const SizedBox(height: 16),

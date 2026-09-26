@@ -3,7 +3,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/custom_button.dart';
+import '../../../../core/widgets/skewed_button.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../bloc/cart_bloc.dart';
 import '../bloc/cart_event.dart';
@@ -135,9 +135,10 @@ class _CartPageState extends State<CartPage> {
                 ),
               ),
               const SizedBox(height: 20),
-              CustomButton(
+              SkewedButton(
                 text: 'Awesome, Continue',
-                backgroundColor: isDark ? AppColors.darkPrimary : AppColors.lightPrimary,
+                height: 52,
+                fontSize: 14,
                 onPressed: () => Navigator.of(ctx).pop(),
               ),
             ],
@@ -233,10 +234,11 @@ class _CartPageState extends State<CartPage> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    CustomButton(
+                    SkewedButton(
                       text: 'Browse Merch Store',
                       icon: Iconsax.shop,
-                      backgroundColor: isDark ? AppColors.darkPrimary : AppColors.lightPrimary,
+                      height: 52,
+                      fontSize: 13,
                       onPressed: () => Navigator.of(context).pushReplacementNamed('/store'),
                     ),
                   ],
@@ -372,10 +374,11 @@ class _CartPageState extends State<CartPage> {
                       const SizedBox(height: 14),
 
                       // Proceed to Checkout CTA
-                      CustomButton(
+                      SkewedButton(
                         text: 'Proceed to Checkout',
                         icon: Iconsax.lock,
-                        backgroundColor: isDark ? AppColors.darkPrimary : AppColors.lightPrimary,
+                        height: 52,
+                        fontSize: 13,
                         onPressed: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(

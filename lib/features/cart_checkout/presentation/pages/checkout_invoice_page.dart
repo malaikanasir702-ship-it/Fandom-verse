@@ -3,7 +3,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/custom_button.dart';
+import '../../../../core/widgets/skewed_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../bloc/cart_bloc.dart';
@@ -303,12 +303,12 @@ class _CheckoutInvoicePageState extends State<CheckoutInvoicePage> {
               BlocBuilder<CartBloc, CartState>(
                 builder: (context, state) {
                   final isLoading = state is CartLoading;
-                  return CustomButton(
-                    text: 'Confirm & Generate Invoice Bill',
+                  return SkewedButton(
+                    text: isLoading ? 'Processing...' : 'Confirm & Generate Invoice Bill',
                     icon: Iconsax.receipt_1,
-                    backgroundColor: isDark ? AppColors.darkPrimary : AppColors.lightPrimary,
-                    isLoading: isLoading,
-                    onPressed: () {
+                    height: 52,
+                    fontSize: 12,
+                    onPressed: isLoading ? null : () {
                       final fullAddress =
                           '${_nameController.text.trim()}, ${_addressController.text.trim()}, ${_cityController.text.trim()} (Phone: ${_phoneController.text.trim()})';
 

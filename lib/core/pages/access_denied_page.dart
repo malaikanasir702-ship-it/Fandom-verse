@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
+import '../widgets/skewed_button.dart';
 
 class AccessDeniedPage extends StatelessWidget {
   const AccessDeniedPage({super.key});
@@ -63,20 +64,14 @@ class AccessDeniedPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 32),
-              ElevatedButton.icon(
+              SkewedButton(
+                text: 'Return to Fan Hub',
+                icon: Iconsax.home_2,
+                height: 52,
+                fontSize: 14,
                 onPressed: () {
                   Navigator.of(context).pushNamedAndRemoveUntil('/fan-home', (route) => false);
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.comicRed,
-                  foregroundColor: AppColors.comicWhite,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                icon: const Icon(Iconsax.home_2, color: AppColors.comicWhite),
-                label: const Text('Return to Fan Hub', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
           ),

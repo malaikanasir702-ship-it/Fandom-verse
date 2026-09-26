@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/custom_button.dart';
+import '../../../../core/widgets/skewed_button.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
@@ -134,9 +134,11 @@ class _BadgeSetupPageState extends State<BadgeSetupPage> {
 
               const SizedBox(height: 16),
 
-              CustomButton(
+              SkewedButton(
                 text: 'Enter Fandom Universe',
                 icon: Iconsax.star_1,
+                height: 52,
+                fontSize: 14,
                 onPressed: () {
                   context.read<AuthBloc>().add(SelectStarterBadgeEvent(_selectedBadge));
                   Navigator.of(context).pushReplacementNamed('/fan-home');

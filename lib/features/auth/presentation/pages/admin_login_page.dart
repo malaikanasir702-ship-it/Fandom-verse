@@ -3,7 +3,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/custom_button.dart';
+import '../../../../core/widgets/skewed_button.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -182,12 +182,13 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
 
                   const SizedBox(height: 32),
 
-                  CustomButton(
-                    text: 'Authenticate & Open Console',
+                  SkewedButton(
+                    text: isLoading ? 'Authenticating...' : 'Authenticate & Open Console',
                     icon: Iconsax.key_square,
+                    height: 52,
+                    fontSize: 13,
                     backgroundColor: AppColors.darkPrimary,
-                    isLoading: isLoading,
-                    onPressed: () {
+                    onPressed: isLoading ? null : () {
                       context.read<AuthBloc>().add(
                             AdminLoginSubmittedEvent(
                               email: _emailController.text,

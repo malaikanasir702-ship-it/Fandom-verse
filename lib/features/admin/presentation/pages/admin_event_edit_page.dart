@@ -2,7 +2,7 @@
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/custom_button.dart';
+import '../../../../core/widgets/skewed_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../bloc/admin_bloc.dart';
 import '../bloc/admin_event.dart';
@@ -153,9 +153,11 @@ class _AdminEventEditPageState extends State<AdminEventEditPage> {
             ),
             const SizedBox(height: 24),
 
-            CustomButton(
+            SkewedButton(
               text: isEdit ? 'Update Convention' : 'Publish to Global Event Radar',
               icon: Iconsax.radar,
+              height: 52,
+              fontSize: 12,
               backgroundColor: AppColors.darkAccentGold,
               onPressed: () {
                 final title = _titleController.text.trim();

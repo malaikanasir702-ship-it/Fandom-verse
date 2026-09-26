@@ -22,6 +22,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<SelectStarterBadgeEvent>(_onSelectStarterBadge);
     on<UpdateUserProfileEvent>(_onUpdateUserProfile);
     on<LogoutEvent>(_onLogout);
+    on<GoogleSignInEvent>(_onGoogleSignIn);
   }
 
   UserEntity? get currentUser => _currentUser;
@@ -279,6 +280,36 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AdminAuthenticated(user));
     } else {
       emit(FanAuthenticated(user));
+    }
+  }
+
+  Future<void> _onGoogleSignIn(
+    GoogleSignInEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(const AuthLoading());
+    try {
+      final userData = await _authService.signInWithGoogle();
+      _currentUser = UserEntity.fromMap(userData);
+
+      if (_currentUser!.status != 'active') {
+        await _authService.signOut();
+        _currentUser = null;
+        emit(const AuthFailure('Your account has been suspended by an administrator.'));
+        return;
+      }
+
+      if (_currentUser!.isAdmin) {
+        emit(AdminAuthenticated(_currentUser!));
+      } else {
+        emit(FanAuthenticated(_currentUser!));
+      }
+    } catch (e) {
+      debugPrint('[AuthBloc] Google Sign-In error: $e');
+      final msg = e.toString().contains('cancelled')
+          ? 'Google Sign-In was cancelled.'
+          : 'Google Sign-In failed. Please try again.';
+      emit(AuthFailure(msg));
     }
   }
 

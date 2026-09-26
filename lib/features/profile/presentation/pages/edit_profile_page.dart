@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/custom_button.dart';
+import '../../../../core/widgets/skewed_button.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/profile_bloc.dart';
 import '../bloc/profile_event.dart';
@@ -119,8 +119,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
             _buildInputField('Bio', _bioController, maxLines: 4),
             const SizedBox(height: 32),
 
-            CustomButton(
+            SkewedButton(
               text: _isSaving ? 'Saving...' : 'Save Changes',
+              height: 52,
+              fontSize: 14,
+              icon: Iconsax.tick_circle,
               onPressed: _isSaving ? null : _saveProfile,
             ),
           ],

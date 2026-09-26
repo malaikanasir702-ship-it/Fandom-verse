@@ -3,6 +3,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
+import '../../../../core/widgets/skewed_button.dart';
 import '../../domain/entities/star_profile.dart';
 
 class StarDetailPage extends StatefulWidget {
@@ -98,11 +99,12 @@ class _StarDetailPageState extends State<StarDetailPage> {
                           ],
                         ),
                       ),
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _isFollowing ? AppColors.darkSurface : AppColors.darkPrimary,
-                          foregroundColor: Colors.white,
-                        ),
+                      SkewedButton(
+                        text: _isFollowing ? 'Following' : 'Follow',
+                        icon: _isFollowing ? Iconsax.tick_square : Iconsax.profile_add,
+                        height: 44,
+                        fontSize: 12,
+                        backgroundColor: _isFollowing ? AppColors.darkSurface : AppColors.darkPrimary,
                         onPressed: () {
                           setState(() {
                             _isFollowing = !_isFollowing;
@@ -116,8 +118,6 @@ class _StarDetailPageState extends State<StarDetailPage> {
                             ),
                           );
                         },
-                        icon: Icon(_isFollowing ? Iconsax.tick_square : Iconsax.profile_add, size: 16),
-                        label: Text(_isFollowing ? 'Following' : 'Follow'),
                       ),
                     ],
                   ),

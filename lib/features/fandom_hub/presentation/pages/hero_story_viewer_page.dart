@@ -144,8 +144,27 @@ class _StoryPageContent extends StatelessWidget {
     required this.onDismiss,
   });
 
+  void _showBackstorySheet(BuildContext context) {
+    // Pause the story
+    storyController.pause();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _HeroBackstorySheet(hero: hero),
+    ).whenComplete(() {
+      // Resume story when sheet is closed
+      storyController.play();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final hasBackstory = hero.originBackstory.isNotEmpty ||
+        hero.lifeHistory.isNotEmpty ||
+        hero.powersAndAbilities.isNotEmpty;
+
     return Stack(
       children: [
         // ── StoryView ───────────────────────────────────────────────────────
@@ -251,7 +270,358 @@ class _StoryPageContent extends StatelessWidget {
             child: const SizedBox.expand(),
           ),
         ),
+
+        // ── "Read Origin & Backstory" button ────────────────────────────────
+        if (hasBackstory)
+          Positioned(
+            bottom: 32,
+            left: 16,
+            right: 16,
+            child: GestureDetector(
+              onTap: () => _showBackstorySheet(context),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.62),
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(color: hero.ringColor, width: 1.5),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '📖',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Read Full Origin & Backstory',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        shadows: [
+                          Shadow(color: hero.ringColor, blurRadius: 8),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Icon(Icons.arrow_forward_ios_rounded,
+                        color: hero.ringColor, size: 14),
+                  ],
+                ),
+              ),
+            ),
+          ),
       ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Hero Backstory Bottom Sheet
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _HeroBackstorySheet extends StatefulWidget {
+  final HeroStory hero;
+
+  const _HeroBackstorySheet({required this.hero});
+
+  @override
+  State<_HeroBackstorySheet> createState() => _HeroBackstorySheetState();
+}
+
+class _HeroBackstorySheetState extends State<_HeroBackstorySheet> {
+  bool _originExpanded = true;
+  bool _historyExpanded = false;
+  bool _powersExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final hero = widget.hero;
+
+    return DraggableScrollableSheet(
+      initialChildSize: 0.75,
+      minChildSize: 0.45,
+      maxChildSize: 0.97,
+      builder: (context, scrollController) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFF12121A),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            children: [
+              // Drag handle
+              Center(
+                child: Container(
+                  margin: const EdgeInsets.only(top: 12, bottom: 4),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Hero Avatar + Identity row
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: hero.ringColor, width: 2.5),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: hero.ringColor.withValues(alpha: 0.4),
+                                  blurRadius: 12,
+                                  spreadRadius: 2,
+                                ),
+                              ],
+                            ),
+                            child: ClipOval(
+                              child: Image.network(
+                                hero.avatarUrl,
+                                width: 56,
+                                height: 56,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  width: 56,
+                                  height: 56,
+                                  color: hero.ringColor,
+                                  child: Center(
+                                    child: Text(
+                                      hero.heroName[0],
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  hero.heroName,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: hero.ringColor.withValues(alpha: 0.18),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(color: hero.ringColor.withValues(alpha: 0.5)),
+                                  ),
+                                  child: Text(
+                                    hero.category,
+                                    style: TextStyle(
+                                      color: hero.ringColor,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                if (hero.tagline.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '"${hero.tagline}"',
+                                    style: TextStyle(
+                                      color: Colors.white.withValues(alpha: 0.6),
+                                      fontSize: 12,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      if (hero.firstAppearance.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        _InfoChip(
+                          label: '🎬 First Appearance',
+                          value: hero.firstAppearance,
+                          accentColor: hero.ringColor,
+                        ),
+                      ],
+
+                      const SizedBox(height: 20),
+
+                      // Origin Backstory
+                      if (hero.originBackstory.isNotEmpty)
+                        _ExpandableSection(
+                          icon: '📖',
+                          title: 'Origin Backstory',
+                          accentColor: hero.ringColor,
+                          isExpanded: _originExpanded,
+                          onToggle: () => setState(() => _originExpanded = !_originExpanded),
+                          content: hero.originBackstory,
+                        ),
+
+                      if (hero.originBackstory.isNotEmpty) const SizedBox(height: 14),
+
+                      // Life History
+                      if (hero.lifeHistory.isNotEmpty)
+                        _ExpandableSection(
+                          icon: '📜',
+                          title: 'Whole Life History & Lore',
+                          accentColor: hero.ringColor,
+                          isExpanded: _historyExpanded,
+                          onToggle: () => setState(() => _historyExpanded = !_historyExpanded),
+                          content: hero.lifeHistory,
+                        ),
+
+                      if (hero.lifeHistory.isNotEmpty) const SizedBox(height: 14),
+
+                      // Powers & Abilities
+                      if (hero.powersAndAbilities.isNotEmpty)
+                        _ExpandableSection(
+                          icon: '⚡',
+                          title: 'Powers, Abilities & Equipment',
+                          accentColor: hero.ringColor,
+                          isExpanded: _powersExpanded,
+                          onToggle: () => setState(() => _powersExpanded = !_powersExpanded),
+                          content: hero.powersAndAbilities,
+                        ),
+
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color accentColor;
+
+  const _InfoChip({required this.label, required this.value, required this.accentColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: TextStyle(color: accentColor, fontSize: 12, fontWeight: FontWeight.bold)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(value, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ExpandableSection extends StatelessWidget {
+  final String icon;
+  final String title;
+  final Color accentColor;
+  final bool isExpanded;
+  final VoidCallback onToggle;
+  final String content;
+
+  const _ExpandableSection({
+    required this.icon,
+    required this.title,
+    required this.accentColor,
+    required this.isExpanded,
+    required this.onToggle,
+    required this.content,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isExpanded ? accentColor.withValues(alpha: 0.5) : Colors.white12,
+        ),
+      ),
+      child: Column(
+        children: [
+          GestureDetector(
+            onTap: onToggle,
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  Text(icon, style: const TextStyle(fontSize: 16)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                    color: accentColor,
+                    size: 22,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (isExpanded)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Text(
+                content,
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 13.5,
+                  height: 1.7,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

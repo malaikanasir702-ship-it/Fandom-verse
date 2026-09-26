@@ -23,6 +23,7 @@ class AdminStatsLoaded extends AdminState {
   final List<Map<String, dynamic>> products;
   final List<Map<String, dynamic>> users;
   final List<Map<String, dynamic>> categories;
+  final List<Map<String, dynamic>> heroStories;
   final String? successMessage;
 
   const AdminStatsLoaded({
@@ -33,6 +34,7 @@ class AdminStatsLoaded extends AdminState {
     required this.products,
     required this.users,
     required this.categories,
+    this.heroStories = const [],
     this.successMessage,
   });
 
@@ -45,6 +47,7 @@ class AdminStatsLoaded extends AdminState {
         products,
         users,
         categories,
+        heroStories,
         successMessage,
       ];
 }

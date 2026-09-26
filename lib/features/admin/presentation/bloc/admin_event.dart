@@ -111,3 +111,22 @@ class BroadcastNotificationEvent extends AdminEvent {
   @override
   List<Object?> get props => [title, message, audience];
 }
+
+class CreateOrUpdateHeroStoryEvent extends AdminEvent {
+  final Map<String, dynamic> story;
+  final bool isEdit;
+
+  const CreateOrUpdateHeroStoryEvent(this.story, {this.isEdit = false});
+
+  @override
+  List<Object?> get props => [story, isEdit];
+}
+
+class DeleteHeroStoryEvent extends AdminEvent {
+  final String storyId;
+
+  const DeleteHeroStoryEvent(this.storyId);
+
+  @override
+  List<Object?> get props => [storyId];
+}

@@ -183,6 +183,23 @@ class DatabaseTables {
     );
   ''';
 
+  static const String createHeroStoriesTable = '''
+    CREATE TABLE IF NOT EXISTS ${DbConstants.tableHeroStories} (
+      story_id         TEXT PRIMARY KEY,
+      hero_name        TEXT NOT NULL,
+      category         TEXT NOT NULL,
+      avatar_url       TEXT NOT NULL,
+      ring_color_hex   TEXT NOT NULL DEFAULT '#E51924',
+      tagline          TEXT,
+      origin_backstory TEXT,
+      life_history     TEXT,
+      powers_abilities TEXT,
+      first_appearance TEXT,
+      slides_json      TEXT NOT NULL,
+      created_at       INTEGER NOT NULL
+    );
+  ''';
+
   static const List<String> allCreateStatements = [
     createUsersTable,
     createCategoriesTable,
@@ -197,5 +214,6 @@ class DatabaseTables {
     createStarProfilesTable,
     createSimulatedOrdersTable,
     createAuditLogsTable,
+    createHeroStoriesTable,
   ];
 }

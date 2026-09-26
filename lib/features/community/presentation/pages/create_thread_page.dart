@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/custom_button.dart';
+import '../../../../core/widgets/skewed_button.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../bloc/community_bloc.dart';
 import '../bloc/community_event.dart';
@@ -176,8 +176,11 @@ class _CreateThreadPageState extends State<CreateThreadPage> {
               const SizedBox(height: 30),
 
               // Publish Button
-              CustomButton(
+              SkewedButton(
                 text: 'Publish Discussion',
+                icon: Iconsax.send_1,
+                height: 52,
+                fontSize: 14,
                 onPressed: _submit,
               ),
             ],

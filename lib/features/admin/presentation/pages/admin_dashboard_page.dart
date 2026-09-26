@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/firestore_seeder.dart';
+import '../../../../core/widgets/skewed_button.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
@@ -522,14 +523,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             onPressed: () => Navigator.of(dialogCtx).pop(),
             child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
           ),
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.darkSecondary,
-              foregroundColor: Colors.black,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            icon: const Icon(Iconsax.send_2, size: 16),
-            label: const Text('Seed Now', style: TextStyle(fontWeight: FontWeight.bold)),
+          SkewedButton(
+            text: 'Seed Now',
+            icon: Iconsax.send_2,
+            height: 44,
+            fontSize: 12,
+            backgroundColor: AppColors.darkSecondary,
+            textColor: Colors.black,
             onPressed: () async {
               Navigator.of(dialogCtx).pop();
               await _runSeeding(ctx);

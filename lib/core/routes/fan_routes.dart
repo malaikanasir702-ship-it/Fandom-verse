@@ -46,6 +46,8 @@ import '../../features/profile/presentation/pages/edit_profile_page.dart';
 import '../../features/profile/presentation/pages/settings_page.dart';
 import '../../features/profile/presentation/pages/notifications_page.dart';
 import '../../features/profile/presentation/pages/badges_achievements_page.dart';
+import '../../core/pages/about_us_page.dart';
+import '../../core/pages/contact_us_page.dart';
 
 class FanRoutes {
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
@@ -150,6 +152,12 @@ class FanRoutes {
 
       case '/badges':
         return MaterialPageRoute(builder: (_) => const BadgesAchievementsPage());
+
+      case '/about-us':
+        return MaterialPageRoute(builder: (_) => const AboutUsPage());
+
+      case '/contact-us':
+        return MaterialPageRoute(builder: (_) => const ContactUsPage());
 
       default:
         return null;

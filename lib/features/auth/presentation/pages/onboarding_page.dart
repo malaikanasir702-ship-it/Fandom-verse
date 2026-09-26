@@ -2,7 +2,7 @@
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/custom_button.dart';
+import '../../../../core/widgets/skewed_button.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -168,19 +168,25 @@ class _OnboardingPageState extends State<OnboardingPage> {
               const SizedBox(height: 32),
 
               // Bottom Button
-              CustomButton(
-                text: _currentIndex == _slides.length - 1 ? 'Enter Fandom Verse' : 'Continue',
-                icon: Iconsax.arrow_right,
-                onPressed: () {
-                  if (_currentIndex < _slides.length - 1) {
-                    _pageController.nextPage(
-                      duration: const Duration(milliseconds: 350),
-                      curve: Curves.easeInOut,
-                    );
-                  } else {
-                    Navigator.of(context).pushReplacementNamed('/login');
-                  }
-                },
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: SkewedButton(
+                  text: _currentIndex == _slides.length - 1 ? 'Enter Fandom Verse' : 'Continue',
+                  icon: Iconsax.arrow_right,
+                  height: 52,
+                  fontSize: 14,
+                  onPressed: () {
+                    if (_currentIndex < _slides.length - 1) {
+                      _pageController.nextPage(
+                        duration: const Duration(milliseconds: 350),
+                        curve: Curves.easeInOut,
+                      );
+                    } else {
+                      Navigator.of(context).pushReplacementNamed('/login');
+                    }
+                  },
+                ),
               ),
               const SizedBox(height: 12),
             ],

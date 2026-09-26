@@ -3,7 +3,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/custom_button.dart';
+import '../../../../core/widgets/skewed_button.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -222,10 +222,12 @@ class _RegisterPageState extends State<RegisterPage> {
 
                   const SizedBox(height: 24),
 
-                  CustomButton(
+                  SkewedButton(
                     text: 'Continue to Fandom Selection',
-                    isLoading: isLoading,
-                    onPressed: () {
+                    icon: Iconsax.arrow_right,
+                    height: 52,
+                    fontSize: 13,
+                    onPressed: isLoading ? null : () {
                       if (!_agreeTerms) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(

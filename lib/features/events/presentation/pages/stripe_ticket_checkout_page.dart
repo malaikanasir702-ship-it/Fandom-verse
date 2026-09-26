@@ -3,6 +3,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../domain/entities/event_entity.dart';
+import '../../../../core/widgets/skewed_button.dart';
 
 class StripeTicketCheckoutPage extends StatefulWidget {
   final EventEntity event;
@@ -532,47 +533,15 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
             const SizedBox(height: 24),
 
             // Pay Button
-            SizedBox(
-              width: double.infinity,
+            SkewedButton(
+              text: _isProcessing
+                  ? 'PROCESSING PAYMENT...'
+                  : 'PAY \$${_total.toStringAsFixed(2)} VIA STRIPE',
+              icon: _isProcessing ? null : Iconsax.lock,
               height: 54,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.comicRed,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                ),
-                onPressed: _isProcessing ? null : _processStripePayment,
-                child: _isProcessing
-                    ? const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                          ),
-                          SizedBox(width: 12),
-                          Text('PROCESSING PAYMENT...', style: TextStyle(fontWeight: FontWeight.w900)),
-                        ],
-                      )
-                    : Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Iconsax.lock, size: 18),
-                          const SizedBox(width: 8),
-                          Text(
-                            'PAY \$${_total.toStringAsFixed(2)} VIA STRIPE',
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w900,
-                              fontStyle: FontStyle.italic,
-                              letterSpacing: 1,
-                            ),
-                          ),
-                        ],
-                      ),
-              ),
+              fontSize: 14,
+              backgroundColor: AppColors.comicRed,
+              onPressed: _isProcessing ? null : _processStripePayment,
             ),
             const SizedBox(height: 40),
           ],

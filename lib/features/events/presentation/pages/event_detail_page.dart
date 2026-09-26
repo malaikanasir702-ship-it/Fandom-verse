@@ -6,7 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/custom_button.dart';
+import '../../../../core/widgets/skewed_button.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../../domain/entities/event_entity.dart';
 import '../bloc/event_bloc.dart';
@@ -325,30 +325,34 @@ class _EventDetailPageState extends State<EventDetailPage> {
 
                   // ─── Action Buttons ───
                   const SizedBox(height: 24),
-                  CustomButton(
+                  SkewedButton(
                     text: _rsvped ? 'Cancel RSVP' : 'RSVP for this Event',
+                    height: 52,
+                    fontSize: 13,
+                    backgroundColor: _rsvped ? AppColors.error : AppColors.comicRed,
                     onPressed: _showRsvpConfirmation,
-                    backgroundColor: _rsvped ? AppColors.error : null,
                   ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(
-                        child: CustomButton(
+                        child: SkewedButton(
                           text: 'Directions',
-                          isOutlined: true,
                           icon: Iconsax.direct_right,
+                          height: 48,
+                          fontSize: 12,
+                          backgroundColor: AppColors.comicGray,
                           onPressed: _showDirectionsSheet,
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: CustomButton(
+                        child: SkewedButton(
                           text: 'Buy Tickets',
-                          isOutlined: false,
                           icon: Iconsax.ticket,
+                          height: 48,
+                          fontSize: 12,
                           backgroundColor: AppColors.comicRed,
-                          textColor: Colors.white,
                           onPressed: () {
                             Navigator.of(context).pushNamed(
                               '/stripe-ticket-checkout',

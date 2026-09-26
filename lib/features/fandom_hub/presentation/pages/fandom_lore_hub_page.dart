@@ -4,6 +4,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
+import '../../../../core/widgets/skewed_button.dart';
 import '../bloc/fandom_hub_bloc.dart';
 import '../bloc/fandom_hub_state.dart';
 import '../bloc/fandom_hub_event.dart';
@@ -546,7 +547,11 @@ class _DeepDiveTabState extends State<_DeepDiveTab> {
             ),
           ),
           const SizedBox(height: 14),
-          ElevatedButton(
+          SkewedButton(
+            text: _currentQ < _triviaList.length - 1 ? 'Next Question' : 'Restart Trivia',
+            icon: Iconsax.arrow_right_3,
+            height: 48,
+            fontSize: 13,
             onPressed: () {
               setState(() {
                 _answered = false;
@@ -554,14 +559,6 @@ class _DeepDiveTabState extends State<_DeepDiveTab> {
                 _currentQ = (_currentQ + 1) % _triviaList.length;
               });
             },
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(_currentQ < _triviaList.length - 1 ? 'Next Question' : 'Restart Trivia'),
-                const SizedBox(width: 6),
-                const Icon(Iconsax.arrow_right_3, size: 16),
-              ],
-            ),
           ),
         ],
       ],

@@ -2,7 +2,7 @@
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/custom_button.dart';
+import '../../../../core/widgets/skewed_button.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../../domain/entities/order_invoice_entity.dart';
 import '../../../../core/services/notification_service.dart';
@@ -267,13 +267,12 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Iconsax.document_download, size: 18),
-                      label: const Text('Export PDF'),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      ),
+                    child: SkewedButton(
+                      text: 'Export PDF',
+                      icon: Iconsax.document_download,
+                      height: 52,
+                      fontSize: 12,
+                      backgroundColor: AppColors.comicGray,
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
@@ -286,10 +285,11 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: CustomButton(
+                    child: SkewedButton(
                       text: 'Back to Store',
                       icon: Iconsax.shop,
-                      backgroundColor: isDark ? AppColors.darkPrimary : AppColors.lightPrimary,
+                      height: 52,
+                      fontSize: 12,
                       onPressed: () {
                         Navigator.of(context).pushReplacementNamed('/store');
                       },

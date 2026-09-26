@@ -3,7 +3,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/custom_button.dart';
+import '../../../../core/widgets/skewed_button.dart';
 import '../../domain/entities/product_entity.dart';
 import '../../../cart_checkout/presentation/bloc/cart_bloc.dart';
 import '../../../cart_checkout/presentation/bloc/cart_event.dart';
@@ -436,10 +436,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
 
                   // Add to Cart Button
                   Expanded(
-                    child: CustomButton(
+                    child: SkewedButton(
                       text: 'Add to Cart • \$${(product.price * _quantity).toStringAsFixed(2)}',
                       icon: Iconsax.shopping_cart,
-                      backgroundColor: isDark ? AppColors.darkPrimary : AppColors.lightPrimary,
+                      height: 52,
+                      fontSize: 12,
                       onPressed: () {
                         context.read<CartBloc>().add(
                               AddToCartEvent(

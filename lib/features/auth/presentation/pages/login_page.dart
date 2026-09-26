@@ -5,12 +5,11 @@ import '../../../../core/services/firebase_auth_service.dart';
 import '../../../../core/di/service_locator.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/custom_button.dart';
+import '../../../../core/widgets/skewed_button.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
-
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -84,10 +83,11 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                CustomButton(
-                  text: 'Send Reset Link',
-                  isLoading: _isResettingPassword,
-                  onPressed: () async {
+                SkewedButton(
+                  text: _isResettingPassword ? 'Sending...' : 'Send Reset Link',
+                  height: 52,
+                  fontSize: 14,
+                  onPressed: _isResettingPassword ? null : () async {
                     final email = resetEmailController.text.trim();
                     if (email.isEmpty) return;
                     setModalState(() => _isResettingPassword = true);
@@ -263,10 +263,11 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 28),
 
                   // Sign In Button
-                  CustomButton(
+                  SkewedButton(
                     text: 'Sign In',
-                    isLoading: isLoading,
-                    onPressed: () {
+                    height: 52,
+                    fontSize: 14,
+                    onPressed: isLoading ? null : () {
                       context.read<AuthBloc>().add(
                             FanLoginSubmittedEvent(
                               email: _emailController.text,
@@ -297,6 +298,50 @@ class _LoginPageState extends State<LoginPage> {
                   ),
 
                   const SizedBox(height: 20),
+
+                  // Google Sign-In Button
+                  GestureDetector(
+                    onTap: isLoading
+                        ? null
+                        : () => context.read<AuthBloc>().add(const GoogleSignInEvent()),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.darkSurface : Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: isDark ? AppColors.darkBorder : AppColors.comicBorderColor,
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.06),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Google "G" logo using coloured text
+                          const _GoogleLogo(),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Continue with Google',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                              color: isDark ? Colors.white : AppColors.comicBlack,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
 
                   // Guest Mode Button
                   GlassContainer(
@@ -348,5 +393,24 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
+/// Renders the colourful Google "G" logo using RichText
+class _GoogleLogo extends StatelessWidget {
+  const _GoogleLogo();
 
-
+  @override
+  Widget build(BuildContext context) {
+    return RichText(
+      text: const TextSpan(
+        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+        children: [
+          TextSpan(text: 'G', style: TextStyle(color: Color(0xFF4285F4))),
+          TextSpan(text: 'o', style: TextStyle(color: Color(0xFFEA4335))),
+          TextSpan(text: 'o', style: TextStyle(color: Color(0xFFFBBC05))),
+          TextSpan(text: 'g', style: TextStyle(color: Color(0xFF4285F4))),
+          TextSpan(text: 'l', style: TextStyle(color: Color(0xFF34A853))),
+          TextSpan(text: 'e', style: TextStyle(color: Color(0xFFEA4335))),
+        ],
+      ),
+    );
+  }
+}

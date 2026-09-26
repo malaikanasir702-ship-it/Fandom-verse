@@ -4,6 +4,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/comic_ui_widgets.dart';
+import '../../../../core/widgets/skewed_button.dart';
 import '../bloc/fandom_hub_bloc.dart';
 import '../bloc/fandom_hub_state.dart';
 import '../../domain/entities/fandom_post.dart';
@@ -372,13 +373,11 @@ class _FanFeedContentState extends State<_FanFeedContent> {
             onPressed: () => Navigator.of(ctx).pop(),
             child: const Text('CANCEL', style: TextStyle(color: AppColors.comicGray, fontWeight: FontWeight.bold)),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.comicRed,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
+          SkewedButton(
+            text: 'ANSWER: B',
+            height: 44,
+            fontSize: 12,
+            backgroundColor: AppColors.comicRed,
             onPressed: () {
               Navigator.of(ctx).pop();
               ScaffoldMessenger.of(context).showSnackBar(
@@ -389,7 +388,6 @@ class _FanFeedContentState extends State<_FanFeedContent> {
                 ),
               );
             },
-            child: const Text('ANSWER: B', style: TextStyle(fontWeight: FontWeight.w900)),
           ),
         ],
       ),

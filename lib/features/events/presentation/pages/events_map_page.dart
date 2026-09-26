@@ -6,6 +6,7 @@ import 'package:maplibre_gl/maplibre_gl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
+import '../../../../core/widgets/skewed_button.dart';
 import '../../domain/entities/event_entity.dart';
 import '../../presentation/bloc/event_bloc.dart';
 import '../../presentation/bloc/event_state.dart';
@@ -385,22 +386,14 @@ class _EventsMapPageState extends State<EventsMapPage> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.darkPrimary,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 10),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10)),
-                          ),
+                        SkewedButton(
+                          text: 'Details',
+                          height: 44,
+                          fontSize: 12,
+                          backgroundColor: AppColors.darkPrimary,
                           onPressed: () => Navigator.of(context).pushNamed(
                               '/event-detail',
                               arguments: _selectedEvent),
-                          child: const Text('Details',
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700)),
                         ),
                       ],
                     ),

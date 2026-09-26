@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/skewed_button.dart';
 
 class FandomAvatarPreset {
   final String title;
@@ -387,22 +388,15 @@ class _ProfilePictureSheetState extends State<ProfilePictureSheet> with SingleTi
           const SizedBox(height: 20),
 
           // Action Button
-          SizedBox(
-            width: double.infinity,
+          SkewedButton(
+            text: 'Save Image URL',
+            icon: Iconsax.tick_circle,
             height: 48,
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.comicRed,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              icon: const Icon(Iconsax.tick_circle, size: 18),
-              label: const Text('SAVE IMAGE URL', style: TextStyle(fontWeight: FontWeight.w900)),
-              onPressed: (_previewUrl != null && _previewUrl!.isNotEmpty)
-                  ? () => _applyUrl(_previewUrl!)
-                  : null,
-            ),
+            fontSize: 13,
+            backgroundColor: AppColors.comicRed,
+            onPressed: (_previewUrl != null && _previewUrl!.isNotEmpty)
+                ? () => _applyUrl(_previewUrl!)
+                : null,
           ),
         ],
       ),

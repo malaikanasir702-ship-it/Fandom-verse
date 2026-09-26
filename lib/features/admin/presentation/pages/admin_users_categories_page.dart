@@ -2,6 +2,7 @@
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/skewed_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../bloc/admin_bloc.dart';
 import '../bloc/admin_event.dart';
@@ -242,14 +243,12 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
                 '${categories.length} Fandom Pillars Configured',
                 style: const TextStyle(color: Colors.white60, fontSize: 12),
               ),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.darkPrimary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
-                icon: const Icon(Iconsax.add, size: 16, color: Colors.white),
-                label: const Text('Add Pillar', style: TextStyle(color: Colors.white, fontSize: 11)),
+              SkewedButton(
+                text: '+ Add Pillar',
+                icon: Iconsax.add,
+                height: 40,
+                fontSize: 11,
+                backgroundColor: AppColors.darkPrimary,
                 onPressed: _showAddCategoryDialog,
               ),
             ],

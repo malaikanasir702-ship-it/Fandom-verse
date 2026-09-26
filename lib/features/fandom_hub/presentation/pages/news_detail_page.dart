@@ -4,6 +4,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/comic_ui_widgets.dart';
+import '../../../../core/widgets/skewed_button.dart';
 import '../bloc/fandom_hub_bloc.dart';
 import '../bloc/fandom_hub_event.dart';
 import '../bloc/fandom_hub_state.dart';
@@ -500,15 +501,12 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                 style: const TextStyle(color: Colors.white70, fontSize: 15, height: 1.6),
               ),
               const SizedBox(height: 30),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.comicRed,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
+              SkewedButton(
+                text: 'Close Reader',
+                height: 48,
+                fontSize: 13,
+                backgroundColor: AppColors.comicRed,
                 onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('CLOSE READER', style: TextStyle(fontWeight: FontWeight.w900)),
               ),
             ],
           ),

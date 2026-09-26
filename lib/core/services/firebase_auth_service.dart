@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'firebase_service.dart';
 import 'secure_storage_service.dart';
 import '../database/sqlite_helper.dart';
@@ -466,6 +467,85 @@ class FirebaseAuthService {
     }
   }
 
+  /// Sign in with Google OAuth
+  Future<Map<String, dynamic>> signInWithGoogle() async {
+    if (!FirebaseService.isInitialized || _auth == null) {
+      throw Exception('Google Sign-In requires Firebase. Please check your connection.');
+    }
+
+    final googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
+
+    // Trigger the Google account picker
+    final googleUser = await googleSignIn.signIn();
+    if (googleUser == null) {
+      throw Exception('Google Sign-In was cancelled.');
+    }
+
+    final googleAuth = await googleUser.authentication;
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+
+    final userCredential = await _auth!
+        .signInWithCredential(credential)
+        .timeout(_kNetworkTimeout);
+
+    final token = await userCredential.user
+        ?.getIdToken()
+        .timeout(_kNetworkTimeout, onTimeout: () => null);
+    if (token != null) {
+      await SecureStorageService.saveAuthToken(token);
+    }
+
+    final uid = userCredential.user!.uid;
+    final email = userCredential.user!.email ?? googleUser.email;
+    final displayName = userCredential.user!.displayName ?? googleUser.displayName ?? email.split('@').first;
+    final photoUrl = userCredential.user!.photoURL ?? googleUser.photoUrl;
+
+    // Check if profile already exists
+    final existing = await getUserProfile(uid, email: email);
+    if (existing != null) {
+      // Update avatar if Google has a newer one
+      if (photoUrl != null && (existing['avatar_url'] == null || existing['avatar_url'].toString().isEmpty)) {
+        await updateUserProfile(uid: uid, avatarUrl: photoUrl);
+      }
+      await SecureStorageService.saveUserCredentials(
+        email: email,
+        role: (existing['role'] ?? 'fan').toString(),
+      );
+      return existing;
+    }
+
+    // Create new profile for first-time Google sign-in
+    final userData = {
+      'id': uid,
+      'user_id': uid,
+      'email': email,
+      'name': displayName,
+      'role': 'fan',
+      'status': 'active',
+      'avatar_url': photoUrl ?? '',
+      'avatarUrl': photoUrl ?? '',
+      'bio': 'Fandom Universe Explorer',
+      'selectedFandoms': ['Anime & Manga'],
+      'badges': ['Novice Otaku'],
+      'createdAt': FieldValue.serverTimestamp(),
+    };
+
+    if (_firestore != null) {
+      await _firestore!
+          .collection('users')
+          .doc(uid)
+          .set(userData, SetOptions(merge: true))
+          .timeout(_kNetworkTimeout, onTimeout: () {});
+    }
+
+    await _syncToSqlite(userData);
+    await SecureStorageService.saveUserCredentials(email: email, role: 'fan');
+    return userData;
+  }
+
   /// Send password reset email
   Future<void> sendPasswordResetEmail(String email) async {
     final normalizedEmail = email.trim().toLowerCase();
@@ -474,11 +554,16 @@ class FirebaseAuthService {
     }
   }
 
-  /// Sign out
+  /// Sign out (also disconnects Google if active)
   Future<void> signOut() async {
     if (_auth != null) {
       await _auth!.signOut();
     }
+    // Disconnect Google session silently
+    try {
+      final googleSignIn = GoogleSignIn();
+      await googleSignIn.signOut();
+    } catch (_) {}
     await SecureStorageService.clearAuthData();
     _localAuthStreamController.add(null);
   }

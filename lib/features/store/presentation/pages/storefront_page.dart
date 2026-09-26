@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
+import '../../../../core/widgets/skewed_button.dart';
 import '../bloc/store_bloc.dart';
 import '../bloc/store_event.dart';
 import '../bloc/store_state.dart';
@@ -129,9 +130,11 @@ class _StorefrontPageState extends State<StorefrontPage> {
                   const SizedBox(height: 12),
                   Text(state.message),
                   const SizedBox(height: 12),
-                  ElevatedButton(
+                  SkewedButton(
+                    text: 'Retry',
+                    height: 46,
+                    fontSize: 13,
                     onPressed: () => context.read<StoreBloc>().add(const LoadProductCatalogEvent()),
-                    child: const Text('Retry'),
                   ),
                 ],
               ),

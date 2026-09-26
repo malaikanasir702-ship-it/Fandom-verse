@@ -4,6 +4,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
+import '../../../../core/widgets/skewed_button.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../bloc/profile_bloc.dart';
@@ -362,28 +363,30 @@ class _FanProfilePageState extends State<FanProfilePage> {
                         : 'Saved lore articles & events',
                     route: '/bookmarks',
                     color: AppColors.heroPurple),
+                _buildProfileNavTile(context,
+                    icon: Iconsax.people,
+                    title: 'About Us',
+                    subtitle: 'Meet the Fandom Verse team',
+                    route: '/about-us',
+                    color: AppColors.heroGreen),
+                _buildProfileNavTile(context,
+                    icon: Iconsax.message_question,
+                    title: 'Contact Us',
+                    subtitle: 'Submit enquiries & feedback',
+                    route: '/contact-us',
+                    color: AppColors.comicYellowDark),
 
                 const SizedBox(height: 20),
 
                 // ── Logout ─────────────────────────────────────────────────
                 SizedBox(
                   width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.comicRed,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14)),
-                    ),
-                    icon: const Icon(Iconsax.logout, size: 20),
-                    label: const Text('LOG OUT',
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w900,
-                            fontStyle: FontStyle.italic,
-                            letterSpacing: 1.2)),
+                  child: SkewedButton(
+                    text: 'LOG OUT',
+                    icon: Iconsax.logout,
+                    height: 52,
+                    fontSize: 15,
+                    backgroundColor: AppColors.comicRed,
                     onPressed: () => _showLogoutDialog(context),
                   ),
                 ),

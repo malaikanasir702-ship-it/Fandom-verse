@@ -57,3 +57,7 @@ class UpdateUserProfileEvent extends AuthEvent {
   });
 }
 
+class GoogleSignInEvent extends AuthEvent {
+  const GoogleSignInEvent();
+}
+

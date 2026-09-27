@@ -264,6 +264,7 @@ class _AdminStoryEditPageState extends State<AdminStoryEditPage> {
                     label: 'Hero Profile Avatar',
                     helperText: 'Pick hero portrait from mobile gallery or paste image URL',
                     initialImagePathOrUrl: _avatarImagePath.isEmpty ? null : _avatarImagePath,
+                    cloudinaryFolder: 'fandom_verse/hero_stories',
                     onImageSelected: (path) {
                       setState(() => _avatarImagePath = path);
                     },
@@ -537,6 +538,7 @@ class _AdminStoryEditPageState extends State<AdminStoryEditPage> {
                               initialImagePathOrUrl: (slide['imageUrl'] ?? '').toString().isEmpty
                                   ? null
                                   : slide['imageUrl'],
+                              cloudinaryFolder: 'fandom_verse/hero_stories',
                               onImageSelected: (path) {
                                 slide['imageUrl'] = path;
                               },

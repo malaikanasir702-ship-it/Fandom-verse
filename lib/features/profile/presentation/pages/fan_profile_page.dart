@@ -60,22 +60,16 @@ class _FanProfilePageState extends State<FanProfilePage> {
                     color: AppColors.comicGray,
                     fontWeight: FontWeight.bold)),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.comicRed,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-            ),
+          SkewedButton(
+            text: 'Yes, Log Out',
+            height: 44,
+            fontSize: 12,
+            backgroundColor: AppColors.comicRed,
+            icon: Iconsax.logout,
             onPressed: () {
               Navigator.of(ctx).pop();
               _performLogout(context);
             },
-            child: const Text('YES, LOG OUT',
-                style: TextStyle(fontWeight: FontWeight.w900)),
           ),
         ],
       ),

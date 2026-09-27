@@ -128,7 +128,7 @@ class _StarsDirectoryPageState extends State<StarsDirectoryPage> {
                       child: IconButton(
                         padding: EdgeInsets.zero,
                         icon: Icon(
-                          star.isBookmarked ? Iconsax.bookmark : Iconsax.bookmark,
+                          star.isBookmarked ? Iconsax.bookmark : Iconsax.bookmark_2,
                           size: 16,
                           color: star.isBookmarked ? AppColors.darkAccentGold : Colors.white,
                         ),

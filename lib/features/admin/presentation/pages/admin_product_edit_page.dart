@@ -171,6 +171,7 @@ class _AdminProductEditPageState extends State<AdminProductEditPage> {
               label: 'Product Showcase Image',
               helperText: 'Pick from your mobile gallery or snap with camera',
               initialImagePathOrUrl: _imagePathOrUrl,
+              cloudinaryFolder: 'fandom_verse/merchandise',
               onImageSelected: (path) {
                 setState(() {
                   _imagePathOrUrl = path;

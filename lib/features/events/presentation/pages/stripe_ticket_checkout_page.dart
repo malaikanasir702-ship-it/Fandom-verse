@@ -149,18 +149,16 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
           ],
         ),
         actions: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.comicRed,
-              foregroundColor: Colors.white,
-              minimumSize: const Size(double.infinity, 46),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
+          SkewedButton(
+            text: 'Done',
+            height: 50,
+            fontSize: 14,
+            backgroundColor: AppColors.comicRed,
+            icon: Iconsax.tick_circle,
             onPressed: () {
               Navigator.of(ctx).pop();
               Navigator.of(context).pop();
             },
-            child: const Text('DONE', style: TextStyle(fontWeight: FontWeight.w900)),
           ),
         ],
       ),

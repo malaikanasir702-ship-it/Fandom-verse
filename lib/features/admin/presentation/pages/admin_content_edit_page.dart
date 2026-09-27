@@ -140,6 +140,7 @@ class _AdminContentEditPageState extends State<AdminContentEditPage> {
               label: 'Article Cover Image',
               helperText: 'Pick from your mobile gallery or snap with camera',
               initialImagePathOrUrl: _imagePathOrUrl,
+              cloudinaryFolder: 'fandom_verse/posts',
               onImageSelected: (path) {
                 setState(() {
                   _imagePathOrUrl = path;

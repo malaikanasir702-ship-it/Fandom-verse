@@ -78,17 +78,18 @@ class AdminModals {
                   onPressed: () => Navigator.of(ctx).pop(),
                   child: const Text('Cancel', style: TextStyle(color: AppColors.adminLightTextSecondary)),
                 ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: canDelete ? AppColors.error : Colors.grey.shade300,
-                  ),
+                SkewedButton(
+                  text: 'Delete Permanently',
+                  height: 44,
+                  fontSize: 11,
+                  backgroundColor: canDelete ? AppColors.error : Colors.grey.shade400,
+                  icon: Iconsax.trash,
                   onPressed: canDelete
                       ? () {
                           Navigator.of(ctx).pop();
                           onConfirmed();
                         }
                       : null,
-                  child: const Text('Delete Permanently', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ],
             );
@@ -283,13 +284,16 @@ class AdminModals {
                   onPressed: () => Navigator.of(ctx).pop(),
                   child: const Text('Cancel', style: TextStyle(color: AppColors.adminLightTextSecondary)),
                 ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.comicRed),
+                SkewedButton(
+                  text: 'Save Stock',
+                  height: 44,
+                  fontSize: 12,
+                  backgroundColor: AppColors.comicRed,
+                  icon: Iconsax.tick_circle,
                   onPressed: () {
                     Navigator.of(ctx).pop();
                     onStockUpdated(stock);
                   },
-                  child: const Text('Save Stock', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ],
             );

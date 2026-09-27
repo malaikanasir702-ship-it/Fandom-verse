@@ -57,13 +57,15 @@ class _CartPageState extends State<CartPage> {
             onPressed: () => Navigator.of(ctx).pop(),
             child: const Text('Cancel'),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+          SkewedButton(
+            text: 'Clear All',
+            height: 44,
+            fontSize: 12,
+            backgroundColor: AppColors.error,
             onPressed: () {
               context.read<CartBloc>().add(const ClearCartEvent());
               Navigator.of(ctx).pop();
             },
-            child: const Text('Clear All', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),

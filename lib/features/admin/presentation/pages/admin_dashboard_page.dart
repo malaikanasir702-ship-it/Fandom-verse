@@ -113,10 +113,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           final metrics = state is AdminStatsLoaded
               ? state.metrics
               : {
-                  'totalFans': 1240,
-                  'publishedArticles': 84,
-                  'upcomingEvents': 16,
-                  'storeProducts': 42,
+                  'totalFans': 0,
+                  'publishedArticles': 0,
+                  'upcomingEvents': 0,
+                  'storeProducts': 0,
                 };
 
           final logs = state is AdminStatsLoaded ? state.recentLogs : <Map<String, dynamic>>[];

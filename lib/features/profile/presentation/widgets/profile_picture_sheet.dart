@@ -1,7 +1,10 @@
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/skewed_button.dart';
+import '../../../../core/services/cloudinary_service.dart';
 
 class FandomAvatarPreset {
   final String title;
@@ -104,7 +107,9 @@ class ProfilePictureSheet extends StatefulWidget {
 class _ProfilePictureSheetState extends State<ProfilePictureSheet> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _urlController = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
   String? _previewUrl;
+  bool _isUploading = false;
 
   @override
   void initState() {
@@ -121,6 +126,56 @@ class _ProfilePictureSheetState extends State<ProfilePictureSheet> with SingleTi
     _tabController.dispose();
     _urlController.dispose();
     super.dispose();
+  }
+
+  // ── Pick image from camera/gallery and upload to Cloudinary ──
+  Future<void> _pickAndUploadAvatar(ImageSource source) async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: source,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 88,
+      );
+      if (image == null) return;
+
+      setState(() {
+        _previewUrl = image.path; // show local preview instantly
+        _isUploading = true;
+      });
+
+      final cloudUrl = await CloudinaryService.instance.uploadImage(
+        File(image.path),
+        folder: CloudinaryService.folderAvatars,
+      );
+
+      if (mounted) {
+        setState(() {
+          _previewUrl = cloudUrl;
+          _urlController.text = cloudUrl;
+          _isUploading = false;
+        });
+        widget.onSelectedUrl(cloudUrl);
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Avatar uploaded to Cloudinary!'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isUploading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Upload failed: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
   }
 
   void _applyUrl(String url) {
@@ -157,17 +212,17 @@ class _ProfilePictureSheetState extends State<ProfilePictureSheet> with SingleTi
             onPressed: () => Navigator.of(ctx).pop(),
             child: const Text('CANCEL', style: TextStyle(color: AppColors.comicGray)),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.comicRed,
-              foregroundColor: Colors.white,
-            ),
+          SkewedButton(
+            text: 'Remove',
+            height: 44,
+            fontSize: 12,
+            backgroundColor: AppColors.comicRed,
+            icon: Iconsax.trash,
             onPressed: () {
               Navigator.of(ctx).pop(); // pop confirm dialog
               widget.onRemoveAvatar();
               Navigator.of(context).pop(); // pop bottom sheet
             },
-            child: const Text('REMOVE', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -293,13 +348,67 @@ class _ProfilePictureSheetState extends State<ProfilePictureSheet> with SingleTi
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ── Upload from Device to Cloudinary ──
           const Text(
-            'Paste Image URL',
+            'Upload from Device',
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Expanded(
+                child: SkewedButton(
+                  text: _isUploading ? 'Uploading...' : 'Gallery',
+                  height: 46,
+                  fontSize: 12,
+                  backgroundColor: AppColors.comicRed,
+                  icon: Iconsax.gallery,
+                  onPressed: _isUploading
+                      ? null
+                      : () => _pickAndUploadAvatar(ImageSource.gallery),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: SkewedButton(
+                  text: _isUploading ? 'Uploading...' : 'Camera',
+                  height: 46,
+                  fontSize: 12,
+                  backgroundColor: const Color(0xFF2563EB),
+                  icon: Iconsax.camera,
+                  onPressed: _isUploading
+                      ? null
+                      : () => _pickAndUploadAvatar(ImageSource.camera),
+                ),
+              ),
+            ],
+          ),
+          if (_isUploading) ...[
+            const SizedBox(height: 10),
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 16, height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.comicRed),
+                ),
+                SizedBox(width: 8),
+                Text('Uploading to Cloudinary CDN...', style: TextStyle(fontSize: 12)),
+              ],
+            ),
+          ],
+          const SizedBox(height: 16),
+          const Divider(),
+          const SizedBox(height: 8),
+
+          // ── Paste URL (fallback) ──
+          const Text(
+            'Or Paste Image URL',
             style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 6),
           Text(
-            'Enter any direct public image link (JPEG, PNG, WebP) from Discord, Unsplash, Imgur, etc.',
+            'Enter any direct public image link (JPEG, PNG, WebP) or a Cloudinary URL.',
             style: TextStyle(
               fontSize: 11,
               color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
@@ -309,7 +418,7 @@ class _ProfilePictureSheetState extends State<ProfilePictureSheet> with SingleTi
           TextFormField(
             controller: _urlController,
             decoration: InputDecoration(
-              hintText: 'https://example.com/avatar.jpg',
+              hintText: 'https://res.cloudinary.com/... or any URL',
               prefixIcon: const Icon(Iconsax.link_21, size: 18),
               suffixIcon: _urlController.text.isNotEmpty
                   ? IconButton(

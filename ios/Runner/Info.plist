@@ -66,5 +66,19 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Fandom Verse uses your location to show nearby fan conventions and events on the Event Radar map.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Fandom Verse uses your location to find fan events near you on the Event Radar.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Fandom Verse uses your location to find fan events near you.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Fandom Verse needs access to your photo library to set your profile avatar.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Fandom Verse uses the camera to take a photo for your profile avatar.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Fandom Verse saves your profile picture to your photo library.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Fandom Verse uses the microphone for voice-based fandom features.</string>
 </dict>
 </plist>

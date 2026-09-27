@@ -2,7 +2,8 @@ class DbConstants {
   DbConstants._();
 
   static const String databaseName = 'fandom_verse.db';
-  static const int databaseVersion = 1;
+  // ── Version 2: Added composite indexes for faster queries ──
+  static const int databaseVersion = 2;
 
   // 12 Database Tables
   static const String tableUsers = 'users';

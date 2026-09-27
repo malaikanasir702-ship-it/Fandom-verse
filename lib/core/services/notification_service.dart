@@ -15,6 +15,7 @@ class NotificationService {
   static const String _channelOrders = 'fandom_orders';
   static const String _channelEvents = 'fandom_events';
   static const String _channelCommunity = 'fandom_community';
+  static const String _channelStore = 'fandom_store';
 
   // Preferences keys
   static const String _prefPush = 'pushNotifications';
@@ -64,6 +65,11 @@ class NotificationService {
       id: _channelCommunity,
       name: 'Community',
       description: 'Discussion replies and community updates',
+    );
+    await _createChannel(
+      id: _channelStore,
+      name: 'Store & Price Drops',
+      description: 'Wishlist price drop alerts and order updates',
     );
 
     _initialized = true;
@@ -156,7 +162,7 @@ class NotificationService {
       id: productName.hashCode,
       title: '🏷️ Price Drop Alert',
       body: '$productName is now \$${newPrice.toStringAsFixed(2)}!',
-      channelId: _channelGeneral,
+      channelId: _channelStore,
       payload: 'store',
     );
   }

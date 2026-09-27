@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
+import '../../../../core/widgets/skewed_button.dart';
 import '../bloc/profile_bloc.dart';
 import '../bloc/profile_event.dart';
 import '../bloc/profile_state.dart';
@@ -191,16 +192,15 @@ class _OfflineContentPageState extends State<OfflineContentPage>
             child: const Text('Cancel',
                 style: TextStyle(color: AppColors.comicGray)),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-            ),
+          SkewedButton(
+            text: 'Clear Cache',
+            height: 44,
+            fontSize: 12,
+            backgroundColor: AppColors.error,
+            icon: Iconsax.trash,
             onPressed: () {
               Navigator.of(ctx).pop();
-              final userId =
-                  context.read<AuthBloc>().currentUser?.id ?? '';
+              final userId = context.read<AuthBloc>().currentUser?.id ?? '';
               context.read<ProfileBloc>().add(
                     ClearLocalCacheStorageEvent(userId: userId),
                   );
@@ -212,9 +212,6 @@ class _OfflineContentPageState extends State<OfflineContentPage>
                 ),
               );
             },
-            child: const Text('Clear Cache',
-                style: TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),

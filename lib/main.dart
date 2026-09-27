@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/di/service_locator.dart';
 import 'core/routes/app_router.dart';
@@ -19,11 +20,25 @@ import 'features/admin/presentation/bloc/admin_bloc.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Clean Architecture Service Locator (Dev A & Dev B)
+  // ── Performance: Lock to portrait during startup to avoid layout jank ──
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
+  // ── Performance: Set status bar style early to avoid flash ──
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+    ),
+  );
+
+  // ── Critical path: init dependencies first (SQLite + Firebase) ──
   await initDependencies();
 
-  // Initialize Push Notifications
-  await NotificationService.initialize();
+  // ── Non-critical: init notifications in background, do NOT await ──
+  NotificationService.initialize().catchError((_) {});
 
   runApp(const FandomVerseApp());
 }
@@ -39,19 +54,15 @@ class FandomVerseApp extends StatefulWidget {
 }
 
 class FandomVerseAppState extends State<FandomVerseApp> {
-
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        // Developer A BLoCs
         BlocProvider<AuthBloc>(create: (_) => sl<AuthBloc>()),
         BlocProvider<FandomHubBloc>(create: (_) => sl<FandomHubBloc>()),
         BlocProvider<EventCalendarBloc>(create: (_) => sl<EventCalendarBloc>()),
         BlocProvider<CommunityBloc>(create: (_) => sl<CommunityBloc>()),
         BlocProvider<AIAssistantBloc>(create: (_) => sl<AIAssistantBloc>()),
-
-        // Developer B BLoCs
         BlocProvider<ThemeBloc>(create: (_) => sl<ThemeBloc>()),
         BlocProvider<StoreBloc>(create: (_) => sl<StoreBloc>()),
         BlocProvider<CartBloc>(create: (_) => sl<CartBloc>()),

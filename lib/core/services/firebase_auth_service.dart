@@ -31,7 +31,7 @@ class FirebaseAuthService {
 
   User? get currentUser => _auth?.currentUser;
 
-  /// Sign In with Email & Password
+  /// Sign In with Email & Password — Optimized for speed
   Future<Map<String, dynamic>> signIn({
     required String email,
     required String password,
@@ -45,7 +45,8 @@ class FirebaseAuthService {
 
     if (FirebaseService.isInitialized && _auth != null) {
       try {
-        final credential = await _auth!
+        // ── Performance: Fire Firebase auth + SQLite cache lookup in parallel ──
+        final firebaseSignInFuture = _auth!
             .signInWithEmailAndPassword(
               email: normalizedEmail,
               password: trimmedPassword,
@@ -57,65 +58,85 @@ class FirebaseAuthService {
               ),
             );
 
-        final token = await credential.user
-            ?.getIdToken()
-            .timeout(_kNetworkTimeout, onTimeout: () => null);
-        if (token != null) {
-          await SecureStorageService.saveAuthToken(token);
-        }
+        // ── Performance: Pre-warm SQLite cache lookup concurrently ──
+        final sqliteCacheFuture = SqliteHelper.instance.query(
+          DbConstants.tableUsers,
+          where: 'LOWER(email) = ?',
+          whereArgs: [normalizedEmail],
+        ).catchError((_) => <Map<String, dynamic>>[]);
+
+        // Await Firebase first (it's the authority)
+        final credential = await firebaseSignInFuture;
+
+        // Save token in background — don't block navigation
+        credential.user?.getIdToken().then((token) {
+          if (token != null) SecureStorageService.saveAuthToken(token);
+        }).catchError((_) {});
 
         final uid = credential.user?.uid;
-        if (uid != null) {
-          final profile = await getUserProfile(uid, email: normalizedEmail);
-          if (profile != null) {
-            await SecureStorageService.saveUserCredentials(
-              email: normalizedEmail,
-              role: (profile['role'] ?? 'fan').toString(),
-            );
-            return profile;
-          }
+        if (uid == null) throw Exception('User authentication failed: UID missing.');
 
-          // If no profile exists yet in Firestore, create default profile
-          final defaultProfile = {
-            'id': uid,
-            'user_id': uid,
-            'email': normalizedEmail,
-            'name': credential.user?.displayName ?? normalizedEmail.split('@').first,
-            'role': 'fan',
-            'status': 'active',
-            'badges': ['Novice Otaku'],
-            'selectedFandoms': ['Anime & Manga'],
-            'createdAt': FieldValue.serverTimestamp(),
-          };
-
-          if (_firestore != null) {
-            await _firestore!.collection('users').doc(uid).set(defaultProfile)
-                .timeout(_kNetworkTimeout, onTimeout: () {});
-          }
-          await _syncToSqlite(defaultProfile);
+        // ── Performance: Try SQLite cache first (instant), fallback to Firestore ──
+        final cachedUsers = await sqliteCacheFuture;
+        if (cachedUsers.isNotEmpty) {
+          final cached = cachedUsers.first;
+          // Refresh from Firestore in background without blocking navigation
+          _refreshProfileInBackground(uid, normalizedEmail);
           await SecureStorageService.saveUserCredentials(
             email: normalizedEmail,
-            role: 'fan',
+            role: (cached['role'] ?? 'fan').toString(),
           );
-          return defaultProfile;
+          return Map<String, dynamic>.from(cached);
         }
-        throw Exception('User authentication failed: UID missing.');
+
+        // No cache — fetch from Firestore
+        final profile = await getUserProfile(uid, email: normalizedEmail);
+        if (profile != null) {
+          await SecureStorageService.saveUserCredentials(
+            email: normalizedEmail,
+            role: (profile['role'] ?? 'fan').toString(),
+          );
+          return profile;
+        }
+
+        // New user — create default profile
+        final defaultProfile = {
+          'id': uid,
+          'user_id': uid,
+          'email': normalizedEmail,
+          'name': credential.user?.displayName ?? normalizedEmail.split('@').first,
+          'role': 'fan',
+          'status': 'active',
+          'badges': ['Novice Otaku'],
+          'selectedFandoms': ['Anime & Manga'],
+          'createdAt': FieldValue.serverTimestamp(),
+        };
+
+        // Persist in background
+        if (_firestore != null) {
+          _firestore!.collection('users').doc(uid).set(defaultProfile)
+              .timeout(_kNetworkTimeout, onTimeout: () {})
+              .catchError((_) {});
+        }
+        _syncToSqlite(defaultProfile).catchError((_) {});
+        await SecureStorageService.saveUserCredentials(
+          email: normalizedEmail,
+          role: 'fan',
+        );
+        return defaultProfile;
+
       } on FirebaseAuthException catch (e) {
         debugPrint('[FirebaseAuthService] Firebase Sign-in error: ${e.code} - ${e.message}');
         rethrow;
       } on TimeoutException catch (e) {
         debugPrint('[FirebaseAuthService] Network timeout during sign-in: $e. Using offline auth.');
-        // Fall through to SQLite offline auth below
       } on SocketException catch (e) {
         debugPrint('[FirebaseAuthService] Socket error during sign-in: $e. Using offline auth.');
-        // Fall through to SQLite offline auth below
       } catch (e) {
-        // Catch any other network-level errors (e.g., wsarecv) and fall through
         if (e.toString().contains('wsarecv') ||
             e.toString().contains('connection') ||
             e.toString().contains('network')) {
           debugPrint('[FirebaseAuthService] Network error: $e. Using offline auth.');
-          // Fall through to SQLite offline auth below
         } else {
           rethrow;
         }
@@ -146,7 +167,6 @@ class FirebaseAuthService {
       );
     }
 
-    // Bug 1.1 / 2.1: Verify Password Hash using SHA-256 and salt
     final storedHash = user['password_hash'] as String?;
     final storedSalt = user['password_salt'] as String?;
 
@@ -163,7 +183,6 @@ class FirebaseAuthService {
         );
       }
     } else {
-      // Legacy seed fallback: verify against standard default passwords
       final defaultPwd = user['role'] == 'admin' ? 'admin123' : 'password123';
       if (trimmedPassword != defaultPwd) {
         throw FirebaseAuthException(
@@ -171,24 +190,42 @@ class FirebaseAuthService {
           message: 'The password entered is incorrect.',
         );
       }
-      // Upgrade legacy record with SHA-256 hash and salt
+      // Upgrade legacy record in background
       final salt = PasswordHasher.generateSalt();
       final hash = PasswordHasher.hashPassword(trimmedPassword, salt);
-      await SqliteHelper.instance.update(
+      SqliteHelper.instance.update(
         DbConstants.tableUsers,
         'user_id',
         user['user_id'] as String,
         {'password_salt': salt, 'password_hash': hash},
-      );
+      ).catchError((_) => 0);
     }
 
-    // Save credentials securely
     await SecureStorageService.saveUserCredentials(
       email: normalizedEmail,
       role: (user['role'] ?? 'fan').toString(),
     );
 
     return Map<String, dynamic>.from(user);
+  }
+
+  /// Refresh user profile from Firestore in background without blocking UI
+  void _refreshProfileInBackground(String uid, String email) {
+    if (_firestore == null) return;
+    Future.microtask(() async {
+      try {
+        final doc = await _firestore!
+            .collection('users')
+            .doc(uid)
+            .get()
+            .timeout(_kNetworkTimeout);
+        if (doc.exists && doc.data() != null) {
+          await _syncToSqlite(doc.data()!);
+        }
+      } catch (_) {
+        // Silent — background refresh, not critical
+      }
+    });
   }
 
   /// Register new user account (Fan or Admin)
@@ -314,8 +351,24 @@ class FirebaseAuthService {
     return userData;
   }
 
-  /// Retrieve user profile from Firestore or SQLite
+  /// Retrieve user profile — SQLite-first for speed, Firestore as fallback
   Future<Map<String, dynamic>?> getUserProfile(String uid, {String? email}) async {
+    // ── Performance: Check SQLite cache FIRST (instant, no network) ──
+    try {
+      final cached = await SqliteHelper.instance.query(
+        DbConstants.tableUsers,
+        where: 'user_id = ?',
+        whereArgs: [uid],
+        limit: 1,
+      );
+      if (cached.isNotEmpty) {
+        // Silently refresh from Firestore in background
+        _refreshProfileInBackground(uid, email ?? '');
+        return Map<String, dynamic>.from(cached.first);
+      }
+    } catch (_) {}
+
+    // ── Firestore fetch (only if not in SQLite cache) ──
     if (_firestore != null) {
       try {
         final doc = await _firestore!
@@ -325,7 +378,7 @@ class FirebaseAuthService {
             .timeout(_kNetworkTimeout);
         if (doc.exists && doc.data() != null) {
           final data = doc.data()!;
-          await _syncToSqlite(data);
+          _syncToSqlite(data).catchError((_) {}); // cache in background
           return data;
         }
 
@@ -338,7 +391,7 @@ class FirebaseAuthService {
               .timeout(_kNetworkTimeout);
           if (query.docs.isNotEmpty) {
             final data = query.docs.first.data();
-            await _syncToSqlite(data);
+            _syncToSqlite(data).catchError((_) {}); // cache in background
             return data;
           }
         }
@@ -351,18 +404,21 @@ class FirebaseAuthService {
       }
     }
 
-    // SQLite fallback
-    try {
-      final users = await SqliteHelper.instance.query(
-        DbConstants.tableUsers,
-        where: 'user_id = ? OR LOWER(email) = ?',
-        whereArgs: [uid, (email ?? '').toLowerCase().trim()],
-      );
-      if (users.isNotEmpty) {
-        return Map<String, dynamic>.from(users.first);
+    // Final fallback: SQLite by email
+    if (email != null) {
+      try {
+        final users = await SqliteHelper.instance.query(
+          DbConstants.tableUsers,
+          where: 'LOWER(email) = ?',
+          whereArgs: [email.toLowerCase().trim()],
+          limit: 1,
+        );
+        if (users.isNotEmpty) {
+          return Map<String, dynamic>.from(users.first);
+        }
+      } catch (e) {
+        debugPrint('[FirebaseAuthService] SQLite getUserProfile error: $e');
       }
-    } catch (e) {
-      debugPrint('[FirebaseAuthService] SQLite getUserProfile error: $e');
     }
 
     return null;

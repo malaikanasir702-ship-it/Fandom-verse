@@ -84,6 +84,7 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
                     helperText: 'Pick from your mobile gallery or camera',
                     previewHeight: 120,
                     initialImagePathOrUrl: bannerPathOrUrl,
+                    cloudinaryFolder: 'fandom_verse/categories',
                     onImageSelected: (path) {
                       setDialogState(() {
                         bannerPathOrUrl = path;
@@ -98,17 +99,18 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
                 onPressed: () => Navigator.of(ctx).pop(),
                 child: const Text('Cancel', style: TextStyle(color: AppColors.adminLightTextSecondary)),
               ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.comicRed,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
+              SkewedButton(
+                text: isEdit ? 'Save Changes' : 'Add Category',
+                height: 44,
+                fontSize: 12,
+                backgroundColor: AppColors.comicRed,
+                icon: isEdit ? Iconsax.edit : Iconsax.add,
                 onPressed: () {
                   final name = nameCtrl.text.trim();
                   if (name.isNotEmpty) {
                     if (isEdit) {
                       final catData = Map<String, dynamic>.from(
-                          existingCategory as Map<String, dynamic>);
+                          existingCategory!);
                       catData['name'] = name;
                       catData['description'] = descCtrl.text.trim();
                       catData['banner_url'] = bannerPathOrUrl.trim();
@@ -135,10 +137,6 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
                     }
                   }
                 },
-                child: Text(
-                  isEdit ? 'Save Changes' : 'Add Category',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                ),
               ),
             ],
           );

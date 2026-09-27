@@ -77,4 +77,17 @@ class FirestoreService {
     if (_firestore == null) return;
     await _firestore!.collection('fandom_posts').doc(id).delete();
   }
+
+  // ─── Contact Us Inquiries ───
+  Future<void> saveContactInquiry(Map<String, dynamic> data) async {
+    if (_firestore == null) return;
+    try {
+      await _firestore!.collection('contact_inquiries').add({
+        ...data,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      debugPrint('[FirestoreService] saveContactInquiry error: $e');
+    }
+  }
 }

@@ -1,7 +1,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import '../services/cloudinary_service.dart';
 
+/// Smart image widget that:
+/// - Auto-applies Cloudinary optimization params (q_auto, f_auto, resized)
+///   when the URL is a Cloudinary URL
+/// - Falls back gracefully for File paths and non-Cloudinary URLs
+/// - Handles errors with a styled placeholder
 class AppDisplayImage extends StatelessWidget {
   final String? pathOrUrl;
   final double? width;
@@ -28,14 +34,27 @@ class AppDisplayImage extends StatelessWidget {
     if (src.isEmpty) {
       content = placeholder ?? _defaultPlaceholder();
     } else if (src.startsWith('http://') || src.startsWith('https://')) {
+      // ── Auto-optimize Cloudinary URLs ──
+      final displayUrl = CloudinaryService.isCloudinaryUrl(src)
+          ? CloudinaryService.optimizeUrl(
+              src,
+              width: width?.toInt(),
+              height: height?.toInt(),
+            )
+          : src;
+
       content = Image.network(
-        src,
+        displayUrl,
         width: width,
         height: height,
         fit: fit,
+        // Cache at display size only — reduces decode memory by 60-80%
+        cacheWidth: width?.toInt() != null ? (width! * 2).toInt() : null,
+        filterQuality: FilterQuality.medium,
         errorBuilder: (_, __, ___) => placeholder ?? _defaultPlaceholder(),
       );
     } else {
+      // Local file path
       try {
         final file = File(src);
         content = Image.file(

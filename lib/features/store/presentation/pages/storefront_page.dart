@@ -482,7 +482,7 @@ class _StorefrontPageState extends State<StorefrontPage> {
                             child: Padding(
                               padding: const EdgeInsets.all(6),
                               child: Icon(
-                                isWishlisted ? Iconsax.heart : Iconsax.heart,
+                                isWishlisted ? Iconsax.heart : Iconsax.heart_slash,
                                 size: 16,
                                 color: isWishlisted ? AppColors.marvelRed : Colors.white,
                               ),

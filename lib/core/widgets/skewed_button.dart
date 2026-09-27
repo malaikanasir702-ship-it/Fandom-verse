@@ -12,6 +12,8 @@ class SkewedButton extends StatefulWidget {
   final double height;
   final double fontSize;
   final IconData? icon;
+  /// Optional custom leading widget (e.g. Google logo painter, Apple icon)
+  final Widget? leadingWidget;
 
   const SkewedButton({
     super.key,
@@ -23,6 +25,7 @@ class SkewedButton extends StatefulWidget {
     this.height = 46,
     this.fontSize = 13,
     this.icon,
+    this.leadingWidget,
   });
 
   @override
@@ -125,7 +128,11 @@ class _SkewedButtonState extends State<SkewedButton>
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              if (widget.icon != null) ...[
+                              // Custom leading widget (e.g. Google logo)
+                              if (widget.leadingWidget != null) ...[
+                                widget.leadingWidget!,
+                                const SizedBox(width: 10),
+                              ] else if (widget.icon != null) ...[
                                 Icon(widget.icon,
                                     size: 15, color: widget.textColor),
                                 const SizedBox(width: 6),

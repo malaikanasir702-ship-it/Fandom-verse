@@ -6,7 +6,6 @@ import '../../../../core/di/service_locator.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/skewed_button.dart';
-import '../../../../core/widgets/glass_container.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -178,12 +177,15 @@ class _LoginPageState extends State<LoginPage> {
             onPressed: () => Navigator.of(ctx).pop(),
             child: const Text('Cancel'),
           ),
-          ElevatedButton(
+          SkewedButton(
+            text: 'Explore as Guest',
+            height: 44,
+            fontSize: 12,
+            icon: Iconsax.profile_circle,
             onPressed: () {
               Navigator.of(ctx).pop();
               Navigator.of(context).pushReplacementNamed('/fan-home');
             },
-            child: const Text('Explore as Guest'),
           ),
         ],
       ),
@@ -341,105 +343,55 @@ class _LoginPageState extends State<LoginPage> {
 
                   const SizedBox(height: 20),
 
-                  // Google Sign-In Button
-                  GestureDetector(
-                    onTap: isLoading
+                  // Google Sign-In — Skewed Button
+                  SkewedButton(
+                    text: 'Continue with Google',
+                    height: 52,
+                    fontSize: 13,
+                    backgroundColor: isDark ? const Color(0xFF2D2D2D) : Colors.white,
+                    textColor: isDark ? Colors.white : const Color(0xFF3C4043),
+                    skewAngle: 0.12,
+                    leadingWidget: CustomPaint(
+                      size: const Size(22, 22),
+                      painter: _GoogleLogoPainter(),
+                    ),
+                    onPressed: isLoading
                         ? null
                         : () => context.read<AuthBloc>().add(const GoogleSignInEvent()),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(
-                        color: isDark ? AppColors.darkSurface : Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: isDark ? AppColors.darkBorder : AppColors.comicBorderColor,
-                          width: 1.5,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.06),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CustomPaint(
-                            size: const Size(24, 24),
-                            painter: _GoogleLogoPainter(),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Continue with Google',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 15,
-                              color: isDark ? Colors.white : const Color(0xFF3C4043),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ),
 
                   const SizedBox(height: 12),
 
-                  // Apple Sign-In Button
-                  GestureDetector(
-                    onTap: isLoading ? null : _showAppleSignInUnavailable,
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1C1C1E) : Colors.black,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: isDark
-                              ? AppColors.darkBorder
-                              : Colors.black,
-                          width: 1.5,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.12),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.apple, color: Colors.white, size: 22),
-                          SizedBox(width: 10),
-                          Text(
-                            'Continue with Apple',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 15,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  // Apple Sign-In — Skewed Button
+                  SkewedButton(
+                    text: 'Continue with Apple',
+                    height: 52,
+                    fontSize: 13,
+                    backgroundColor: isDark ? const Color(0xFF1C1C1E) : Colors.black,
+                    textColor: Colors.white,
+                    skewAngle: 0.12,
+                    leadingWidget: const Icon(Icons.apple, color: Colors.white, size: 20),
+                    onPressed: isLoading ? null : _showAppleSignInUnavailable,
                   ),
 
                   const SizedBox(height: 12),
-                  GlassContainer(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    onTap: _showGuestModeDialog,
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Iconsax.profile_circle, size: 20),
-                        SizedBox(width: 6),
-                        Text('Continue as Guest', style: TextStyle(fontWeight: FontWeight.w600)),
-                      ],
+
+                  // Guest Mode — Skewed Button (outlined style)
+                  SkewedButton(
+                    text: 'Continue as Guest',
+                    height: 52,
+                    fontSize: 13,
+                    backgroundColor: isDark
+                        ? AppColors.darkSurface
+                        : AppColors.lightSurface,
+                    textColor: isDark ? Colors.white : AppColors.comicBlack,
+                    skewAngle: 0.12,
+                    leadingWidget: Icon(
+                      Iconsax.profile_circle,
+                      size: 18,
+                      color: isDark ? Colors.white : AppColors.comicBlack,
                     ),
+                    onPressed: _showGuestModeDialog,
                   ),
 
                   const SizedBox(height: 36),

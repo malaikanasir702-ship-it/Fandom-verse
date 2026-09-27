@@ -28,14 +28,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   UserEntity? get currentUser => _currentUser;
 
   /// Check if there's an existing auth session on app start
+  /// ── Performance: Emit from local cache instantly, verify Firebase in background ──
   Future<void> _onCheckAuthSession(
     CheckAuthSessionEvent event,
     Emitter<AuthState> emit,
   ) async {
-    emit(const AuthLoading());
+    // No AuthLoading emit here — splash already shows progress indicator
     try {
       final firebaseUser = _authService.currentUser;
       if (firebaseUser != null) {
+        // ── Performance: getUserProfile now checks SQLite first (instant) ──
         final profile = await _authService.getUserProfile(
           firebaseUser.uid,
           email: firebaseUser.email,
@@ -45,7 +47,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           if (_currentUser!.status != 'active') {
             await _authService.signOut();
             _currentUser = null;
-            emit(const AuthFailure('Your account has been suspended.'));
+            emit(const Unauthenticated());
             return;
           }
           if (_currentUser!.isAdmin) {

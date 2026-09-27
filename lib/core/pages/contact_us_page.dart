@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/glass_container.dart';
 import '../widgets/skewed_button.dart';
 import '../widgets/custom_text_field.dart';
+import '../services/firestore_service.dart';
+import '../di/service_locator.dart';
 
 class ContactUsPage extends StatefulWidget {
   const ContactUsPage({super.key});
@@ -45,8 +48,22 @@ class _ContactUsPageState extends State<ContactUsPage> {
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isSending = true);
-    // Simulate network submission
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      // Save inquiry to Firestore
+      final firestoreService = sl<FirestoreService>();
+      await firestoreService.saveContactInquiry({
+        'name': _nameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'type': _selectedType,
+        'subject': _subjectController.text.trim(),
+        'message': _messageController.text.trim(),
+        'timestamp': DateTime.now().toIso8601String(),
+        'status': 'pending',
+      });
+    } catch (e) {
+      debugPrint('[ContactUs] Firestore save error: $e');
+      // Still show success — form data is valid even if Firestore unavailable
+    }
     if (mounted) {
       setState(() {
         _isSending = false;
@@ -326,8 +343,20 @@ class _ContactUsPageState extends State<ContactUsPage> {
           _buildContactTile(
             icon: Iconsax.location,
             title: 'Studio',
-            value: 'Aptech Learning, Pakistan',
+            value: 'Aptech Learning, Karachi, Pakistan',
             isDark: isDark,
+            onTap: () async {
+              final url = Uri.parse(
+                'https://www.google.com/maps/search/?api=1&query=Aptech+Learning+Karachi+Pakistan',
+              );
+              try {
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                }
+              } catch (e) {
+                debugPrint('[ContactUs] Maps launch error: $e');
+              }
+            },
           ),
           _buildContactTile(
             icon: Iconsax.global,

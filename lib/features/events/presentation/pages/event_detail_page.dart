@@ -63,7 +63,12 @@ class _EventDetailPageState extends State<EventDetailPage> {
         ),
         actions: [
           TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
-          ElevatedButton(
+          SkewedButton(
+            text: _rsvped ? 'Remove RSVP' : 'Confirm RSVP',
+            height: 44,
+            fontSize: 12,
+            backgroundColor: _rsvped ? AppColors.error : AppColors.comicRed,
+            icon: _rsvped ? Iconsax.close_circle : Iconsax.tick_circle,
             onPressed: () {
               Navigator.of(ctx).pop();
               setState(() => _rsvped = !_rsvped);
@@ -75,7 +80,6 @@ class _EventDetailPageState extends State<EventDetailPage> {
                 ),
               );
             },
-            child: Text(_rsvped ? 'Remove RSVP' : 'Confirm RSVP'),
           ),
         ],
       ),
@@ -144,9 +148,12 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Iconsax.direct_right, size: 16),
-                      label: const Text('Open Maps'),
+                    child: SkewedButton(
+                      text: 'Open Maps',
+                      icon: Iconsax.direct_right,
+                      height: 48,
+                      fontSize: 12,
+                      backgroundColor: AppColors.comicRed,
                       onPressed: () async {
                         final url = Uri.parse(
                           'https://maps.google.com/?q=${widget.event.latitude},${widget.event.longitude}',

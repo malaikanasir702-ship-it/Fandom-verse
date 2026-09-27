@@ -3,13 +3,20 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/services/cloudinary_service.dart';
 
+/// Admin image picker that:
+/// 1. Lets admin pick image from Gallery or Camera
+/// 2. Uploads it to Cloudinary CDN automatically
+/// 3. Returns secure Cloudinary URL via [onImageSelected]
 class AdminImagePickerField extends StatefulWidget {
   final String? initialImagePathOrUrl;
   final ValueChanged<String> onImageSelected;
   final String label;
   final String? helperText;
   final double previewHeight;
+  /// Cloudinary folder to upload to
+  final String cloudinaryFolder;
 
   const AdminImagePickerField({
     super.key,
@@ -18,6 +25,7 @@ class AdminImagePickerField extends StatefulWidget {
     this.label = 'Image / Banner',
     this.helperText,
     this.previewHeight = 180,
+    this.cloudinaryFolder = CloudinaryService.folderPosts,
   });
 
   @override
@@ -26,8 +34,9 @@ class AdminImagePickerField extends StatefulWidget {
 
 class _AdminImagePickerFieldState extends State<AdminImagePickerField> {
   final ImagePicker _picker = ImagePicker();
-  String? _currentImagePath;
+  String? _currentImagePath; // may be local path OR cloudinary URL
   bool _showUrlInput = false;
+  bool _isUploading = false;
   late TextEditingController _urlController;
 
   @override
@@ -55,7 +64,7 @@ class _AdminImagePickerFieldState extends State<AdminImagePickerField> {
     super.dispose();
   }
 
-  Future<void> _pickImage(ImageSource source) async {
+  Future<void> _pickAndUpload(ImageSource source) async {
     try {
       final XFile? image = await _picker.pickImage(
         source: source,
@@ -64,19 +73,41 @@ class _AdminImagePickerFieldState extends State<AdminImagePickerField> {
         imageQuality: 85,
       );
 
-      if (image != null) {
+      if (image == null) return;
+
+      setState(() {
+        _currentImagePath = image.path; // Show local preview immediately
+        _isUploading = true;
+        _showUrlInput = false;
+      });
+
+      // Upload to Cloudinary
+      final cloudinaryUrl = await CloudinaryService.instance.uploadImage(
+        File(image.path),
+        folder: widget.cloudinaryFolder,
+      );
+
+      if (mounted) {
         setState(() {
-          _currentImagePath = image.path;
-          _urlController.text = image.path;
-          _showUrlInput = false;
+          _currentImagePath = cloudinaryUrl;
+          _urlController.text = cloudinaryUrl;
+          _isUploading = false;
         });
-        widget.onImageSelected(image.path);
+        widget.onImageSelected(cloudinaryUrl);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Image uploaded to Cloudinary CDN!'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
+        setState(() => _isUploading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to pick image: ${e.toString()}'),
+            content: Text('Upload failed: ${e.toString()}'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -101,8 +132,7 @@ class _AdminImagePickerFieldState extends State<AdminImagePickerField> {
               children: [
                 Center(
                   child: Container(
-                    width: 40,
-                    height: 4,
+                    width: 40, height: 4,
                     decoration: BoxDecoration(
                       color: const Color(0xFFCBD5E1),
                       borderRadius: BorderRadius.circular(2),
@@ -112,15 +142,11 @@ class _AdminImagePickerFieldState extends State<AdminImagePickerField> {
                 const SizedBox(height: 16),
                 const Text(
                   'Select Image Source',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0F172A),
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                 ),
                 const SizedBox(height: 4),
                 const Text(
-                  'Choose image from your mobile device or capture new',
+                  'Image will be uploaded to Cloudinary CDN automatically',
                   style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                 ),
                 const SizedBox(height: 16),
@@ -134,11 +160,8 @@ class _AdminImagePickerFieldState extends State<AdminImagePickerField> {
                     child: const Icon(Iconsax.gallery, color: AppColors.comicRed, size: 22),
                   ),
                   title: const Text('Choose from Gallery', style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF0F172A))),
-                  subtitle: const Text('Select a photo from device storage', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
-                  onTap: () {
-                    Navigator.of(ctx).pop();
-                    _pickImage(ImageSource.gallery);
-                  },
+                  subtitle: const Text('Upload from device storage → Cloudinary', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                  onTap: () { Navigator.of(ctx).pop(); _pickAndUpload(ImageSource.gallery); },
                 ),
                 const Divider(height: 1, color: Color(0xFFE2E8F0)),
                 ListTile(
@@ -151,11 +174,8 @@ class _AdminImagePickerFieldState extends State<AdminImagePickerField> {
                     child: const Icon(Iconsax.camera, color: Color(0xFF2563EB), size: 22),
                   ),
                   title: const Text('Take a Photo', style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF0F172A))),
-                  subtitle: const Text('Capture new photo with mobile camera', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
-                  onTap: () {
-                    Navigator.of(ctx).pop();
-                    _pickImage(ImageSource.camera);
-                  },
+                  subtitle: const Text('Capture with camera → upload to Cloudinary', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                  onTap: () { Navigator.of(ctx).pop(); _pickAndUpload(ImageSource.camera); },
                 ),
                 const Divider(height: 1, color: Color(0xFFE2E8F0)),
                 ListTile(
@@ -168,13 +188,8 @@ class _AdminImagePickerFieldState extends State<AdminImagePickerField> {
                     child: const Icon(Iconsax.link, color: Color(0xFFF59E0B), size: 22),
                   ),
                   title: const Text('Enter Web Image URL', style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF0F172A))),
-                  subtitle: const Text('Paste direct URL to an online image', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
-                  onTap: () {
-                    Navigator.of(ctx).pop();
-                    setState(() {
-                      _showUrlInput = true;
-                    });
-                  },
+                  subtitle: const Text('Paste a direct URL (stored as-is)', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                  onTap: () { Navigator.of(ctx).pop(); setState(() { _showUrlInput = true; }); },
                 ),
               ],
             ),
@@ -195,6 +210,7 @@ class _AdminImagePickerFieldState extends State<AdminImagePickerField> {
 
   Widget _buildPreview(String pathOrUrl) {
     final bool isNetwork = pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://');
+    final bool isCloudinary = CloudinaryService.isCloudinaryUrl(pathOrUrl);
 
     return Stack(
       children: [
@@ -206,7 +222,9 @@ class _AdminImagePickerFieldState extends State<AdminImagePickerField> {
             color: const Color(0xFFF1F5F9),
             child: isNetwork
                 ? Image.network(
-                    pathOrUrl,
+                    isCloudinary
+                        ? CloudinaryService.optimizeUrl(pathOrUrl, width: 800)
+                        : pathOrUrl,
                     width: double.infinity,
                     height: widget.previewHeight,
                     fit: BoxFit.cover,
@@ -221,82 +239,93 @@ class _AdminImagePickerFieldState extends State<AdminImagePickerField> {
                   ),
           ),
         ),
-        // Source tag
-        Positioned(
-          top: 10,
-          left: 10,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.7),
-              borderRadius: BorderRadius.circular(20),
+        // Uploading overlay
+        if (_isUploading)
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.55),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                  SizedBox(height: 10),
+                  Text(
+                    'Uploading to Cloudinary...',
+                    style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
             ),
+          ),
+        // Source badge
+        if (!_isUploading)
+          Positioned(
+            top: 10,
+            left: 10,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: isCloudinary
+                    ? const Color(0xFF3448C5).withValues(alpha: 0.9) // Cloudinary blue
+                    : Colors.black.withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    isCloudinary ? Iconsax.cloud : (isNetwork ? Iconsax.global : Iconsax.mobile),
+                    size: 12,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    isCloudinary ? '☁ Cloudinary CDN' : (isNetwork ? 'Web URL' : 'Device'),
+                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        // Change & Remove actions
+        if (!_isUploading)
+          Positioned(
+            top: 10,
+            right: 10,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  isNetwork ? Iconsax.global : Iconsax.mobile,
-                  size: 12,
-                  color: Colors.white,
+                InkWell(
+                  onTap: _showImageSourceModal,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 4)],
+                    ),
+                    child: const Icon(Iconsax.edit, size: 16, color: Color(0xFF0F172A)),
+                  ),
                 ),
-                const SizedBox(width: 4),
-                Text(
-                  isNetwork ? 'Web Image' : 'Device Image',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
+                const SizedBox(width: 8),
+                InkWell(
+                  onTap: _clearImage,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 4)],
+                    ),
+                    child: const Icon(Iconsax.trash, size: 16, color: AppColors.error),
                   ),
                 ),
               ],
             ),
           ),
-        ),
-        // Change & Remove actions
-        Positioned(
-          top: 10,
-          right: 10,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              InkWell(
-                onTap: _showImageSourceModal,
-                child: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.15),
-                        blurRadius: 4,
-                      ),
-                    ],
-                  ),
-                  child: const Icon(Iconsax.edit, size: 16, color: Color(0xFF0F172A)),
-                ),
-              ),
-              const SizedBox(width: 8),
-              InkWell(
-                onTap: _clearImage,
-                child: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.15),
-                        blurRadius: 4,
-                      ),
-                    ],
-                  ),
-                  child: const Icon(Iconsax.trash, size: 16, color: AppColors.error),
-                ),
-              ),
-            ],
-          ),
-        ),
       ],
     );
   }
@@ -310,10 +339,7 @@ class _AdminImagePickerFieldState extends State<AdminImagePickerField> {
           children: [
             Icon(Iconsax.gallery_slash, size: 36, color: Color(0xFF94A3B8)),
             SizedBox(height: 6),
-            Text(
-              'Could not load preview',
-              style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-            ),
+            Text('Could not load preview', style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8))),
           ],
         ),
       ),
@@ -330,11 +356,7 @@ class _AdminImagePickerFieldState extends State<AdminImagePickerField> {
         decoration: BoxDecoration(
           color: const Color(0xFFF8FAFC),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: const Color(0xFFCBD5E1),
-            style: BorderStyle.solid,
-            width: 1.5,
-          ),
+          border: Border.all(color: const Color(0xFFCBD5E1), width: 1.5),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -349,47 +371,26 @@ class _AdminImagePickerFieldState extends State<AdminImagePickerField> {
             ),
             const SizedBox(height: 10),
             const Text(
-              'Select Image from Mobile',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0F172A),
-              ),
+              'Upload Image to Cloudinary',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
             ),
             const SizedBox(height: 4),
             const Text(
-              'Tap to choose from Gallery or take with Camera',
+              'Pick from Gallery or Camera — auto-uploaded to CDN',
               style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                OutlinedButton.icon(
-                  onPressed: () => _pickImage(ImageSource.gallery),
-                  icon: const Icon(Iconsax.gallery, size: 14),
-                  label: const Text('Gallery', style: TextStyle(fontSize: 12)),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF0F172A),
-                    side: const BorderSide(color: Color(0xFFCBD5E1)),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                OutlinedButton.icon(
-                  onPressed: () => _pickImage(ImageSource.camera),
-                  icon: const Icon(Iconsax.camera, size: 14),
-                  label: const Text('Camera', style: TextStyle(fontSize: 12)),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF0F172A),
-                    side: const BorderSide(color: Color(0xFFCBD5E1)),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                ),
-              ],
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF3448C5).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text(
+                '☁ Powered by Cloudinary CDN',
+                style: TextStyle(fontSize: 10, color: Color(0xFF3448C5), fontWeight: FontWeight.w600),
+              ),
             ),
           ],
         ),
@@ -409,26 +410,18 @@ class _AdminImagePickerFieldState extends State<AdminImagePickerField> {
           children: [
             Text(
               widget.label,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF475569),
-              ),
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF475569)),
             ),
             if (!hasImage)
               TextButton(
-                onPressed: () {
-                  setState(() {
-                    _showUrlInput = !_showUrlInput;
-                  });
-                },
+                onPressed: () => setState(() { _showUrlInput = !_showUrlInput; }),
                 style: TextButton.styleFrom(
                   padding: EdgeInsets.zero,
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 child: Text(
-                  _showUrlInput ? 'Hide URL input' : 'Use image URL instead',
+                  _showUrlInput ? 'Hide URL input' : 'Paste URL instead',
                   style: const TextStyle(fontSize: 11, color: AppColors.comicRed),
                 ),
               ),
@@ -449,16 +442,12 @@ class _AdminImagePickerFieldState extends State<AdminImagePickerField> {
                   controller: _urlController,
                   style: const TextStyle(fontSize: 13, color: Color(0xFF0F172A)),
                   decoration: InputDecoration(
-                    hintText: 'https://images.unsplash.com/...',
+                    hintText: 'https://res.cloudinary.com/... or any URL',
                     hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
                     filled: true,
                     fillColor: const Color(0xFFF8FAFC),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                     ),
@@ -490,10 +479,7 @@ class _AdminImagePickerFieldState extends State<AdminImagePickerField> {
 
         if (widget.helperText != null) ...[
           const SizedBox(height: 6),
-          Text(
-            widget.helperText!,
-            style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
-          ),
+          Text(widget.helperText!, style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
         ],
       ],
     );

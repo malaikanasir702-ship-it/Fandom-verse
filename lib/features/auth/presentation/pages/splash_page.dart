@@ -26,11 +26,11 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1400),
+      duration: const Duration(milliseconds: 800), // Reduced from 1400ms
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.75, end: 1.05).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
+    _scaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
     );
 
     _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -39,12 +39,9 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
 
     _controller.forward();
 
-    // Dispatch auth session check — listener handles navigation
-    Future.delayed(const Duration(milliseconds: 400), () {
-      if (mounted) {
-        context.read<AuthBloc>().add(const CheckAuthSessionEvent());
-      }
-    });
+    // ── Performance: Fire auth check immediately, no delay ──
+    // Previously had 400ms delay — removed completely
+    context.read<AuthBloc>().add(const CheckAuthSessionEvent());
   }
 
   @override
@@ -68,10 +65,10 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
         } else if (state is AdminAuthenticated) {
           Navigator.of(context).pushReplacementNamed('/admin-dashboard');
         } else if (state is Unauthenticated || state is AuthFailure) {
-          // Delay so splash animation has time to show
-          Future.delayed(const Duration(milliseconds: 1800), () async {
+          // ── Performance: Minimal delay — just enough for animation to show ──
+          // Reduced from 1800ms to 300ms
+          Future.delayed(const Duration(milliseconds: 300), () async {
             if (!context.mounted) return;
-            // Check if user has seen onboarding before
             final prefs = await SharedPreferences.getInstance();
             final seen = prefs.getBool('onboarding_seen') ?? false;
             if (!context.mounted) return;
@@ -196,7 +193,7 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
             right: 0,
             child: Center(
               child: Text(
-                'v${AppConstants.appVersion} • Fandom Universe Engine',
+                'v${AppConstants.appVersion} • Fandom Verse Pocket Edition',
                 style: AppTextStyles.bodySmall.copyWith(
                   color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
                   fontSize: 11,

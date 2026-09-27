@@ -149,6 +149,7 @@ class _AdminEventEditPageState extends State<AdminEventEditPage> {
               label: 'High-Res Event Banner',
               helperText: 'Pick banner from your mobile gallery or take a photo',
               initialImagePathOrUrl: _bannerPathOrUrl,
+              cloudinaryFolder: 'fandom_verse/events',
               onImageSelected: (path) {
                 setState(() {
                   _bannerPathOrUrl = path;

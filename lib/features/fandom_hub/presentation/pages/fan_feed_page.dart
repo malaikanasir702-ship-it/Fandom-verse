@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
@@ -45,10 +47,37 @@ class _FanFeedContentState extends State<_FanFeedContent> {
   List<HeroStory> _stories = [];
   bool _storiesLoaded = false;
 
+  // ─── Auto-sliding banner ───
+  final PageController _bannerController = PageController();
+  int _bannerIndex = 0;
+  Timer? _bannerTimer;
+
   @override
   void initState() {
     super.initState();
     _loadHeroStories();
+    _startBannerTimer();
+  }
+
+  void _startBannerTimer() {
+    _bannerTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      if (!mounted) return;
+      final total = widget.state.trendingPosts.length;
+      if (total <= 1) return;
+      final next = (_bannerIndex + 1) % total;
+      _bannerController.animateToPage(
+        next,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _bannerTimer?.cancel();
+    _bannerController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadHeroStories() async {
@@ -88,9 +117,9 @@ class _FanFeedContentState extends State<_FanFeedContent> {
   Widget build(BuildContext context) {
     final state = widget.state;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final featuredPost = state.trendingPosts.isNotEmpty
-        ? state.trendingPosts.first
-        : (state.latestNews.isNotEmpty ? state.latestNews.first : null);
+    final trendingPosts = state.trendingPosts.isNotEmpty
+        ? state.trendingPosts
+        : (state.latestNews.isNotEmpty ? state.latestNews.take(4).toList() : <FandomPost>[]);
 
     final currentUser = context.watch<AuthBloc>().currentUser;
     final hasAvatar = currentUser?.avatarUrl != null && currentUser!.avatarUrl!.trim().isNotEmpty;
@@ -134,9 +163,10 @@ class _FanFeedContentState extends State<_FanFeedContent> {
                         ),
                       ],
                     ),
-                    // Action Icons: Search & Profile (Iconsax)
+                    // Action Icons: Search, Notifications & Profile
                     Row(
                       children: [
+                        // Search Button
                         GestureDetector(
                           onTap: () => Navigator.of(context).pushNamed('/search'),
                           child: Container(
@@ -158,6 +188,57 @@ class _FanFeedContentState extends State<_FanFeedContent> {
                           ),
                         ),
                         const SizedBox(width: 10),
+                        // Notification Bell with unread badge
+                        GestureDetector(
+                          onTap: () => Navigator.of(context).pushNamed('/notifications'),
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              Container(
+                                width: 38,
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  color: isDark ? AppColors.darkSurface : Colors.white,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: isDark ? AppColors.darkBorder : AppColors.comicBorderColor,
+                                    width: 1.2,
+                                  ),
+                                ),
+                                child: Icon(
+                                  Iconsax.notification,
+                                  size: 18,
+                                  color: isDark ? Colors.white : AppColors.comicBlack,
+                                ),
+                              ),
+                              // Unread badge — shows 2 unread by default
+                              Positioned(
+                                top: -2,
+                                right: -2,
+                                child: Container(
+                                  width: 16,
+                                  height: 16,
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.comicRed,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Center(
+                                    child: Text(
+                                      '2',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        // Profile Avatar
                         GestureDetector(
                           onTap: () => Navigator.of(context).pushNamed('/profile'),
                           child: Container(
@@ -202,15 +283,14 @@ class _FanFeedContentState extends State<_FanFeedContent> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. TOP DYNAMIC HERO BANNER (Left Mockup Style)
-              if (featuredPost != null)
-                HeroPopOutBanner(
-                  title: featuredPost.title,
-                  subtitle: '${featuredPost.category.toUpperCase()} • ${featuredPost.authorName}',
-                  imageUrl: featuredPost.imageUrl,
-                  rating: 9.2,
-                  badgeText: 'READ NOW',
-                  onTap: () => Navigator.of(context).pushNamed('/news-detail', arguments: featuredPost),
+              // 1. AUTO-SLIDING TRENDING BANNER with dots
+              if (trendingPosts.isNotEmpty)
+                _TrendingBannerCarousel(
+                  posts: trendingPosts,
+                  controller: _bannerController,
+                  currentIndex: _bannerIndex,
+                  onPageChanged: (i) => setState(() => _bannerIndex = i),
+                  isDark: isDark,
                 ),
 
               const SizedBox(height: 12),
@@ -349,7 +429,10 @@ class _FanFeedContentState extends State<_FanFeedContent> {
                 onActionTap: () => Navigator.of(context).pushNamed('/multimedia'),
               ),
               const SizedBox(height: 8),
-              ...state.latestNews.map((post) => _SolidNewsCard(post: post)),
+              // RepaintBoundary isolates each card from parent repaints
+              ...state.latestNews.map((post) => RepaintBoundary(
+                    child: _SolidNewsCard(post: post),
+                  )),
 
               const SizedBox(height: 100),
             ],
@@ -359,57 +442,487 @@ class _FanFeedContentState extends State<_FanFeedContent> {
     );
   }
 
+  static const List<Map<String, dynamic>> _triviaQuestions = [
+    {
+      'q': 'In Dragon Ball Z, who was the first mortal to defeat Son Goku in combat?',
+      'options': ['A) Vegeta', 'B) Master Roshi (Jackie Chun)', 'C) Yamcha', 'D) Tien Shinhan'],
+      'answer': 1,
+      'fact': 'Master Roshi disguised as Jackie Chun defeated young Goku in the 21st World Tournament.',
+    },
+    {
+      'q': 'Which Infinity Stone was stored inside Vision\'s forehead in the MCU?',
+      'options': ['A) Space Stone', 'B) Reality Stone', 'C) Mind Stone', 'D) Soul Stone'],
+      'answer': 2,
+      'fact': 'The Mind Stone (yellow) was embedded in Vision\'s forehead, giving him life and power.',
+    },
+    {
+      'q': 'What is the name of the open-world map in Elden Ring?',
+      'options': ['A) The Shattered Realm', 'B) The Lands Between', 'C) Lordran', 'D) Drangleic'],
+      'answer': 1,
+      'fact': 'The Lands Between is the realm governed by the Erdtree, where players explore as the Tarnished.',
+    },
+    {
+      'q': 'K-Pop group BTS debuted under which South Korean entertainment company?',
+      'options': ['A) SM Entertainment', 'B) YG Entertainment', 'C) HYBE (Big Hit)', 'D) JYP Entertainment'],
+      'answer': 2,
+      'fact': 'BTS debuted in 2013 under Big Hit Entertainment, now rebranded as HYBE Corporation.',
+    },
+    {
+      'q': 'In One Piece, what is the name of Monkey D. Luffy\'s devil fruit?',
+      'options': ['A) Gum-Gum Fruit (Gomu Gomu no Mi)', 'B) Dark-Dark Fruit', 'C) Flame-Flame Fruit', 'D) Barrier-Barrier Fruit'],
+      'answer': 0,
+      'fact': 'The Gomu Gomu no Mi (Gum-Gum Fruit) gave Luffy a rubber body — later revealed as the mythical Nika fruit.',
+    },
+    {
+      'q': 'Which company developed the critically acclaimed game "Hollow Knight"?',
+      'options': ['A) FromSoftware', 'B) Team Cherry', 'C) Supergiant Games', 'D) Playdead'],
+      'answer': 1,
+      'fact': 'Hollow Knight was developed by Australian indie studio Team Cherry, a 3-person team.',
+    },
+    {
+      'q': 'What is the real name of Batman\'s butler Alfred?',
+      'options': ['A) Alfred Pennyworth', 'B) Alfred Jarvis', 'C) Alfred Thaddeus Crane', 'D) Alfred Wayne'],
+      'answer': 0,
+      'fact': 'Alfred Pennyworth has served as Bruce Wayne\'s butler since Batman #16 (1943).',
+    },
+    {
+      'q': 'In Attack on Titan, what is the name of the founder Titan?',
+      'options': ['A) Ymir Fritz', 'B) Mikasa Ackerman', 'C) Eren Yeager', 'D) Karl Fritz'],
+      'answer': 0,
+      'fact': 'Ymir Fritz made a deal with an entity in the Paths realm 2000 years ago, becoming the first Titan.',
+    },
+    {
+      'q': 'Which anime studio produced Demon Slayer: Kimetsu no Yaiba?',
+      'options': ['A) Bones', 'B) MAPPA', 'C) Ufotable', 'D) Madhouse'],
+      'answer': 2,
+      'fact': 'Ufotable is renowned for their water and flame animation effects — Demon Slayer became their landmark work.',
+    },
+    {
+      'q': 'What does "Isekai" mean in Japanese anime terminology?',
+      'options': ['A) Another World', 'B) Time Travel', 'C) Magic System', 'D) Parallel Universe'],
+      'answer': 0,
+      'fact': 'Isekai (異世界) literally means "different world" — protagonist is transported to a fantasy realm.',
+    },
+  ];
+
   void _showTriviaDialog(BuildContext context) {
+    final random = Random();
+    int currentIndex = random.nextInt(_triviaQuestions.length);
+    int? selectedAnswer;
+    bool answered = false;
+    int sessionScore = 0;
+    int questionsAnswered = 0;
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: AppColors.comicBorderColor, width: 1.5),
-        ),
-        title: const Row(
-          children: [
-            Icon(Iconsax.cup, color: AppColors.comicYellow, size: 26),
-            SizedBox(width: 8),
-            Text(
-              'TRIVIA CHALLENGE',
-              style: TextStyle(
-                fontStyle: FontStyle.italic,
-                fontWeight: FontWeight.w900,
-                fontSize: 18,
-                color: AppColors.comicBlack,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          final question = _triviaQuestions[currentIndex];
+          final options = question['options'] as List<String>;
+          final correctIndex = question['answer'] as int;
+
+          return AlertDialog(
+            backgroundColor: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.darkSurface
+                : Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: const BorderSide(color: AppColors.comicBorderColor, width: 1.5),
+            ),
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Iconsax.cup, color: AppColors.comicYellow, size: 22),
+                    SizedBox(width: 8),
+                    Text(
+                      'TRIVIA CHALLENGE',
+                      style: TextStyle(
+                        fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
+                        color: AppColors.comicRed,
+                      ),
+                    ),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.darkAccentGold.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    '⚡ $sessionScore pts',
+                    style: const TextStyle(
+                      color: AppColors.darkAccentGold,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    question['q'] as String,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  ...List.generate(options.length, (i) {
+                    Color? bg;
+                    Color borderColor = AppColors.comicBorderColor;
+                    if (answered) {
+                      if (i == correctIndex) {
+                        bg = AppColors.success.withValues(alpha: 0.15);
+                        borderColor = AppColors.success;
+                      } else if (i == selectedAnswer) {
+                        bg = AppColors.error.withValues(alpha: 0.15);
+                        borderColor = AppColors.error;
+                      }
+                    } else if (selectedAnswer == i) {
+                      bg = AppColors.darkPrimary.withValues(alpha: 0.15);
+                      borderColor = AppColors.darkPrimary;
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: GestureDetector(
+                        onTap: answered ? null : () {
+                          setDialogState(() {
+                            selectedAnswer = i;
+                            answered = true;
+                            questionsAnswered++;
+                            if (i == correctIndex) sessionScore += 50;
+                          });
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: bg,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: borderColor, width: 1.2),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  options[i],
+                                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                              if (answered && i == correctIndex)
+                                const Icon(Iconsax.tick_circle, color: AppColors.success, size: 18),
+                              if (answered && i == selectedAnswer && i != correctIndex)
+                                const Icon(Iconsax.close_circle, color: AppColors.error, size: 18),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                  if (answered) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.darkAccentGold.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.darkAccentGold.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Iconsax.info_circle, size: 16, color: AppColors.darkAccentGold),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              question['fact'] as String,
+                              style: const TextStyle(fontSize: 12, height: 1.4),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
-          ],
-        ),
-        content: const Text(
-          'In Dragon Ball Z, who was the first mortal to defeat Son Goku in combat?\n\nA) Vegeta\nB) Master Roshi (Jackie Chun)\nC) Yamcha\nD) Tien Shinhan',
-          style: TextStyle(fontSize: 14, color: AppColors.comicBlack, height: 1.4),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('CANCEL', style: TextStyle(color: AppColors.comicGray, fontWeight: FontWeight.bold)),
-          ),
-          SkewedButton(
-            text: 'ANSWER: B',
-            height: 44,
-            fontSize: 12,
-            backgroundColor: AppColors.comicRed,
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Correct! +50 Trivia XP earned!'),
-                  backgroundColor: AppColors.success,
-                  behavior: SnackBarBehavior.floating,
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                  if (sessionScore > 0) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('🏆 Trivia session: $sessionScore XP earned from $questionsAnswered questions!'),
+                        backgroundColor: AppColors.success,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                },
+                child: const Text('CLOSE', style: TextStyle(color: AppColors.comicGray, fontWeight: FontWeight.bold)),
+              ),
+              if (answered)
+                SkewedButton(
+                  text: 'NEXT QUESTION',
+                  height: 40,
+                  fontSize: 11,
+                  backgroundColor: AppColors.comicRed,
+                  onPressed: () {
+                    setDialogState(() {
+                      int next;
+                      do {
+                        next = Random().nextInt(_triviaQuestions.length);
+                      } while (next == currentIndex && _triviaQuestions.length > 1);
+                      currentIndex = next;
+                      selectedAnswer = null;
+                      answered = false;
+                    });
+                  },
+                )
+              else if (selectedAnswer == null)
+                const SizedBox.shrink(),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// ─────────────────────────────────────────────────────────────────────────────
+/// AUTO-SLIDING TRENDING BANNER CAROUSEL
+/// Netflix-style full-width PageView with dot indicators + auto-advance
+/// ─────────────────────────────────────────────────────────────────────────────
+class _TrendingBannerCarousel extends StatelessWidget {
+  final List<FandomPost> posts;
+  final PageController controller;
+  final int currentIndex;
+  final ValueChanged<int> onPageChanged;
+  final bool isDark;
+
+  const _TrendingBannerCarousel({
+    required this.posts,
+    required this.controller,
+    required this.currentIndex,
+    required this.onPageChanged,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // ── PageView Banner ──
+        SizedBox(
+          height: 220,
+          child: PageView.builder(
+            controller: controller,
+            itemCount: posts.length,
+            onPageChanged: onPageChanged,
+            itemBuilder: (context, index) {
+              final post = posts[index];
+              return GestureDetector(
+                onTap: () => Navigator.of(context)
+                    .pushNamed('/news-detail', arguments: post),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        // Background image — cacheWidth limits decode size for speed
+                        Image.network(
+                          post.imageUrl,
+                          fit: BoxFit.cover,
+                          cacheWidth: 800, // prevents 4K decode of banner images
+                          filterQuality: FilterQuality.medium,
+                          errorBuilder: (_, __, ___) => Container(
+                            color: AppColors.darkSurfaceElevated,
+                            child: const Icon(Iconsax.image,
+                                size: 48, color: Colors.white24),
+                          ),
+                        ),
+                        // Gradient overlay bottom
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withValues(alpha: 0.85),
+                              ],
+                              stops: const [0.35, 1.0],
+                            ),
+                          ),
+                        ),
+                        // Top badges row
+                        Positioned(
+                          top: 12,
+                          left: 14,
+                          right: 14,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              // TRENDING badge
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppColors.comicRed,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Iconsax.flash,
+                                        size: 12, color: Colors.white),
+                                    const SizedBox(width: 4),
+                                    const Text(
+                                      'TRENDING',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Page counter e.g. "2 / 4"
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.5),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  '${index + 1} / ${posts.length}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Bottom content
+                        Positioned(
+                          bottom: 14,
+                          left: 14,
+                          right: 14,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Category chip
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: AppColors.darkPrimary
+                                      .withValues(alpha: 0.85),
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                child: Text(
+                                  post.category.toUpperCase(),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.4,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              // Title
+                              Text(
+                                post.title,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                  fontStyle: FontStyle.italic,
+                                  height: 1.25,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              // Author + read time
+                              Row(
+                                children: [
+                                  const Icon(Iconsax.user,
+                                      size: 12, color: Colors.white70),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    post.authorName,
+                                    style: const TextStyle(
+                                        color: Colors.white70, fontSize: 12),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Icon(Iconsax.clock,
+                                      size: 12, color: Colors.white70),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${post.readTimeMinutes} min read',
+                                    style: const TextStyle(
+                                        color: Colors.white70, fontSize: 12),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               );
             },
           ),
-        ],
-      ),
+        ),
+
+        // ── Dot Indicators ──
+        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(posts.length, (i) {
+            final isActive = i == currentIndex;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              margin: const EdgeInsets.symmetric(horizontal: 3),
+              width: isActive ? 22 : 7,
+              height: 7,
+              decoration: BoxDecoration(
+                color: isActive
+                    ? AppColors.comicRed
+                    : (isDark ? Colors.white30 : Colors.black26),
+                borderRadius: BorderRadius.circular(4),
+              ),
+            );
+          }),
+        ),
+      ],
     );
   }
 }
@@ -448,6 +961,8 @@ class _SolidNewsCard extends StatelessWidget {
                 width: 84,
                 height: 84,
                 fit: BoxFit.cover,
+                cacheWidth: 168, // 2x for retina, exact size — no oversized decode
+                filterQuality: FilterQuality.low,
                 errorBuilder: (_, __, ___) => Container(
                   width: 84,
                   height: 84,

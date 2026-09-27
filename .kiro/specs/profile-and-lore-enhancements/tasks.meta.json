@@ -1,0 +1,609 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1. Database schema setup and migrations": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517037667
+      },
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517060589
+      },
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790518298027
+      }
+    ],
+    "2.1 Create AdvancedLoreEntity with serialization methods": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517037973
+      },
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517061310
+      },
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790518298849
+      }
+    ],
+    "2.2 Create BehindScenesEntity with serialization methods": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517038142
+      },
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517062196
+      },
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790518299648
+      }
+    ],
+    "2.3 Create InterviewEntity with JSON parsing": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517038269
+      },
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517063058
+      },
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790518300216
+      }
+    ],
+    "3.1 Enhance UserEntity with liked_fandoms field": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517038347
+      },
+      {
+        "executionId": "5f3befd7-0edf-4e2f-bb8b-1832fdf405b4",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790518389568
+      }
+    ],
+    "3.2 Fix toMap() serialization method": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517038556
+      },
+      {
+        "executionId": "5f3befd7-0edf-4e2f-bb8b-1832fdf405b4",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790518390259
+      }
+    ],
+    "3.3 Fix fromMap() deserialization method": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517038648
+      },
+      {
+        "executionId": "5f3befd7-0edf-4e2f-bb8b-1832fdf405b4",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790518391128
+      }
+    ],
+    "4.1 Enhance GlossaryTerm fromMap with validation": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517038756
+      },
+      {
+        "executionId": "5f3befd7-0edf-4e2f-bb8b-1832fdf405b4",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790518393215
+      }
+    ],
+    "4.2 Verify GlossaryTerm toMap method": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517038867
+      },
+      {
+        "executionId": "5f3befd7-0edf-4e2f-bb8b-1832fdf405b4",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790518393965
+      }
+    ],
+    "5. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517038938
+      }
+    ],
+    "6.1 Add new events to ProfileEvent": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517039016
+      }
+    ],
+    "6.2 Enhance ProfileLoaded state with likedFandoms": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517039131
+      }
+    ],
+    "6.3 Implement _onUpdateAvatar event handler": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517039269
+      }
+    ],
+    "6.4 Implement _onToggleLikeFandom event handler": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517039413
+      }
+    ],
+    "7.1 Add new events for advanced content": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517039568
+      }
+    ],
+    "7.2 Enhance FandomHubLoaded state": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517039713
+      }
+    ],
+    "7.3 Implement _onLoadAdvancedLore event handler": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517039851
+      }
+    ],
+    "7.4 Implement _onLoadBehindScenes event handler": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517039992
+      }
+    ],
+    "7.5 Implement _onLoadInterviews event handler": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517040129
+      }
+    ],
+    "7.6 Implement _onToggleGlossaryBookmark event handler": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517040266
+      }
+    ],
+    "8. Checkpoint - Verify BLoC implementations": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517040407
+      }
+    ],
+    "9.1 Create ProfilePicturePicker widget": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517040532
+      }
+    ],
+    "9.2 Implement image source selection bottom sheet": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517040675
+      }
+    ],
+    "9.3 Implement image preview and error handling": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517040811
+      }
+    ],
+    "9.4 Integrate ProfilePicturePicker in EditProfilePage": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517040952
+      }
+    ],
+    "10.1 Verify bio TextFormField in EditProfilePage": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517041094
+      }
+    ],
+    "10.2 Fix bio save in UpdateProfileDetailsEvent handler": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517041230
+      }
+    ],
+    "10.3 Verify bio display on profile page": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517041369
+      }
+    ],
+    "10.4 Verify bio loads on app start": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517041507
+      }
+    ],
+    "11.1 Create FandomLikeButton widget": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517041586
+      }
+    ],
+    "11.2 Integrate FandomLikeButton in fandom category cards": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517041683
+      }
+    ],
+    "11.3 Implement \"Liked Fandoms\" section on profile page": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517041836
+      }
+    ],
+    "12.1 Update home feed query to use selected_fandoms filter": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517042098
+      }
+    ],
+    "12.2 Create FilterBadgeChip widget": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517042201
+      }
+    ],
+    "12.3 Add filter badge to home feed page": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517042298
+      }
+    ],
+    "12.4 Handle filtered results and empty state": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517042389
+      }
+    ],
+    "13. Checkpoint - Test profile and filtering features": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517042471
+      }
+    ],
+    "14.1 Create FAQPage with static entries": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517042547
+      }
+    ],
+    "14.2 Add FAQ search functionality": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517042635
+      }
+    ],
+    "14.3 Add FAQ navigation from profile page": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517042718
+      }
+    ],
+    "14.4 Implement FAQ expansion behavior": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517042810
+      }
+    ],
+    "15.1 Create GlossaryDetailsPage widget": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517042937
+      }
+    ],
+    "15.2 Display glossary term details": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517043029
+      }
+    ],
+    "15.3 Implement bookmark toggle button": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517043150
+      }
+    ],
+    "15.4 Implement related terms section": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517043273
+      }
+    ],
+    "15.5 Implement related term navigation": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517043399
+      }
+    ],
+    "15.6 Add share functionality": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517043536
+      }
+    ],
+    "16.1 Add gallery-view route to app router": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517043695
+      }
+    ],
+    "16.2 Create GalleryViewPage widget": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517043830
+      }
+    ],
+    "16.3 Update Media tab navigation": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517043957
+      }
+    ],
+    "16.4 Add skeleton loaders and error handling": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517044092
+      }
+    ],
+    "17.1 Enhance TriviaQuestionCard state management": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517044238
+      }
+    ],
+    "17.2 Implement answer highlighting logic": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517044375
+      }
+    ],
+    "17.3 Display explanation after answer": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517044533
+      }
+    ],
+    "17.4 Implement score display": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517044693
+      }
+    ],
+    "18. Checkpoint - Test lore hub features": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517044856
+      }
+    ],
+    "19.1 Create AdvancedLoreCard widget": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517045010
+      }
+    ],
+    "19.2 Implement difficulty color coding": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517045136
+      }
+    ],
+    "19.3 Add Advanced Lore section to Deep Dive tab": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517045284
+      }
+    ],
+    "19.4 Add skeleton loaders and empty state": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517045440
+      }
+    ],
+    "20.1 Create BehindScenesCard widget": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517045687
+      }
+    ],
+    "20.2 Create BehindScenesDetailPage widget": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517045822
+      }
+    ],
+    "20.3 Add Behind the Scenes section to Deep Dive tab": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517045943
+      }
+    ],
+    "20.4 Add skeleton loaders": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517046073
+      }
+    ],
+    "21.1 Create InterviewCard widget": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517046162
+      }
+    ],
+    "21.2 Create InterviewDetailPage widget": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517046267
+      }
+    ],
+    "21.3 Add Interviews section to Deep Dive tab": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517046404
+      }
+    ],
+    "21.4 Add skeleton loaders and empty state": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517046548
+      }
+    ],
+    "22.1 Update Glossary tab skeleton loaders": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517046697
+      }
+    ],
+    "22.2 Update Media tab skeleton loaders": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517046837
+      }
+    ],
+    "22.3 Verify skeleton loader animations": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517046972
+      }
+    ],
+    "23.1 Integration testing for profile features": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517047109
+      }
+    ],
+    "23.2 Integration testing for content filtering": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517047251
+      }
+    ],
+    "23.3 Integration testing for lore hub": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517047410
+      }
+    ],
+    "23.4 Integration testing for trivia and media": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517047559
+      }
+    ],
+    "24. Final checkpoint - Complete implementation": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790517047714
+      }
+    ],
+    "2. Create new domain entities": [
+      {
+        "executionId": "30795017-8c10-418c-8ba5-bcebe5fc811f",
+        "chatSessionId": "sess_ea9faa91-b532-4de2-8dd2-23369f24e379",
+        "timestamp": 1790518300402
+      }
+    ]
+  }
+}

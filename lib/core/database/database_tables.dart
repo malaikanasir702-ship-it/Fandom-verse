@@ -3,7 +3,8 @@ import '../constants/db_constants.dart';
 class DatabaseTables {
   DatabaseTables._();
 
-  static const String createUsersTable = '''
+  static const String createUsersTable =
+      '''
     CREATE TABLE IF NOT EXISTS ${DbConstants.tableUsers} (
       user_id          TEXT PRIMARY KEY,
       name             TEXT NOT NULL,
@@ -20,7 +21,8 @@ class DatabaseTables {
     );
   ''';
 
-  static const String createCategoriesTable = '''
+  static const String createCategoriesTable =
+      '''
     CREATE TABLE IF NOT EXISTS ${DbConstants.tableCategories} (
       category_id TEXT PRIMARY KEY,
       name        TEXT NOT NULL,
@@ -31,7 +33,8 @@ class DatabaseTables {
     );
   ''';
 
-  static const String createPostsTable = '''
+  static const String createPostsTable =
+      '''
     CREATE TABLE IF NOT EXISTS ${DbConstants.tablePosts} (
       post_id       TEXT PRIMARY KEY,
       category_id   TEXT NOT NULL,
@@ -48,7 +51,8 @@ class DatabaseTables {
     );
   ''';
 
-  static const String createGlossaryTable = '''
+  static const String createGlossaryTable =
+      '''
     CREATE TABLE IF NOT EXISTS ${DbConstants.tableGlossary} (
       term_id         TEXT PRIMARY KEY,
       term            TEXT NOT NULL,
@@ -60,7 +64,8 @@ class DatabaseTables {
     );
   ''';
 
-  static const String createEventsTable = '''
+  static const String createEventsTable =
+      '''
     CREATE TABLE IF NOT EXISTS ${DbConstants.tableEvents} (
       event_id        TEXT PRIMARY KEY,
       title           TEXT NOT NULL,
@@ -79,7 +84,8 @@ class DatabaseTables {
     );
   ''';
 
-  static const String createMerchandiseTable = '''
+  static const String createMerchandiseTable =
+      '''
     CREATE TABLE IF NOT EXISTS ${DbConstants.tableMerchandise} (
       product_id     TEXT PRIMARY KEY,
       name           TEXT NOT NULL,
@@ -94,7 +100,8 @@ class DatabaseTables {
     );
   ''';
 
-  static const String createCartItemsTable = '''
+  static const String createCartItemsTable =
+      '''
     CREATE TABLE IF NOT EXISTS ${DbConstants.tableCartItems} (
       cart_id          TEXT PRIMARY KEY,
       product_id       TEXT NOT NULL,
@@ -105,7 +112,8 @@ class DatabaseTables {
     );
   ''';
 
-  static const String createWishlistsTable = '''
+  static const String createWishlistsTable =
+      '''
     CREATE TABLE IF NOT EXISTS ${DbConstants.tableWishlists} (
       wish_id    TEXT PRIMARY KEY,
       user_id    TEXT NOT NULL,
@@ -115,7 +123,8 @@ class DatabaseTables {
     );
   ''';
 
-  static const String createDiscussionsTable = '''
+  static const String createDiscussionsTable =
+      '''
     CREATE TABLE IF NOT EXISTS ${DbConstants.tableDiscussions} (
       thread_id  TEXT PRIMARY KEY,
       user_id    TEXT NOT NULL,
@@ -130,7 +139,8 @@ class DatabaseTables {
     );
   ''';
 
-  static const String createDiscussionRepliesTable = '''
+  static const String createDiscussionRepliesTable =
+      '''
     CREATE TABLE IF NOT EXISTS ${DbConstants.tableDiscussionReplies} (
       reply_id   TEXT PRIMARY KEY,
       thread_id  TEXT NOT NULL,
@@ -141,7 +151,8 @@ class DatabaseTables {
     );
   ''';
 
-  static const String createStarProfilesTable = '''
+  static const String createStarProfilesTable =
+      '''
     CREATE TABLE IF NOT EXISTS ${DbConstants.tableStarProfiles} (
       star_id         TEXT PRIMARY KEY,
       name            TEXT NOT NULL,
@@ -154,7 +165,8 @@ class DatabaseTables {
     );
   ''';
 
-  static const String createSimulatedOrdersTable = '''
+  static const String createSimulatedOrdersTable =
+      '''
     CREATE TABLE IF NOT EXISTS ${DbConstants.tableSimulatedOrders} (
       order_id         TEXT PRIMARY KEY,
       user_id          TEXT NOT NULL,
@@ -172,7 +184,8 @@ class DatabaseTables {
     );
   ''';
 
-  static const String createAuditLogsTable = '''
+  static const String createAuditLogsTable =
+      '''
     CREATE TABLE IF NOT EXISTS ${DbConstants.tableAuditLogs} (
       log_id      TEXT PRIMARY KEY,
       action_type TEXT NOT NULL,
@@ -183,7 +196,8 @@ class DatabaseTables {
     );
   ''';
 
-  static const String createHeroStoriesTable = '''
+  static const String createHeroStoriesTable =
+      '''
     CREATE TABLE IF NOT EXISTS ${DbConstants.tableHeroStories} (
       story_id         TEXT PRIMARY KEY,
       hero_name        TEXT NOT NULL,
@@ -196,6 +210,45 @@ class DatabaseTables {
       powers_abilities TEXT,
       first_appearance TEXT,
       slides_json      TEXT NOT NULL,
+      created_at       INTEGER NOT NULL
+    );
+  ''';
+
+  static const String createAdvancedLoreTable =
+      '''
+    CREATE TABLE IF NOT EXISTS ${DbConstants.tableAdvancedLore} (
+      lore_id          TEXT PRIMARY KEY,
+      fandom_category  TEXT NOT NULL,
+      title            TEXT NOT NULL,
+      content_body     TEXT NOT NULL,
+      difficulty_level TEXT DEFAULT 'Intermediate',
+      created_at       INTEGER NOT NULL
+    );
+  ''';
+
+  static const String createBehindScenesTable =
+      '''
+    CREATE TABLE IF NOT EXISTS ${DbConstants.tableBehindScenes} (
+      scene_id        TEXT PRIMARY KEY,
+      fandom_category TEXT NOT NULL,
+      title           TEXT NOT NULL,
+      description     TEXT NOT NULL,
+      media_type      TEXT NOT NULL,
+      media_url       TEXT,
+      created_at      INTEGER NOT NULL
+    );
+  ''';
+
+  static const String createInterviewsTable =
+      '''
+    CREATE TABLE IF NOT EXISTS ${DbConstants.tableInterviews} (
+      interview_id     TEXT PRIMARY KEY,
+      interviewee_name TEXT NOT NULL,
+      role_title       TEXT NOT NULL,
+      fandom_category  TEXT NOT NULL,
+      interview_date   INTEGER NOT NULL,
+      questions_json   TEXT NOT NULL,
+      image_url        TEXT,
       created_at       INTEGER NOT NULL
     );
   ''';
@@ -215,5 +268,8 @@ class DatabaseTables {
     createSimulatedOrdersTable,
     createAuditLogsTable,
     createHeroStoriesTable,
+    createAdvancedLoreTable,
+    createBehindScenesTable,
+    createInterviewsTable,
   ];
 }

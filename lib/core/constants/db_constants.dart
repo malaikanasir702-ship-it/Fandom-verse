@@ -2,8 +2,8 @@ class DbConstants {
   DbConstants._();
 
   static const String databaseName = 'fandom_verse.db';
-  // ── Version 2: Added composite indexes for faster queries ──
-  static const int databaseVersion = 2;
+  // ── Version 3: Added liked_fandoms to users, new tables (advanced_lore, behind_scenes, interviews) ──
+  static const int databaseVersion = 3;
 
   // 12 Database Tables
   static const String tableUsers = 'users';
@@ -20,12 +20,15 @@ class DbConstants {
   static const String tableSimulatedOrders = 'simulated_orders';
   static const String tableAuditLogs = 'admin_audit_logs';
   static const String tableHeroStories = 'hero_stories';
+  static const String tableAdvancedLore = 'advanced_lore';
+  static const String tableBehindScenes = 'behind_scenes';
+  static const String tableInterviews = 'interviews';
 
   // Default Pre-configured Coupons
   static const Map<String, double> validCoupons = {
     'FANDOM10': 0.10, // 10% off
-    'CON2025': 0.15,  // 15% off
-    'OTAKU20': 0.20,  // 20% off
+    'CON2025': 0.15, // 15% off
+    'OTAKU20': 0.20, // 20% off
     'SUPERFAN': 0.25, // 25% off
   };
 }

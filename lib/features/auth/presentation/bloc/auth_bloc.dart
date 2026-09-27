@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/service_locator.dart';
 import '../../../../core/services/firebase_auth_service.dart';
+import '../../../../core/services/fcm_service.dart';
 import '../../domain/entities/user_entity.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
@@ -103,6 +104,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (_currentUser!.isAdmin) {
         emit(AdminAuthenticated(_currentUser!));
       } else {
+        // Save FCM token for push notifications
+        FCMService.saveTokenForUser(_currentUser!.id);
+        // Subscribe to fandom topics
+        FCMService.subscribeToTopic('all_fans');
         emit(FanAuthenticated(_currentUser!));
       }
     } on FirebaseAuthException catch (e) {
@@ -151,6 +156,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
 
       _currentUser = UserEntity.fromMap(userData);
+      // Save FCM token + subscribe to all_fans topic
+      FCMService.saveTokenForUser(_currentUser!.id);
+      FCMService.subscribeToTopic('all_fans');
       emit(FanAuthenticated(_currentUser!));
     } on FirebaseAuthException catch (e) {
       emit(AuthFailure(_mapFirebaseError(e)));
@@ -336,6 +344,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onLogout(LogoutEvent event, Emitter<AuthState> emit) async {
     try {
+      // Remove FCM token before signing out
+      if (_currentUser != null) {
+        await FCMService.removeTokenForUser(_currentUser!.id);
+        await FCMService.unsubscribeFromTopic('all_fans');
+      }
       await _authService.signOut();
     } catch (e) {
       debugPrint('[AuthBloc] Logout error: $e');

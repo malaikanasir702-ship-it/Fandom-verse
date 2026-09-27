@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../../../../core/services/notification_service.dart';
@@ -12,8 +13,7 @@ class NotificationsPage extends StatefulWidget {
 }
 
 class _NotificationsPageState extends State<NotificationsPage> {
-  // Notification items — in production these would come from
-  // a notifications table or FCM history. For now seeded locally.
+  // Notification items — seeded locally + runtime FCM messages appended
   final List<Map<String, dynamic>> _notifications = [
     {
       'id': 1,
@@ -61,6 +61,27 @@ class _NotificationsPageState extends State<NotificationsPage> {
       'isRead': true,
     },
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Listen for real FCM messages while this page is open
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      if (mounted && message.notification != null) {
+        setState(() {
+          _notifications.insert(0, {
+            'id': DateTime.now().millisecondsSinceEpoch,
+            'title': message.notification!.title ?? 'New Notification',
+            'body': message.notification!.body ?? '',
+            'time': 'Just now',
+            'icon': Iconsax.notification_bing,
+            'color': AppColors.comicRed,
+            'isRead': false,
+          });
+        });
+      }
+    });
+  }
 
   void _markAllRead() {
     setState(() {

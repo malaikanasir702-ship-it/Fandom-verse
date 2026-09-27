@@ -3,6 +3,7 @@ import '../services/firebase_service.dart';
 import '../services/firebase_auth_service.dart';
 import '../services/firestore_service.dart';
 import '../services/cloudinary_service.dart';
+import '../services/fcm_service.dart';
 import 'dev_a_injection.dart';
 import 'dev_b_injection.dart';
 
@@ -16,8 +17,11 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton<FirebaseAuthService>(() => FirebaseAuthService());
   sl.registerLazySingleton<FirestoreService>(() => FirestoreService());
 
-  // Register Cloudinary CDN Service (singleton — shared across whole app)
+  // Register Cloudinary CDN Service
   sl.registerLazySingleton<CloudinaryService>(() => CloudinaryService.instance);
+
+  // Initialize FCM — real push notifications
+  await FCMService.initialize();
 
   // Developer A (Fan side dependencies)
   initDevADependencies(sl);

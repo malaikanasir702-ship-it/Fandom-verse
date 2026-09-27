@@ -51,3 +51,24 @@ class ClearLocalCacheStorageEvent extends ProfileEvent {
   @override
   List<Object?> get props => [userId];
 }
+
+class UpdateAvatarEvent extends ProfileEvent {
+  final String userId;
+  final String imagePath;
+
+  const UpdateAvatarEvent({required this.userId, required this.imagePath});
+
+  @override
+  List<Object?> get props => [userId, imagePath];
+}
+
+class ToggleLikeFandomEvent extends ProfileEvent {
+  final String userId;
+  final String categoryId;
+
+  const ToggleLikeFandomEvent({required this.userId, required this.categoryId});
+
+  @override
+  List<Object?> get props => [userId, categoryId];
+}
+

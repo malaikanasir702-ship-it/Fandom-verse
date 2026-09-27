@@ -335,6 +335,45 @@ class _FanProfilePageState extends State<FanProfilePage> {
                         .toList(),
                   );
                 }),
+                const SizedBox(height: 20),
+
+                // ── Liked Fandoms ──────────────────────────────────────────
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Liked Fandoms',
+                        style: AppTextStyles.titleMedium
+                            .copyWith(fontWeight: FontWeight.w800)),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Builder(builder: (context) {
+                  final likedFandoms = profileLoaded?.likedFandoms ?? authUser?.likedFandoms ?? [];
+                  if (likedFandoms.isEmpty) {
+                    return Text(
+                      'No liked fandoms yet. Explore and like your favorites!',
+                      style: TextStyle(
+                          color: isDark
+                              ? AppColors.darkTextSecondary
+                              : AppColors.lightTextSecondary,
+                          fontSize: 12),
+                    );
+                  }
+                  return Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: likedFandoms
+                        .map((f) => Chip(
+                              avatar: const Icon(Icons.favorite_rounded,
+                                  size: 14, color: AppColors.comicRed),
+                              label: Text(f, style: const TextStyle(fontSize: 12)),
+                              backgroundColor: isDark
+                                  ? AppColors.darkSurface
+                                  : AppColors.lightSurface,
+                            ))
+                        .toList(),
+                  );
+                }),
                 const SizedBox(height: 24),
 
                 // ── Nav Tiles ──────────────────────────────────────────────
@@ -398,6 +437,12 @@ class _FanProfilePageState extends State<FanProfilePage> {
                     subtitle: 'Submit enquiries & feedback',
                     route: '/contact-us',
                     color: AppColors.comicYellowDark),
+                _buildProfileNavTile(context,
+                    icon: Iconsax.message_question_1,
+                    title: 'FAQ',
+                    subtitle: 'Frequently asked questions',
+                    route: '/faq',
+                    color: AppColors.heroBlue),
 
                 const SizedBox(height: 20),
 

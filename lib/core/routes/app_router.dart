@@ -4,6 +4,15 @@ import 'fan_routes.dart';
 import 'admin_routes.dart';
 
 class AppRouter {
+  static const String galleryView = '/gallery-view';
+  static const String faq = '/faq';
+  static const String glossaryDetails = '/glossary-details';
+  static const String behindScenesDetail = '/behind-scenes-detail';
+  static const String interviewDetail = '/interview-detail';
+
+  static Route<dynamic> generateRoute(RouteSettings settings) =>
+      onGenerateRoute(settings);
+
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     // 1. Check Developer A (Fan-side) Routes
     final fanRoute = FanRoutes.onGenerateRoute(settings);

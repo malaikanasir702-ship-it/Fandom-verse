@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/skewed_button.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/profile_bloc.dart';
 import '../bloc/profile_event.dart';
+import '../widgets/profile_picture_picker.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -17,8 +17,8 @@ class EditProfilePage extends StatefulWidget {
 class _EditProfilePageState extends State<EditProfilePage> {
   late final TextEditingController _nameController;
   late final TextEditingController _bioController;
-  late final TextEditingController _cityController;
   late String _userId;
+  String? _pendingAvatarPath;
   bool _isSaving = false;
 
   @override
@@ -28,25 +28,34 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _userId = user?.id ?? 'fan-01';
     _nameController = TextEditingController(text: user?.name ?? '');
     _bioController = TextEditingController(text: user?.bio ?? '');
-    _cityController = TextEditingController();
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _bioController.dispose();
-    _cityController.dispose();
     super.dispose();
   }
 
   Future<void> _saveProfile() async {
     setState(() => _isSaving = true);
+
+    // Dispatch avatar update if a new image was selected
+    if (_pendingAvatarPath != null) {
+      context.read<ProfileBloc>().add(
+            UpdateAvatarEvent(
+              userId: _userId,
+              imagePath: _pendingAvatarPath!,
+            ),
+          );
+    }
+
     context.read<ProfileBloc>().add(
           UpdateProfileDetailsEvent(
             userId: _userId,
             name: _nameController.text.trim(),
             bio: _bioController.text.trim(),
-            avatarUrl: '',
+            avatarUrl: _pendingAvatarPath ?? context.read<AuthBloc>().currentUser?.avatarUrl ?? '',
             selectedFandoms:
                 context.read<AuthBloc>().currentUser?.selectedFandoms ?? [],
           ),
@@ -67,6 +76,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final user = context.read<AuthBloc>().currentUser;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Profile',
@@ -77,53 +87,35 @@ class _EditProfilePageState extends State<EditProfilePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Avatar placeholder
+            // Avatar with ProfilePicturePicker
             Center(
-              child: Stack(
-                children: [
-                  CircleAvatar(
-                    radius: 46,
-                    backgroundColor: AppColors.comicRed,
-                    child: Text(
-                      _nameController.text.isNotEmpty
-                          ? _nameController.text[0].toUpperCase()
-                          : 'U',
-                      style: const TextStyle(
-                          fontSize: 40,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: const BoxDecoration(
-                        color: AppColors.comicYellow,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Iconsax.camera,
-                          size: 16, color: Colors.black),
-                    ),
-                  ),
-                ],
+              child: ProfilePicturePicker(
+                currentAvatarUrl: user?.avatarUrl,
+                displayName: _nameController.text,
+                onImageSelected: (path) {
+                  setState(() => _pendingAvatarPath = path);
+                },
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Center(
+              child: Text(
+                'Tap to change profile photo',
+                style: TextStyle(fontSize: 12, color: AppColors.comicGray),
               ),
             ),
             const SizedBox(height: 24),
 
             _buildInputField('Display Name', _nameController),
             const SizedBox(height: 16),
-            _buildInputField('Home City / Region', _cityController),
-            const SizedBox(height: 16),
-            _buildInputField('Bio', _bioController, maxLines: 4),
+            _buildBioField(),
             const SizedBox(height: 32),
 
             SkewedButton(
               text: _isSaving ? 'Saving...' : 'Save Changes',
               height: 52,
               fontSize: 14,
-              icon: Iconsax.tick_circle,
+              icon: Icons.check_circle_outline_rounded,
               onPressed: _isSaving ? null : _saveProfile,
             ),
           ],
@@ -147,6 +139,26 @@ class _EditProfilePageState extends State<EditProfilePage> {
           decoration: InputDecoration(
             border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBioField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Bio',
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: _bioController,
+          maxLines: 4,
+          maxLength: 200,
+          decoration: InputDecoration(
+            hintText: 'Tell other fans about yourself...',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           ),
         ),
       ],

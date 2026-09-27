@@ -44,11 +44,19 @@ import '../../features/ai_assistant/presentation/pages/ai_assistant_page.dart';
 import '../../features/profile/presentation/pages/fan_profile_page.dart';
 import '../../features/profile/presentation/pages/edit_profile_page.dart';
 import '../../features/profile/presentation/pages/settings_page.dart';
+import '../../features/profile/presentation/pages/faq_page.dart';
 import '../../features/profile/presentation/pages/notifications_page.dart';
 import '../../features/profile/presentation/pages/badges_achievements_page.dart';
 import '../../features/profile/presentation/pages/offline_content_page.dart';
 import '../../core/pages/about_us_page.dart';
 import '../../core/pages/contact_us_page.dart';
+import '../../features/fandom_hub/domain/entities/glossary_term.dart';
+import '../../features/fandom_hub/domain/entities/behind_scenes_entity.dart';
+import '../../features/fandom_hub/domain/entities/interview_entity.dart';
+import '../../features/fandom_hub/presentation/pages/glossary_details_page.dart';
+import '../../features/fandom_hub/presentation/pages/gallery_view_page.dart';
+import '../../features/fandom_hub/presentation/pages/behind_scenes_detail_page.dart';
+import '../../features/fandom_hub/presentation/pages/interview_detail_page.dart';
 
 class FanRoutes {
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
@@ -162,6 +170,38 @@ class FanRoutes {
 
       case '/contact-us':
         return MaterialPageRoute(builder: (_) => const ContactUsPage());
+
+      case '/faq':
+        return MaterialPageRoute(builder: (_) => const FAQPage());
+
+      case '/glossary-details':
+        final term = settings.arguments as GlossaryTerm;
+        return MaterialPageRoute(builder: (_) => GlossaryDetailsPage(term: term));
+
+      case '/gallery-view':
+        final arg = settings.arguments;
+        final GalleryItem item;
+        if (arg is GalleryItem) {
+          item = arg;
+        } else if (arg is Map<String, dynamic>) {
+          item = GalleryItem.fromMap(arg);
+        } else {
+          item = const GalleryItem(
+            id: 'default',
+            title: 'Artwork',
+            imageUrl: '',
+            artistName: 'Community',
+          );
+        }
+        return MaterialPageRoute(builder: (_) => GalleryViewPage(item: item));
+
+      case '/behind-scenes-detail':
+        final scene = settings.arguments as BehindScenesEntity;
+        return MaterialPageRoute(builder: (_) => BehindScenesDetailPage(scene: scene));
+
+      case '/interview-detail':
+        final interview = settings.arguments as InterviewEntity;
+        return MaterialPageRoute(builder: (_) => InterviewDetailPage(interview: interview));
 
       default:
         return null;

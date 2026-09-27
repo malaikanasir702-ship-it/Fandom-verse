@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/db_constants.dart';
 import '../../../../core/database/sqlite_helper.dart';
+import '../../../auth/domain/entities/user_entity.dart';
 import 'profile_event.dart';
 import 'profile_state.dart';
 
@@ -13,6 +15,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<LoadUserProfileEvent>(_onLoadUserProfile);
     on<UpdateProfileDetailsEvent>(_onUpdateProfileDetails);
     on<ClearLocalCacheStorageEvent>(_onClearCache);
+    on<UpdateAvatarEvent>(_onUpdateAvatar);
+    on<ToggleLikeFandomEvent>(_onToggleLikeFandom);
   }
 
   Future<void> _onLoadUserProfile(
@@ -34,6 +38,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       }
 
       final user = users.first;
+      final userEntity = UserEntity.fromMap(user);
 
       // Real counts from DB
       final orders = await _dbHelper.getUserOrders(event.userId);
@@ -68,6 +73,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         offlineEventsCount: allEvents.length,
         offlineGlossaryCount: allGlossary.length,
         cacheSizeMB: cacheSizeMB,
+        likedFandoms: userEntity.likedFandoms,
       ));
     } catch (e) {
       emit(ProfileError('Failed to load profile: ${e.toString()}'));
@@ -83,11 +89,61 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         'name': event.name,
         'bio': event.bio,
         'avatar_url': event.avatarUrl,
-        'selected_fandoms': event.selectedFandoms.toString(),
+        'selected_fandoms': jsonEncode(event.selectedFandoms),
       });
       add(LoadUserProfileEvent(userId: event.userId));
     } catch (e) {
       emit(ProfileError('Failed to update profile: ${e.toString()}'));
+    }
+  }
+
+  Future<void> _onUpdateAvatar(
+    UpdateAvatarEvent event,
+    Emitter<ProfileState> emit,
+  ) async {
+    try {
+      await _dbHelper.update(DbConstants.tableUsers, 'user_id', event.userId, {
+        'avatar_url': event.imagePath,
+      });
+      add(LoadUserProfileEvent(userId: event.userId));
+    } catch (e) {
+      emit(ProfileError('Failed to update avatar: ${e.toString()}'));
+    }
+  }
+
+  Future<void> _onToggleLikeFandom(
+    ToggleLikeFandomEvent event,
+    Emitter<ProfileState> emit,
+  ) async {
+    try {
+      List<String> likedFandoms = [];
+      if (state is ProfileLoaded) {
+        final current = state as ProfileLoaded;
+        likedFandoms = List<String>.from(current.likedFandoms);
+      } else {
+        final users = await _dbHelper.query(
+          DbConstants.tableUsers,
+          where: 'user_id = ?',
+          whereArgs: [event.userId],
+        );
+        if (users.isNotEmpty) {
+          likedFandoms = List<String>.from(UserEntity.fromMap(users.first).likedFandoms);
+        }
+      }
+
+      if (likedFandoms.contains(event.categoryId)) {
+        likedFandoms.remove(event.categoryId);
+      } else {
+        likedFandoms.add(event.categoryId);
+      }
+
+      await _dbHelper.update(DbConstants.tableUsers, 'user_id', event.userId, {
+        'liked_fandoms': jsonEncode(likedFandoms),
+      });
+
+      add(LoadUserProfileEvent(userId: event.userId));
+    } catch (e) {
+      emit(ProfileError('Failed to toggle liked fandom: ${e.toString()}'));
     }
   }
 

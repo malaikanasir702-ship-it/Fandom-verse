@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -49,7 +49,10 @@ class _FanShellPageState extends State<FanShellPage> {
   @override
   void initState() {
     super.initState();
-    context.read<FandomHubBloc>().add(const LoadFandomHubContentEvent());
+    final authState = context.read<AuthBloc>().state;
+    final fandoms =
+        authState is AuthAuthenticated ? authState.user.selectedFandoms : null;
+    context.read<FandomHubBloc>().add(LoadFandomHubContentEvent(selectedFandoms: fandoms));
     context.read<EventCalendarBloc>().add(const LoadAllEventsEvent());
     context.read<CommunityBloc>().add(const LoadDiscussionThreadsEvent());
   }

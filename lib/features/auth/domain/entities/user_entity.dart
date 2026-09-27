@@ -1,6 +1,7 @@
 import 'dart:convert';
+import 'package:equatable/equatable.dart';
 
-class UserEntity {
+class UserEntity extends Equatable {
   final String id;
   final String name;
   final String email;
@@ -10,6 +11,7 @@ class UserEntity {
   final String? bio;
   final List<String> badges;
   final List<String> selectedFandoms;
+  final List<String> likedFandoms;
 
   const UserEntity({
     required this.id,
@@ -21,6 +23,7 @@ class UserEntity {
     this.bio,
     this.badges = const [],
     this.selectedFandoms = const [],
+    this.likedFandoms = const [],
   });
 
   bool get isAdmin => role == 'admin';
@@ -48,9 +51,10 @@ class UserEntity {
       role: (map['role'] ?? 'fan').toString(),
       status: (map['status'] ?? 'active').toString(),
       avatarUrl: (map['avatar_url'] ?? map['avatarUrl'])?.toString(),
-      bio: map['bio']?.toString(),
+      bio: map['bio']?.toString() ?? '',
       badges: parseList(map['badges']),
       selectedFandoms: parseList(map['selected_fandoms'] ?? map['selectedFandoms']),
+      likedFandoms: parseList(map['liked_fandoms'] ?? map['likedFandoms']),
     );
   }
 
@@ -62,9 +66,10 @@ class UserEntity {
       'role': role,
       'status': status,
       'avatar_url': avatarUrl,
-      'bio': bio,
+      'bio': bio ?? '',
       'badges': jsonEncode(badges),
       'selected_fandoms': jsonEncode(selectedFandoms),
+      'liked_fandoms': jsonEncode(likedFandoms),
     };
   }
 
@@ -79,6 +84,7 @@ class UserEntity {
     String? bio,
     List<String>? badges,
     List<String>? selectedFandoms,
+    List<String>? likedFandoms,
   }) {
     return UserEntity(
       id: id ?? this.id,
@@ -90,7 +96,22 @@ class UserEntity {
       bio: bio ?? this.bio,
       badges: badges ?? this.badges,
       selectedFandoms: selectedFandoms ?? this.selectedFandoms,
+      likedFandoms: likedFandoms ?? this.likedFandoms,
     );
   }
+
+  @override
+  List<Object?> get props => [
+        id,
+        name,
+        email,
+        role,
+        status,
+        avatarUrl,
+        bio,
+        badges,
+        selectedFandoms,
+        likedFandoms,
+      ];
 }
 

@@ -1,5 +1,8 @@
+import '../../domain/entities/advanced_lore_entity.dart';
+import '../../domain/entities/behind_scenes_entity.dart';
 import '../../domain/entities/fandom_post.dart';
 import '../../domain/entities/glossary_term.dart';
+import '../../domain/entities/interview_entity.dart';
 
 abstract class FandomHubState {
   const FandomHubState();
@@ -19,6 +22,9 @@ class FandomHubLoaded extends FandomHubState {
   final List<GlossaryTerm> glossary;
   final String activeCategory;
   final String searchQuery;
+  final List<AdvancedLoreEntity> advancedLore;
+  final List<BehindScenesEntity> behindScenes;
+  final List<InterviewEntity> interviews;
 
   const FandomHubLoaded({
     required this.trendingPosts,
@@ -26,6 +32,9 @@ class FandomHubLoaded extends FandomHubState {
     required this.glossary,
     this.activeCategory = 'All',
     this.searchQuery = '',
+    this.advancedLore = const [],
+    this.behindScenes = const [],
+    this.interviews = const [],
   });
 
   List<FandomPost> get filteredNews {
@@ -52,6 +61,9 @@ class FandomHubLoaded extends FandomHubState {
     List<GlossaryTerm>? glossary,
     String? activeCategory,
     String? searchQuery,
+    List<AdvancedLoreEntity>? advancedLore,
+    List<BehindScenesEntity>? behindScenes,
+    List<InterviewEntity>? interviews,
   }) {
     return FandomHubLoaded(
       trendingPosts: trendingPosts ?? this.trendingPosts,
@@ -59,6 +71,9 @@ class FandomHubLoaded extends FandomHubState {
       glossary: glossary ?? this.glossary,
       activeCategory: activeCategory ?? this.activeCategory,
       searchQuery: searchQuery ?? this.searchQuery,
+      advancedLore: advancedLore ?? this.advancedLore,
+      behindScenes: behindScenes ?? this.behindScenes,
+      interviews: interviews ?? this.interviews,
     );
   }
 }

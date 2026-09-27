@@ -26,6 +26,7 @@ class ProfileLoaded extends ProfileState {
   final int offlineEventsCount;
   final int offlineGlossaryCount;
   final double cacheSizeMB;
+  final List<String> likedFandoms;
 
   const ProfileLoaded({
     required this.user,
@@ -38,7 +39,36 @@ class ProfileLoaded extends ProfileState {
     this.offlineEventsCount = 0,
     this.offlineGlossaryCount = 0,
     this.cacheSizeMB = 0.0,
+    this.likedFandoms = const [],
   });
+
+  ProfileLoaded copyWith({
+    Map<String, dynamic>? user,
+    List<Map<String, dynamic>>? orders,
+    int? bookmarksCount,
+    int? wishlistCount,
+    int? discussionCount,
+    String? statusMessage,
+    int? offlinePostsCount,
+    int? offlineEventsCount,
+    int? offlineGlossaryCount,
+    double? cacheSizeMB,
+    List<String>? likedFandoms,
+  }) {
+    return ProfileLoaded(
+      user: user ?? this.user,
+      orders: orders ?? this.orders,
+      bookmarksCount: bookmarksCount ?? this.bookmarksCount,
+      wishlistCount: wishlistCount ?? this.wishlistCount,
+      discussionCount: discussionCount ?? this.discussionCount,
+      statusMessage: statusMessage ?? this.statusMessage,
+      offlinePostsCount: offlinePostsCount ?? this.offlinePostsCount,
+      offlineEventsCount: offlineEventsCount ?? this.offlineEventsCount,
+      offlineGlossaryCount: offlineGlossaryCount ?? this.offlineGlossaryCount,
+      cacheSizeMB: cacheSizeMB ?? this.cacheSizeMB,
+      likedFandoms: likedFandoms ?? this.likedFandoms,
+    );
+  }
 
   @override
   List<Object?> get props => [
@@ -52,6 +82,7 @@ class ProfileLoaded extends ProfileState {
         offlineEventsCount,
         offlineGlossaryCount,
         cacheSizeMB,
+        likedFandoms,
       ];
 }
 

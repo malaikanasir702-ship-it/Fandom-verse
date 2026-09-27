@@ -21,6 +21,9 @@ class FandomHubBloc extends Bloc<FandomHubEvent, FandomHubState> {
     );
     on<ToggleBookmarkPostEvent>(_onToggleBookmarkPost);
     on<ToggleBookmarkGlossaryEvent>(_onToggleBookmarkGlossary);
+    on<LoadAdvancedLoreEvent>(_onLoadAdvancedLore);
+    on<LoadBehindScenesEvent>(_onLoadBehindScenes);
+    on<LoadInterviewsEvent>(_onLoadInterviews);
   }
 
   Future<void> _onLoadContent(
@@ -29,8 +32,12 @@ class FandomHubBloc extends Bloc<FandomHubEvent, FandomHubState> {
   ) async {
     emit(const FandomHubLoading());
     try {
-      final trending = await _repository.getTrendingPosts();
-      final latest = await _repository.getLatestNews();
+      final trending = await _repository.getTrendingPosts(
+        selectedFandoms: event.selectedFandoms,
+      );
+      final latest = await _repository.getLatestNews(
+        selectedFandoms: event.selectedFandoms,
+      );
       final glossary = await _repository.getGlossary();
 
       emit(
@@ -120,6 +127,51 @@ class FandomHubBloc extends Bloc<FandomHubEvent, FandomHubState> {
 
       emit(current.copyWith(glossary: updatedGlossary));
       await _repository.toggleGlossaryBookmark(event.termId, newBookmark);
+    }
+  }
+
+  Future<void> _onLoadAdvancedLore(
+    LoadAdvancedLoreEvent event,
+    Emitter<FandomHubState> emit,
+  ) async {
+    try {
+      final lore = await _repository.getAdvancedLore(categoryFilter: event.categoryFilter);
+      if (state is FandomHubLoaded) {
+        final current = state as FandomHubLoaded;
+        emit(current.copyWith(advancedLore: lore));
+      }
+    } catch (_) {
+      // Maintain current state on error
+    }
+  }
+
+  Future<void> _onLoadBehindScenes(
+    LoadBehindScenesEvent event,
+    Emitter<FandomHubState> emit,
+  ) async {
+    try {
+      final scenes = await _repository.getBehindScenes(categoryFilter: event.categoryFilter);
+      if (state is FandomHubLoaded) {
+        final current = state as FandomHubLoaded;
+        emit(current.copyWith(behindScenes: scenes));
+      }
+    } catch (_) {
+      // Maintain current state on error
+    }
+  }
+
+  Future<void> _onLoadInterviews(
+    LoadInterviewsEvent event,
+    Emitter<FandomHubState> emit,
+  ) async {
+    try {
+      final interviews = await _repository.getInterviews(categoryFilter: event.categoryFilter);
+      if (state is FandomHubLoaded) {
+        final current = state as FandomHubLoaded;
+        emit(current.copyWith(interviews: interviews));
+      }
+    } catch (_) {
+      // Maintain current state on error
     }
   }
 }

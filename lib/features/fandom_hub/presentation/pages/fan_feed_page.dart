@@ -14,6 +14,9 @@ import '../bloc/fandom_hub_state.dart';
 import '../../domain/entities/fandom_post.dart';
 import '../../domain/entities/hero_story.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../community/presentation/widgets/filter_badge_chip.dart';
+import '../bloc/fandom_hub_event.dart';
 import '../widgets/hero_story_ring.dart';
 import 'hero_story_viewer_page.dart';
 
@@ -22,7 +25,17 @@ class FanFeedPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<FandomHubBloc, FandomHubState>(
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, authState) {
+        if (authState is AuthAuthenticated) {
+          context.read<FandomHubBloc>().add(
+                LoadFandomHubContentEvent(
+                  selectedFandoms: authState.user.selectedFandoms,
+                ),
+              );
+        }
+      },
+      child: BlocBuilder<FandomHubBloc, FandomHubState>(
       builder: (context, state) {
         if (state is FandomHubLoading || state is FandomHubInitial) {
           // Show skeleton while loading instead of blank screen
@@ -34,8 +47,8 @@ class FanFeedPage extends StatelessWidget {
         // Error or unknown — show skeleton (app won't be blank)
         return const SkeletonFeedPage();
       },
-    );
-  }
+    ),
+  );
 }
 
 class _FanFeedContent extends StatefulWidget {
@@ -432,10 +445,53 @@ class _FanFeedContentState extends State<_FanFeedContent> {
                 onActionTap: () => Navigator.of(context).pushNamed('/multimedia'),
               ),
               const SizedBox(height: 8),
-              // RepaintBoundary isolates each card from parent repaints
-              ...state.latestNews.map((post) => RepaintBoundary(
-                    child: _SolidNewsCard(post: post),
-                  )),
+
+              // Preference Filter Badge Chip
+              Builder(
+                builder: (context) {
+                  final authState = context.watch<AuthBloc>().state;
+                  final prefs = authState is AuthAuthenticated
+                      ? authState.user.selectedFandoms
+                      : <String>[];
+                  return FilterBadgeChip(
+                    activePreferences: prefs,
+                    onTap: () => Navigator.of(context).pushNamed('/interest-setup'),
+                  );
+                },
+              ),
+
+              if (state.latestNews.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Iconsax.info_circle,
+                          size: 38,
+                          color: AppColors.comicYellow,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'No posts found for your preferences. Try selecting more fandoms!',
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: isDark
+                                ? AppColors.darkTextSecondary
+                                : AppColors.lightTextSecondary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                // RepaintBoundary isolates each card from parent repaints
+                ...state.latestNews.map((post) => RepaintBoundary(
+                      child: _SolidNewsCard(post: post),
+                    )),
 
               const SizedBox(height: 100),
             ],

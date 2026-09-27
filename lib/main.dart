@@ -24,7 +24,7 @@ void main() async {
   // Prevent red/grey screen of death in release mode
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
-    debugPrint('⚠️ [FlutterError] ${details.exceptionAsString()}');
+    debugPrint('?? [FlutterError] ${details.exceptionAsString()}');
   };
 
   await SystemChrome.setPreferredOrientations([
@@ -41,18 +41,13 @@ void main() async {
     ),
   );
 
-  // ── Critical path: Firebase + SQLite + SharedPrefs ──
-  // Wrapped in try/catch to guarantee runApp is ALWAYS called
-  try {
-    await initDependencies();
-  } catch (e, stack) {
-    debugPrint('❌ [main] Dependency initialization error: $e\n$stack');
-  }
+  // -- Critical path: Firebase + SQLite + SharedPrefs --
+  await initDependencies();
 
-  // ── Non-critical background inits — do NOT await ──
+  // -- Non-critical background inits � do NOT await --
   NotificationService.initialize().catchError((_) {});
 
-  // FCM must initialize AFTER app is running — requestPermission() can block
+  // FCM must initialize AFTER app is running � requestPermission() can block
   WidgetsBinding.instance.addPostFrameCallback((_) {
     FCMService.initialize().catchError((_) {});
   });

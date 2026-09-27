@@ -35,7 +35,7 @@ class SqliteHelper {
       version: DbConstants.databaseVersion,
       onConfigure: (db) async {
         // ── Performance: WAL mode = concurrent reads + writes, ~3x faster ──
-        await db.execute('PRAGMA journal_mode = WAL');
+        await db.rawQuery('PRAGMA journal_mode = WAL');
         await db.execute('PRAGMA foreign_keys = ON');
         // ── Performance: Keep 4MB in memory page cache ──
         await db.execute('PRAGMA cache_size = -4000');
@@ -636,3 +636,4 @@ class SqliteHelper {
     await _database.delete(DbConstants.tableGlossary);
   }
 }
+

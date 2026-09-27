@@ -102,7 +102,7 @@ class InterviewCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (interview.interviewDate.isNotEmpty) ...[
+                if (interview.interviewDate > 0) ...[
                   const SizedBox(height: 4),
                   Row(
                     children: [
@@ -110,7 +110,10 @@ class InterviewCard extends StatelessWidget {
                           size: 12, color: AppColors.comicGray),
                       const SizedBox(width: 4),
                       Text(
-                        interview.interviewDate,
+                        DateTime.fromMillisecondsSinceEpoch(interview.interviewDate)
+                            .toLocal()
+                            .toString()
+                            .split(' ')[0],
                         style: const TextStyle(
                           fontSize: 11,
                           color: AppColors.comicGray,

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_constants.dart';
@@ -8,6 +8,7 @@ import '../../../../core/widgets/skewed_button.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
+import '../bloc/auth_state.dart';
 
 class BadgeSetupPage extends StatefulWidget {
   const BadgeSetupPage({super.key});
@@ -17,140 +18,196 @@ class BadgeSetupPage extends StatefulWidget {
 }
 
 class _BadgeSetupPageState extends State<BadgeSetupPage> {
-  String _selectedBadge = 'Lorekeeper';
+  /// Empty by default — user MUST tap a badge to proceed.
+  String _selectedBadge = '';
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.darkAccentGold.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  'PREFERENCES • 2 OF 2',
-                  style: AppTextStyles.badgeText.copyWith(color: AppColors.darkAccentGold),
-                ),
-              ),
-              const SizedBox(height: 16),
+    return BlocConsumer<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is FanAuthenticated) {
+          // Badge has been persisted — now safe to navigate to home.
+          Navigator.of(context).pushReplacementNamed('/fan-home');
+        }
+      },
+      builder: (context, state) {
+        final isLoading = state is AuthLoading;
 
-              Text('Claim Your Starter Badge', style: AppTextStyles.displaySmall),
-              const SizedBox(height: 6),
-              Text(
-                'Your starter badge showcases your fandom specialization on your public profile and community discussions.',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                ),
-              ),
+        return Scaffold(
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.darkAccentGold.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      'PREFERENCES • 2 OF 2',
+                      style: AppTextStyles.badgeText.copyWith(color: AppColors.darkAccentGold),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
 
-              const SizedBox(height: 24),
+                  Text('Claim Your Starter Badge', style: AppTextStyles.displaySmall),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Your starter badge showcases your fandom specialization on your public profile and community discussions.',
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                    ),
+                  ),
 
-              // Badges List
-              Expanded(
-                child: ListView.builder(
-                  itemCount: AppConstants.starterBadges.length,
-                  itemBuilder: (context, index) {
-                    final item = AppConstants.starterBadges[index];
-                    final title = item['title']!;
-                    final desc = item['desc']!;
-                    final icon = item['icon']!;
-                    final isSelected = _selectedBadge == title;
+                  const SizedBox(height: 24),
 
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 14),
-                      child: GlassContainer(
-                        padding: const EdgeInsets.all(18),
-                        borderRadius: 18,
-                        borderColor: isSelected ? AppColors.darkAccentGold : null,
-                        backgroundColor: isSelected
-                            ? AppColors.darkAccentGold.withValues(alpha: 0.14)
-                            : null,
-                        onTap: () {
-                          setState(() {
-                            _selectedBadge = title;
-                          });
-                        },
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 52,
-                              height: 52,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: isDark ? AppColors.darkSurfaceElevated : AppColors.lightSurfaceElevated,
-                                border: Border.all(
-                                  color: isSelected ? AppColors.darkAccentGold : Colors.transparent,
-                                  width: 1.5,
+                  // ── Badges List ──────────────────────────────────────────────
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: AppConstants.starterBadges.length,
+                      itemBuilder: (context, index) {
+                        final item = AppConstants.starterBadges[index];
+                        final title = item['title']!;
+                        final desc = item['desc']!;
+                        final icon = item['icon']!;
+                        final isSelected = _selectedBadge == title;
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 14),
+                          child: GlassContainer(
+                            padding: const EdgeInsets.all(18),
+                            borderRadius: 18,
+                            borderColor: isSelected ? AppColors.darkAccentGold : null,
+                            backgroundColor: isSelected
+                                ? AppColors.darkAccentGold.withValues(alpha: 0.14)
+                                : null,
+                            onTap: isLoading
+                                ? null
+                                : () => setState(() => _selectedBadge = title),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 52,
+                                  height: 52,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: isDark
+                                        ? AppColors.darkSurfaceElevated
+                                        : AppColors.lightSurfaceElevated,
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? AppColors.darkAccentGold
+                                          : Colors.transparent,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Text(icon, style: const TextStyle(fontSize: 24)),
+                                  ),
                                 ),
-                              ),
-                              child: Center(
-                                child: Text(icon, style: const TextStyle(fontSize: 24)),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    title,
-                                    style: AppTextStyles.titleMedium.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                      color: isSelected ? AppColors.darkAccentGold : null,
-                                    ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        title,
+                                        style: AppTextStyles.titleMedium.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                          color: isSelected ? AppColors.darkAccentGold : null,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        desc,
+                                        style: AppTextStyles.bodySmall.copyWith(
+                                          color: isDark
+                                              ? AppColors.darkTextSecondary
+                                              : AppColors.lightTextSecondary,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    desc,
-                                    style: AppTextStyles.bodySmall.copyWith(
-                                      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                                    ),
+                                ),
+                                const SizedBox(width: 8),
+                                Icon(
+                                  isSelected ? Iconsax.tick_circle : Iconsax.record_circle,
+                                  color: isSelected
+                                      ? AppColors.darkAccentGold
+                                      : (isDark ? Colors.white24 : Colors.black26),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // ── CTA Button ────────────────────────────────────────────────
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    child: _selectedBadge.isEmpty
+                        ? Container(
+                            key: const ValueKey('hint'),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Iconsax.info_circle,
+                                  size: 16,
+                                  color: isDark
+                                      ? AppColors.darkTextSecondary
+                                      : AppColors.lightTextSecondary,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Tap a badge above to select it',
+                                  style: TextStyle(
+                                    color: isDark
+                                        ? AppColors.darkTextSecondary
+                                        : AppColors.lightTextSecondary,
+                                    fontWeight: FontWeight.w500,
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 8),
-                            Icon(
-                              isSelected ? Iconsax.tick_circle : Iconsax.record_circle,
-                              color: isSelected ? AppColors.darkAccentGold : (isDark ? Colors.white24 : Colors.black26),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
+                          )
+                        : SkewedButton(
+                            key: const ValueKey('btn'),
+                            text: 'Enter Fandom Universe',
+                            icon: Iconsax.star_1,
+                            height: 52,
+                            fontSize: 14,
+                            isLoading: isLoading,
+                            onPressed: isLoading
+                                ? null
+                                : () {
+                                    context.read<AuthBloc>().add(
+                                          SelectStarterBadgeEvent(_selectedBadge),
+                                        );
+                                    // BlocConsumer listener handles navigation
+                                    // after FanAuthenticated is emitted.
+                                  },
+                          ),
+                  ),
 
-              const SizedBox(height: 16),
-
-              SkewedButton(
-                text: 'Enter Fandom Universe',
-                icon: Iconsax.star_1,
-                height: 52,
-                fontSize: 14,
-                onPressed: () {
-                  context.read<AuthBloc>().add(SelectStarterBadgeEvent(_selectedBadge));
-                  Navigator.of(context).pushReplacementNamed('/fan-home');
-                },
+                  const SizedBox(height: 10),
+                ],
               ),
-              const SizedBox(height: 10),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
-
-

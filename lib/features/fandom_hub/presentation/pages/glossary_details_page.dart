@@ -6,6 +6,7 @@ import '../../../../core/database/sqlite_helper.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../../domain/entities/glossary_term.dart';
 import '../bloc/fandom_hub_bloc.dart';
 import '../bloc/fandom_hub_event.dart';
@@ -85,11 +86,11 @@ class _GlossaryDetailsPageState extends State<GlossaryDetailsPage> {
   void _shareTerm() {
     final text = '${_currentTerm.term}: ${_currentTerm.definition}';
     Share.share(text);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Sharing: ${_currentTerm.term}'),
-        duration: const Duration(seconds: 2),
-      ),
+    AppSnackbar.show(
+      context,
+      'Sharing: ${_currentTerm.term}',
+      type: SnackbarType.info,
+      duration: const Duration(seconds: 2),
     );
   }
 
@@ -101,13 +102,11 @@ class _GlossaryDetailsPageState extends State<GlossaryDetailsPage> {
     context.read<FandomHubBloc>().add(
           ToggleBookmarkGlossaryEvent(_currentTerm.id),
         );
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          newStatus ? 'Added to bookmarks' : 'Removed from bookmarks',
-        ),
-        duration: const Duration(seconds: 1),
-      ),
+    AppSnackbar.show(
+      context,
+      newStatus ? 'Added to bookmarks' : 'Removed from bookmarks',
+      type: newStatus ? SnackbarType.success : SnackbarType.info,
+      duration: const Duration(seconds: 1),
     );
   }
 
@@ -138,7 +137,7 @@ class _GlossaryDetailsPageState extends State<GlossaryDetailsPage> {
       text: TextSpan(
         style: AppTextStyles.bodyMedium.copyWith(
           fontStyle: FontStyle.italic,
-          color: isDark ? AppColors.darkText : AppColors.comicBlack,
+          color: isDark ? AppColors.darkTextPrimary : AppColors.comicBlack,
         ),
         children: [
           TextSpan(text: before),
@@ -277,7 +276,7 @@ class _GlossaryDetailsPageState extends State<GlossaryDetailsPage> {
                 style: AppTextStyles.bodyMedium.copyWith(
                   height: 1.6,
                   fontSize: 15,
-                  color: isDark ? AppColors.darkText : AppColors.comicBlack,
+                  color: isDark ? AppColors.darkTextPrimary : AppColors.comicBlack,
                 ),
               ),
             ),
@@ -361,7 +360,7 @@ class _GlossaryDetailsPageState extends State<GlossaryDetailsPage> {
                         width: 180,
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: isDark ? AppColors.darkCard : AppColors.lightSurface,
+                          color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: isDark ? AppColors.darkBorder : AppColors.lightBorder,

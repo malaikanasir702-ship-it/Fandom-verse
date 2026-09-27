@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_constants.dart';
@@ -6,8 +6,10 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/skewed_button.dart';
 import '../../../../core/widgets/glass_container.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
+import '../bloc/auth_state.dart';
 
 class InterestSetupPage extends StatefulWidget {
   const InterestSetupPage({super.key});
@@ -43,11 +45,11 @@ class _InterestSetupPageState extends State<InterestSetupPage> {
         if (_selectedFandoms.length > 1) {
           _selectedFandoms.remove(cat);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Select at least 2 fandoms to personalize your feed.'),
-              duration: Duration(seconds: 2),
-            ),
+          AppSnackbar.show(
+            context,
+            'Select at least 2 fandoms to personalize your feed.',
+            type: SnackbarType.warning,
+            duration: const Duration(seconds: 2),
           );
         }
       } else {
@@ -60,7 +62,17 @@ class _InterestSetupPageState extends State<InterestSetupPage> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
+    return BlocConsumer<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is SetupInProgress) {
+          // Interests saved — proceed to badge selection.
+          Navigator.of(context).pushReplacementNamed('/badge-setup');
+        }
+      },
+      builder: (context, state) {
+        final isLoading = state is AuthLoading;
+
+        return Scaffold(
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -166,18 +178,24 @@ class _InterestSetupPageState extends State<InterestSetupPage> {
                 icon: Iconsax.arrow_right,
                 height: 52,
                 fontSize: 13,
-                onPressed: () {
-                  context.read<AuthBloc>().add(
-                        UpdateUserInterestsEvent(_selectedFandoms.toList()),
-                      );
-                  Navigator.of(context).pushReplacementNamed('/badge-setup');
-                },
+                isLoading: isLoading,
+                onPressed: isLoading
+                    ? null
+                    : () {
+                        context.read<AuthBloc>().add(
+                          UpdateUserInterestsEvent(_selectedFandoms.toList()),
+                        );
+                        // Navigation is handled by BlocConsumer listener
+                        // (fires when SetupInProgress is emitted after save).
+                      },
               ),
               const SizedBox(height: 10),
             ],
           ),
         ),
       ),
+    );
+      },
     );
   }
 }

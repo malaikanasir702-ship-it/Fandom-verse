@@ -6,6 +6,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/comic_ui_widgets.dart';
 import '../../../../core/widgets/skewed_button.dart';
 import '../../../../core/widgets/app_display_image.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../bloc/fandom_hub_bloc.dart';
 import '../bloc/fandom_hub_event.dart';
 import '../bloc/fandom_hub_state.dart';
@@ -36,13 +37,11 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
       _isBookmarked = !_isBookmarked;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(_isBookmarked ? 'Saved to your collection!' : 'Removed from saved items.'),
-        backgroundColor: AppColors.comicBlack,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-      ),
+    AppSnackbar.show(
+      context,
+      _isBookmarked ? 'Saved to your collection!' : 'Removed from saved items.',
+      type: _isBookmarked ? SnackbarType.success : SnackbarType.info,
+      duration: const Duration(seconds: 2),
     );
   }
 

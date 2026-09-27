@@ -209,30 +209,10 @@ class _FanProfilePageState extends State<FanProfilePage> {
                               : AppColors.lightTextSecondary,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: AppColors.comicYellow,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Iconsax.cup,
-                                size: 14, color: AppColors.comicBlack),
-                            SizedBox(width: 6),
-                            Text(
-                              'LORE MASTER TIER III',
-                              style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w900,
-                                  color: AppColors.comicBlack,
-                                  letterSpacing: 0.5),
-                            ),
-                          ],
-                        ),
+                      _PremiumBadge(
+                        badgeTitle: (authUser?.badges.isNotEmpty == true)
+                            ? authUser!.badges.first
+                            : 'Recruit',
                       ),
                     ],
                   ),
@@ -406,6 +386,12 @@ class _FanProfilePageState extends State<FanProfilePage> {
                     route: '/store',
                     color: AppColors.comicYellowDark),
                 _buildProfileNavTile(context,
+                    icon: Iconsax.ticket,
+                    title: 'My Event Tickets',
+                    subtitle: 'View convention passes, QR codes & booking history',
+                    route: '/ticket-history',
+                    color: AppColors.comicRed),
+                _buildProfileNavTile(context,
                     icon: Iconsax.cup,
                     title: 'Achievements & Badges',
                     subtitle: 'View your unlocked badges',
@@ -438,7 +424,7 @@ class _FanProfilePageState extends State<FanProfilePage> {
                     route: '/contact-us',
                     color: AppColors.comicYellowDark),
                 _buildProfileNavTile(context,
-                    icon: Iconsax.message_question_1,
+                    icon: Iconsax.info_circle,
                     title: 'FAQ',
                     subtitle: 'Frequently asked questions',
                     route: '/faq',
@@ -542,3 +528,111 @@ class _FanProfilePageState extends State<FanProfilePage> {
     );
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Premium solid badge widget (Zero glow, solid comic aesthetic)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _PremiumBadge extends StatelessWidget {
+  final String badgeTitle;
+  const _PremiumBadge({required this.badgeTitle});
+
+  String _iconFor(String title) {
+    final t = title.toLowerCase();
+    if (t.contains('lore')) return '📖';
+    if (t.contains('master') || t.contains('architect')) return '👑';
+    if (t.contains('legend') || t.contains('speedrun')) return '⚡';
+    if (t.contains('hero') || t.contains('commander')) return '🛡️';
+    if (t.contains('scout') || t.contains('recruit') || t.contains('otaku')) return '⭐';
+    if (t.contains('collector')) return '🗂️';
+    if (t.contains('keeper')) return '🗝️';
+    if (t.contains('scholar') || t.contains('pioneer')) return '🚀';
+    if (t.contains('warrior')) return '⚔️';
+    if (t.contains('guardian')) return '🛡️';
+    if (t.contains('con') || t.contains('veteran')) return '🎟️';
+    return '🏅';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final emojiIcon = _iconFor(badgeTitle);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => Navigator.pushNamed(context, '/badges'),
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkSurfaceElevated : Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: isDark ? AppColors.comicYellow : AppColors.comicBlack,
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: isDark ? Colors.black54 : AppColors.comicBlack,
+                  offset: const Offset(2, 2),
+                  blurRadius: 0,
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Solid comic accent icon container
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.comicYellow,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: AppColors.comicBlack,
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(emojiIcon, style: const TextStyle(fontSize: 12)),
+                      const SizedBox(width: 3),
+                      const Icon(
+                        Iconsax.verify,
+                        size: 11,
+                        color: AppColors.comicBlack,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Badge title
+                Text(
+                  badgeTitle.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.1,
+                    color: isDark ? Colors.white : AppColors.comicBlack,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Icon(
+                  Iconsax.arrow_right_3,
+                  size: 11,
+                  color: isDark ? AppColors.comicYellow : AppColors.comicGray,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+

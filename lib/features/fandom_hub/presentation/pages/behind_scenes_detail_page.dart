@@ -205,7 +205,7 @@ class BehindScenesDetailPage extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkCard : AppColors.lightSurface,
+                  color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
@@ -257,7 +257,7 @@ class BehindScenesDetailPage extends StatelessWidget {
               style: AppTextStyles.bodyMedium.copyWith(
                 height: 1.6,
                 fontSize: 15,
-                color: isDark ? AppColors.darkText : AppColors.comicBlack,
+                color: isDark ? AppColors.darkTextPrimary : AppColors.comicBlack,
               ),
             ),
           ),

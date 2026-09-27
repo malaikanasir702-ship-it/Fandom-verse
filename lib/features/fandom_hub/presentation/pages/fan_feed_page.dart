@@ -15,7 +15,7 @@ import '../../domain/entities/fandom_post.dart';
 import '../../domain/entities/hero_story.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
-import '../../community/presentation/widgets/filter_badge_chip.dart';
+import '../../../community/presentation/widgets/filter_badge_chip.dart';
 import '../bloc/fandom_hub_event.dart';
 import '../widgets/hero_story_ring.dart';
 import 'hero_story_viewer_page.dart';
@@ -27,7 +27,7 @@ class FanFeedPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, authState) {
-        if (authState is AuthAuthenticated) {
+        if (authState is FanAuthenticated) {
           context.read<FandomHubBloc>().add(
                 LoadFandomHubContentEvent(
                   selectedFandoms: authState.user.selectedFandoms,
@@ -36,19 +36,20 @@ class FanFeedPage extends StatelessWidget {
         }
       },
       child: BlocBuilder<FandomHubBloc, FandomHubState>(
-      builder: (context, state) {
-        if (state is FandomHubLoading || state is FandomHubInitial) {
-          // Show skeleton while loading instead of blank screen
+        builder: (context, state) {
+          if (state is FandomHubLoading || state is FandomHubInitial) {
+            // Show skeleton while loading instead of blank screen
+            return const SkeletonFeedPage();
+          }
+          if (state is FandomHubLoaded) {
+            return _FanFeedContent(state: state);
+          }
+          // Error or unknown — show skeleton (app won't be blank)
           return const SkeletonFeedPage();
-        }
-        if (state is FandomHubLoaded) {
-          return _FanFeedContent(state: state);
-        }
-        // Error or unknown — show skeleton (app won't be blank)
-        return const SkeletonFeedPage();
-      },
-    ),
-  );
+        },
+      ),
+    );
+  }
 }
 
 class _FanFeedContent extends StatefulWidget {
@@ -449,10 +450,8 @@ class _FanFeedContentState extends State<_FanFeedContent> {
               // Preference Filter Badge Chip
               Builder(
                 builder: (context) {
-                  final authState = context.watch<AuthBloc>().state;
-                  final prefs = authState is AuthAuthenticated
-                      ? authState.user.selectedFandoms
-                      : <String>[];
+                  final currentUser = context.watch<AuthBloc>().currentUser;
+                  final prefs = currentUser?.selectedFandoms ?? <String>[];
                   return FilterBadgeChip(
                     activePreferences: prefs,
                     onTap: () => Navigator.of(context).pushNamed('/interest-setup'),

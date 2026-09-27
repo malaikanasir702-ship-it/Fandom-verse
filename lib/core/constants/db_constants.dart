@@ -2,10 +2,10 @@ class DbConstants {
   DbConstants._();
 
   static const String databaseName = 'fandom_verse.db';
-  // ── Version 3: Added liked_fandoms to users, new tables (advanced_lore, behind_scenes, interviews) ──
-  static const int databaseVersion = 3;
+  // ── Version 4: Added event_tickets table for Stripe purchases & QR tickets ──
+  static const int databaseVersion = 4;
 
-  // 12 Database Tables
+  // Database Tables
   static const String tableUsers = 'users';
   static const String tableCategories = 'categories';
   static const String tablePosts = 'posts';
@@ -23,6 +23,7 @@ class DbConstants {
   static const String tableAdvancedLore = 'advanced_lore';
   static const String tableBehindScenes = 'behind_scenes';
   static const String tableInterviews = 'interviews';
+  static const String tableTickets = 'event_tickets';
 
   // Default Pre-configured Coupons
   static const Map<String, double> validCoupons = {

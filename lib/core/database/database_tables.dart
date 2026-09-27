@@ -253,6 +253,31 @@ class DatabaseTables {
     );
   ''';
 
+  static const String createTicketsTable =
+      '''
+    CREATE TABLE IF NOT EXISTS ${DbConstants.tableTickets} (
+      ticket_id         TEXT PRIMARY KEY,
+      user_id           TEXT NOT NULL,
+      event_id          TEXT NOT NULL,
+      event_title       TEXT NOT NULL,
+      event_banner_url  TEXT,
+      city_name         TEXT NOT NULL,
+      venue_name        TEXT NOT NULL,
+      event_date        INTEGER NOT NULL,
+      tier_title        TEXT NOT NULL,
+      quantity          INTEGER NOT NULL,
+      unit_price        REAL NOT NULL,
+      fee               REAL NOT NULL,
+      total_amount      REAL NOT NULL,
+      attendee_name     TEXT NOT NULL,
+      payment_method    TEXT DEFAULT 'Stripe Card',
+      payment_intent_id TEXT,
+      qr_data           TEXT NOT NULL,
+      purchased_at      INTEGER NOT NULL,
+      status            TEXT DEFAULT 'Confirmed'
+    );
+  ''';
+
   static const List<String> allCreateStatements = [
     createUsersTable,
     createCategoriesTable,
@@ -271,5 +296,6 @@ class DatabaseTables {
     createAdvancedLoreTable,
     createBehindScenesTable,
     createInterviewsTable,
+    createTicketsTable,
   ];
 }

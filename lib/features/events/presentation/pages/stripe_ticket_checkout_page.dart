@@ -1,9 +1,18 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import '../../../../core/database/sqlite_helper.dart';
+import '../../../../core/services/stripe_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../domain/entities/event_entity.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/widgets/skewed_button.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../domain/entities/event_entity.dart';
+import '../../domain/entities/ticket_entity.dart';
+import '../widgets/ticket_qr_code_widget.dart';
+import 'ticket_detail_page.dart';
+import 'ticket_history_page.dart';
 
 class StripeTicketCheckoutPage extends StatefulWidget {
   final EventEntity event;
@@ -60,17 +69,103 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
   double get _total => _subtotal + _fee;
 
   void _processStripePayment() async {
+    final cardNumber = _cardNumberController.text.trim();
+    final expiry = _expiryController.text.trim();
+    final cvc = _cvcController.text.trim();
+    final name = _nameController.text.trim();
+
+    if (cardNumber.replaceAll(RegExp(r'\s+'), '').length < 14) {
+      AppSnackbar.showError(context, 'Please enter a valid card number');
+      return;
+    }
+
+    final expiryParts = expiry.split('/');
+    if (expiryParts.length != 2) {
+      AppSnackbar.showError(context, 'Expiry must be in MM/YY format');
+      return;
+    }
+
+    final expMonth = expiryParts[0].trim();
+    final expYear = expiryParts[1].trim();
+
+    if (cvc.length < 3) {
+      AppSnackbar.showError(context, 'Please enter a valid 3 or 4-digit CVC');
+      return;
+    }
+
     setState(() => _isProcessing = true);
 
-    await Future.delayed(const Duration(milliseconds: 1600));
+    final tier = _ticketTiers[_selectedTierIndex];
+    final tierTitle = tier['title'] as String;
+
+    final result = await StripeService.processTicketPayment(
+      amount: _total,
+      cardNumber: cardNumber,
+      expMonth: expMonth,
+      expYear: expYear,
+      cvc: cvc,
+      cardholderName: name,
+      eventTitle: widget.event.title,
+      tierTitle: tierTitle,
+    );
 
     if (!mounted) return;
     setState(() => _isProcessing = false);
 
-    _showTicketSuccessDialog();
+    if (!result.success) {
+      AppSnackbar.showError(
+        context,
+        result.errorMessage ?? 'Payment failed. Please check your card details.',
+      );
+      return;
+    }
+
+    // Payment succeeded! Build and persist TicketEntity
+    final ticketId = 'FV-TKT-${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
+    final user = context.read<AuthBloc>().currentUser;
+    final userId = user?.id ?? 'guest_user';
+    final attendeeName = name.isNotEmpty ? name : (user?.name ?? 'Valued Fan');
+
+    final qrPayload = TicketEntity.generateQrPayload(
+      ticketId: ticketId,
+      eventId: widget.event.id,
+      eventTitle: widget.event.title,
+      attendeeName: attendeeName,
+      quantity: _quantity,
+      tierTitle: tierTitle,
+      totalAmount: _total,
+      paymentIntentId: result.paymentIntentId,
+    );
+
+    final newTicket = TicketEntity(
+      ticketId: ticketId,
+      userId: userId,
+      eventId: widget.event.id,
+      eventTitle: widget.event.title,
+      eventBannerUrl: widget.event.bannerUrl,
+      cityName: widget.event.cityName,
+      venueName: widget.event.venueName,
+      eventDate: widget.event.eventDate.millisecondsSinceEpoch,
+      tierTitle: tierTitle,
+      quantity: _quantity,
+      unitPrice: _unitPrice,
+      fee: _fee,
+      totalAmount: _total,
+      attendeeName: attendeeName,
+      paymentMethod: 'Stripe Card',
+      paymentIntentId: result.paymentIntentId,
+      qrData: qrPayload,
+      purchasedAt: DateTime.now().millisecondsSinceEpoch,
+      status: 'Confirmed',
+    );
+
+    await SqliteHelper.instance.insertTicket(newTicket);
+
+    if (!mounted) return;
+    _showTicketSuccessDialog(newTicket);
   }
 
-  void _showTicketSuccessDialog() {
+  void _showTicketSuccessDialog(TicketEntity ticket) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -95,69 +190,118 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
             ),
           ],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              'Your ticket for ${widget.event.title} is confirmed via Stripe!',
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 13, color: AppColors.comicBlack, height: 1.4),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppColors.comicGrayLight,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.comicBorderColor),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'Your ticket for ${ticket.eventTitle} is confirmed via Stripe!',
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 13, color: AppColors.comicBlack, height: 1.4),
               ),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Booking ID:', style: TextStyle(fontSize: 11, color: AppColors.comicGray)),
-                      Text('STRIPE-TKT-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Quantity:', style: TextStyle(fontSize: 11, color: AppColors.comicGray)),
-                      Text('$_quantity x ${_ticketTiers[_selectedTierIndex]['title']}',
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Total Paid:', style: TextStyle(fontSize: 11, color: AppColors.comicGray)),
-                      Text('\$${_total.toStringAsFixed(2)}',
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: AppColors.comicRed)),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  const Icon(Iconsax.scan_barcode, size: 72, color: AppColors.comicBlack),
-                  const Text('Show this QR at the venue entrance', style: TextStyle(fontSize: 10, color: AppColors.comicGray)),
-                ],
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.comicGrayLight,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.comicBorderColor),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Booking ID:', style: TextStyle(fontSize: 11, color: AppColors.comicGray)),
+                        Text(
+                          ticket.ticketId,
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.comicRed),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Pass Tier:', style: TextStyle(fontSize: 11, color: AppColors.comicGray)),
+                        Text(
+                          '${ticket.quantity}x ${ticket.tierTitle}',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Total Paid:', style: TextStyle(fontSize: 11, color: AppColors.comicGray)),
+                        Text(
+                          '\$${ticket.totalAmount.toStringAsFixed(2)}',
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: AppColors.comicRed),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    // Real Live QR Code
+                    TicketQrCodeWidget(
+                      qrData: ticket.qrData,
+                      size: 130,
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Scan this real QR code at venue check-in',
+                      style: TextStyle(fontSize: 10, color: AppColors.comicGray, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 14),
+              // View Ticket Template Button
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  icon: const Icon(Iconsax.eye, size: 16, color: AppColors.comicBlack),
+                  label: const Text(
+                    'VIEW TICKET PASS TEMPLATE',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 11.5,
+                      color: AppColors.comicBlack,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.comicBlack, width: 1.5),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  onPressed: () {
+                    Navigator.of(ctx).push(
+                      MaterialPageRoute(
+                        builder: (_) => TicketDetailPage(ticket: ticket),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
         actions: [
           SkewedButton(
-            text: 'Done',
-            height: 50,
-            fontSize: 14,
+            text: 'DONE (TICKET HISTORY)',
+            height: 48,
+            fontSize: 13,
             backgroundColor: AppColors.comicRed,
             icon: Iconsax.tick_circle,
             onPressed: () {
-              Navigator.of(ctx).pop();
-              Navigator.of(context).pop();
+              Navigator.of(ctx).pop(); // pop dialog
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (_) => const TicketHistoryPage(),
+                ),
+              );
             },
           ),
         ],

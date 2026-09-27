@@ -26,7 +26,10 @@ import '../../features/events/presentation/pages/events_calendar_page.dart';
 import '../../features/events/presentation/pages/event_detail_page.dart';
 import '../../features/events/presentation/pages/events_map_page.dart';
 import '../../features/events/presentation/pages/stripe_ticket_checkout_page.dart';
+import '../../features/events/presentation/pages/ticket_history_page.dart';
+import '../../features/events/presentation/pages/ticket_detail_page.dart';
 import '../../features/events/domain/entities/event_entity.dart';
+import '../../features/events/domain/entities/ticket_entity.dart';
 
 // Community Pages
 import '../../features/community/presentation/pages/discussions_page.dart';
@@ -123,6 +126,13 @@ class FanRoutes {
       case '/stripe-ticket-checkout':
         final event = settings.arguments as EventEntity;
         return MaterialPageRoute(builder: (_) => StripeTicketCheckoutPage(event: event));
+
+      case '/ticket-history':
+        return MaterialPageRoute(builder: (_) => const TicketHistoryPage());
+
+      case '/ticket-detail':
+        final ticket = settings.arguments as TicketEntity;
+        return MaterialPageRoute(builder: (_) => TicketDetailPage(ticket: ticket));
 
       case '/events-map':
         return MaterialPageRoute(builder: (_) => const EventsMapPage());

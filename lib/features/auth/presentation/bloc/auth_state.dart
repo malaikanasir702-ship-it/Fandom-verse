@@ -30,3 +30,10 @@ class AuthFailure extends AuthState {
   final String errorMessage;
   const AuthFailure(this.errorMessage);
 }
+
+/// Emitted during onboarding (interest setup → badge setup).
+/// LoginPage ignores this — navigation is handled by the setup pages.
+class SetupInProgress extends AuthState {
+  final UserEntity user;
+  const SetupInProgress(this.user);
+}

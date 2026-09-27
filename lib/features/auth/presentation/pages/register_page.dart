@@ -1,9 +1,10 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/skewed_button.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -62,11 +63,10 @@ class _RegisterPageState extends State<RegisterPage> {
         if (state is FanAuthenticated) {
           Navigator.of(context).pushReplacementNamed('/interest-setup');
         } else if (state is AuthFailure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.errorMessage),
-              backgroundColor: AppColors.error,
-            ),
+          AppSnackbar.show(
+            context,
+            state.errorMessage,
+            type: SnackbarType.error,
           );
         }
       },
@@ -227,23 +227,22 @@ class _RegisterPageState extends State<RegisterPage> {
                     icon: Iconsax.arrow_right,
                     height: 52,
                     fontSize: 13,
+                    isLoading: isLoading,
                     onPressed: isLoading ? null : () {
                       if (!_agreeTerms) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Please accept the guidelines to proceed.'),
-                            backgroundColor: AppColors.warning,
-                          ),
+                        AppSnackbar.show(
+                          context,
+                          'Please accept the guidelines to proceed.',
+                          type: SnackbarType.warning,
                         );
                         return;
                       }
 
                       if (_passwordController.text != _confirmPasswordController.text) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Passwords do not match.'),
-                            backgroundColor: AppColors.error,
-                          ),
+                        AppSnackbar.show(
+                          context,
+                          'Passwords do not match.',
+                          type: SnackbarType.error,
                         );
                         return;
                       }

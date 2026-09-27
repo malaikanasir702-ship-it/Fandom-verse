@@ -8,7 +8,6 @@ import '../../../../core/widgets/glass_container.dart';
 import '../../../../core/widgets/skewed_button.dart';
 import '../../../../core/widgets/skeleton_loader.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
-import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../profile/presentation/bloc/profile_bloc.dart';
 import '../../../profile/presentation/bloc/profile_event.dart';
 import '../../../profile/presentation/bloc/profile_state.dart';
@@ -163,14 +162,12 @@ class _BeginnerHubTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final authState = context.watch<AuthBloc>().state;
-    final userId = authState is AuthAuthenticated ? authState.user.id : '';
+    final currentUser = context.watch<AuthBloc>().currentUser;
+    final userId = currentUser?.id ?? '';
     final profileState = context.watch<ProfileBloc>().state;
     final likedFandoms = profileState is ProfileLoaded
         ? profileState.likedFandoms
-        : (authState is AuthAuthenticated
-            ? authState.user.likedFandoms
-            : <String>[]);
+        : (currentUser?.likedFandoms ?? <String>[]);
 
     return ListView.separated(
       padding: const EdgeInsets.all(20),

@@ -34,6 +34,9 @@ class AppColors {
   static const Color darkTextSecondary = Color(0xFF9CA3AF);
   static const Color darkBorder = Color(0xFF2E313D);
   static const Color darkGlass = Color(0xFF1C1D24); // 100% Solid
+  static const Color darkCard = darkSurface;
+  static const Color darkText = darkTextPrimary;
+  static const Color darkAccent = darkAccentGold;
 
   // ─── Solid Light Palette (Default Reference Look) ───
   static const Color lightPrimary = comicRed;

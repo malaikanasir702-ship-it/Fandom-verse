@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/services/firebase_auth_service.dart';
@@ -6,6 +6,7 @@ import '../../../../core/di/service_locator.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/skewed_button.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -90,23 +91,21 @@ class _LoginPageState extends State<LoginPage> {
                     final email = resetEmailController.text.trim();
                     if (email.isEmpty) return;
                     setModalState(() => _isResettingPassword = true);
-                    final messenger = ScaffoldMessenger.of(context);
                     final navigator = Navigator.of(ctx);
+                    final overlayState = Overlay.of(context);
                     try {
                       await sl<FirebaseAuthService>().sendPasswordResetEmail(email);
                       navigator.pop();
-                      messenger.showSnackBar(
-                        const SnackBar(
-                          content: Text('Password reset link sent! Check your email inbox.'),
-                          backgroundColor: AppColors.success,
-                        ),
+                      AppSnackbar.showOnOverlay(
+                        overlayState,
+                        'Password reset link sent! Check your email inbox.',
+                        type: SnackbarType.success,
                       );
                     } catch (e) {
-                      messenger.showSnackBar(
-                        SnackBar(
-                          content: Text('Error: ${e.toString()}'),
-                          backgroundColor: AppColors.error,
-                        ),
+                      AppSnackbar.showOnOverlay(
+                        overlayState,
+                        'Error: ${e.toString()}',
+                        type: SnackbarType.error,
                       );
                     } finally {
                       setModalState(() => _isResettingPassword = false);
@@ -207,12 +206,11 @@ class _LoginPageState extends State<LoginPage> {
         } else if (state is AdminAuthenticated) {
           Navigator.of(context).pushReplacementNamed('/admin-dashboard');
         } else if (state is AuthFailure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.errorMessage),
-              backgroundColor: AppColors.error,
-              duration: const Duration(seconds: 4),
-            ),
+          AppSnackbar.show(
+            context,
+            state.errorMessage,
+            type: SnackbarType.error,
+            duration: const Duration(seconds: 4),
           );
         }
       },
@@ -311,6 +309,7 @@ class _LoginPageState extends State<LoginPage> {
                     text: 'Sign In',
                     height: 52,
                     fontSize: 14,
+                    isLoading: isLoading,
                     onPressed: isLoading ? null : () {
                       context.read<AuthBloc>().add(
                             FanLoginSubmittedEvent(

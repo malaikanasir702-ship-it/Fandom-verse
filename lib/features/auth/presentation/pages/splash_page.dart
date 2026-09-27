@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/constants/app_constants.dart';
@@ -17,7 +16,8 @@ class SplashPage extends StatefulWidget {
   State<SplashPage> createState() => _SplashPageState();
 }
 
-class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateMixin {
+class _SplashPageState extends State<SplashPage>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _opacityAnimation;
@@ -29,11 +29,11 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 700),
     );
 
     _scaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
     );
 
     _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -110,132 +110,108 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    // Pure solid white in light mode, pure solid black in dark mode (Zero Gradients, Zero Glows)
+    final bgColor = isDark ? Colors.black : Colors.white;
 
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) => _handleAuthState(state),
       child: Scaffold(
-        backgroundColor: const Color(0xFF0A0A1A),
+        backgroundColor: bgColor,
         body: Stack(
           children: [
-            // Background ambient gradient
-            Container(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: const Alignment(0, -0.2),
+            Center(
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  return Opacity(
+                    opacity: _opacityAnimation.value,
+                    child: Transform.scale(
+                      scale: _scaleAnimation.value,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Center Emblem Logo (Clean, No Glow, No Gradient, No Ripple)
+                          Image.asset(
+                            'assets/images/app_logo.png',
+                            width: 160,
+                            height: 160,
+                            fit: BoxFit.contain,
+                          ),
+                          const SizedBox(height: 24),
 
-                radius: 1.2,
-                colors: isDark
-                    ? [
-                        AppColors.darkPrimary.withValues(alpha: 0.25),
-                        AppColors.darkBackground,
-                      ]
-                    : [
-                        AppColors.lightPrimary.withValues(alpha: 0.15),
-                        AppColors.lightBackground,
-                      ],
+                          // Title
+                          Text(
+                            AppConstants.appName.toUpperCase(),
+                            style: AppTextStyles.displayMedium.copyWith(
+                              letterSpacing: 2.0,
+                              fontWeight: FontWeight.w900,
+                              color: isDark ? Colors.white : AppColors.comicBlack,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+
+                          // Subtitle Badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: AppColors.comicRed,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              AppConstants.appSubtitle.toUpperCase(),
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.2,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 36),
+
+                          // Animated loading pill (Solid, Zero Glow, Zero Gradient)
+                          SizedBox(
+                            width: 130,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(6),
+                              child: LinearProgressIndicator(
+                                minHeight: 3.5,
+                                backgroundColor: isDark
+                                    ? const Color(0xFF2E313D)
+                                    : const Color(0xFFE5E7EB),
+                                valueColor: const AlwaysStoppedAnimation<Color>(
+                                    AppColors.comicRed),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
-          ),
 
-          Center(
-            child: AnimatedBuilder(
-              animation: _controller,
-              builder: (context, child) {
-                return Opacity(
-                  opacity: _opacityAnimation.value,
-                  child: Transform.scale(
-                    scale: _scaleAnimation.value,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Universe Portal Icon
-                        Container(
-                          width: 110,
-                          height: 110,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: const LinearGradient(
-                              colors: [
-                                AppColors.darkPrimary,
-                                AppColors.darkSecondary,
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.darkSecondary.withValues(alpha: 0.5),
-                                blurRadius: 28,
-                                spreadRadius: 4,
-                              ),
-                            ],
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Iconsax.star_1,
-                              size: 54,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 28),
-
-                        // Title
-                        Text(
-                          AppConstants.appName,
-                          style: AppTextStyles.displayMedium.copyWith(
-                            letterSpacing: 1.2,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-
-                        // Subtitle
-                        Text(
-                          AppConstants.appSubtitle,
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                            letterSpacing: 0.8,
-                          ),
-                        ),
-                        const SizedBox(height: 36),
-
-                        // Animated loading pill
-                        SizedBox(
-                          width: 140,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: LinearProgressIndicator(
-                              minHeight: 3,
-                              backgroundColor: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.darkSecondary),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+            // Bottom version tag
+            Positioned(
+              bottom: 24,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Text(
+                  'v${AppConstants.appVersion} • Fandom Verse Pocket Edition',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.lightTextSecondary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
                   ),
-                );
-              },
-            ),
-          ),
-
-          // Bottom version tag
-          Positioned(
-            bottom: 24,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Text(
-                'v${AppConstants.appVersion} • Fandom Verse Pocket Edition',
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                  fontSize: 11,
                 ),
               ),
             ),
-          ),
-        ],
+          ],
         ),
       ),
     );

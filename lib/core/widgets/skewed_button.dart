@@ -14,6 +14,8 @@ class SkewedButton extends StatefulWidget {
   final IconData? icon;
   /// Optional custom leading widget (e.g. Google logo painter, Apple icon)
   final Widget? leadingWidget;
+  /// When true, shows a loading spinner and disables interaction
+  final bool isLoading;
 
   const SkewedButton({
     super.key,
@@ -26,6 +28,7 @@ class SkewedButton extends StatefulWidget {
     this.fontSize = 13,
     this.icon,
     this.leadingWidget,
+    this.isLoading = false,
   });
 
   @override
@@ -87,9 +90,9 @@ class _SkewedButtonState extends State<SkewedButton>
         );
       },
       child: GestureDetector(
-        onTapDown: widget.onPressed != null ? _onTapDown : null,
-        onTapUp: widget.onPressed != null ? _onTapUp : null,
-        onTapCancel: widget.onPressed != null ? _onTapCancel : null,
+        onTapDown: (widget.onPressed != null && !widget.isLoading) ? _onTapDown : null,
+        onTapUp: (widget.onPressed != null && !widget.isLoading) ? _onTapUp : null,
+        onTapCancel: (widget.onPressed != null && !widget.isLoading) ? _onTapCancel : null,
         child: SizedBox(
           height: widget.height,
           child: Stack(
@@ -125,30 +128,41 @@ class _SkewedButtonState extends State<SkewedButton>
                       child: Center(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              // Custom leading widget (e.g. Google logo)
-                              if (widget.leadingWidget != null) ...[
-                                widget.leadingWidget!,
-                                const SizedBox(width: 10),
-                              ] else if (widget.icon != null) ...[
-                                Icon(widget.icon,
-                                    size: 15, color: widget.textColor),
-                                const SizedBox(width: 6),
-                              ],
-                              Text(
-                                widget.text.toUpperCase(),
-                                style: TextStyle(
-                                  color: widget.textColor,
-                                  fontSize: widget.fontSize,
-                                  fontWeight: FontWeight.w900,
-                                  fontStyle: FontStyle.italic,
-                                  letterSpacing: 1.2,
+                          child: widget.isLoading
+                              ? SizedBox(
+                                  width: widget.height * 0.44,
+                                  height: widget.height * 0.44,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      widget.textColor.withValues(alpha: 0.9),
+                                    ),
+                                  ),
+                                )
+                              : Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    // Custom leading widget (e.g. Google logo)
+                                    if (widget.leadingWidget != null) ...[
+                                      widget.leadingWidget!,
+                                      const SizedBox(width: 10),
+                                    ] else if (widget.icon != null) ...[
+                                      Icon(widget.icon,
+                                          size: 15, color: widget.textColor),
+                                      const SizedBox(width: 6),
+                                    ],
+                                    Text(
+                                      widget.text.toUpperCase(),
+                                      style: TextStyle(
+                                        color: widget.textColor,
+                                        fontSize: widget.fontSize,
+                                        fontWeight: FontWeight.w900,
+                                        fontStyle: FontStyle.italic,
+                                        letterSpacing: 1.2,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ],
-                          ),
                         ),
                       ),
                     ),

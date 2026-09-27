@@ -230,7 +230,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       // Persist to Firebase / SQLite
       await _authService.updateUserInterests(_currentUser!.id, event.selectedFandoms);
-      emit(FanAuthenticated(_currentUser!));
+      // Emit SetupInProgress — NOT FanAuthenticated — so LoginPage doesn't intercept
+      // and redirect to dashboard. Navigation to /badge-setup is done by InterestSetupPage.
+      emit(SetupInProgress(_currentUser!));
     }
   }
 

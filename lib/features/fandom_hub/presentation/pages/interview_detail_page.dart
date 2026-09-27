@@ -105,7 +105,7 @@ class InterviewDetailPage extends StatelessWidget {
                     color: AppColors.comicYellowDark,
                   ),
                 ),
-                if (interview.interviewDate.isNotEmpty) ...[
+                if (interview.interviewDate > 0) ...[
                   const SizedBox(height: 8),
                   Row(
                     children: [
@@ -113,7 +113,7 @@ class InterviewDetailPage extends StatelessWidget {
                           size: 14, color: AppColors.comicGray),
                       const SizedBox(width: 6),
                       Text(
-                        'Published on ${interview.interviewDate}',
+                        'Published on ${DateTime.fromMillisecondsSinceEpoch(interview.interviewDate).toLocal().toString().split(' ')[0]}',
                         style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.comicGray,

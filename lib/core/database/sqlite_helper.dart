@@ -8,6 +8,7 @@ import 'database_tables.dart';
 import 'seed_data.dart';
 import 'seed_data_extended.dart';
 import 'seed_hero_stories.dart';
+import '../../features/events/domain/entities/ticket_entity.dart';
 
 class SqliteHelper {
   static final SqliteHelper instance = SqliteHelper._internal();
@@ -50,15 +51,16 @@ class SqliteHelper {
       onUpgrade: _onUpgrade,
     );
 
-    // Ensure hero_stories table exists (supports non-reinstalled/upgraded dev databases)
+    // Ensure hero_stories and event_tickets tables exist (supports non-reinstalled/upgraded dev databases)
     await _db!.execute(DatabaseTables.createHeroStoriesTable);
+    await _db!.execute(DatabaseTables.createTicketsTable);
     await _seedHeroStoriesIfEmpty(_db!);
 
     debugPrint('✅ [SqliteHelper] Database ready at: $fullPath');
   }
 
   Future<void> _onCreate(Database db, int version) async {
-    debugPrint('🏗️ [SqliteHelper] Creating all 13 tables...');
+    debugPrint('🏗️ [SqliteHelper] Creating all tables...');
     await _createAllTables(db);
     await _createAllIndexes(db);
     await _seedAllData(db);
@@ -168,6 +170,14 @@ class SqliteHelper {
         "TEXT DEFAULT '[]'",
       );
       await _createNewTableIndexes(db);
+    }
+
+    // ── v4 migration: Create tickets table and index ──
+    if (oldVersion < 4) {
+      await db.execute(DatabaseTables.createTicketsTable);
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_tickets_user ON ${DbConstants.tableTickets}(user_id)',
+      );
     }
   }
 
@@ -913,5 +923,50 @@ class SqliteHelper {
     await _database.delete(DbConstants.tableDiscussionReplies);
     await _database.delete(DbConstants.tableStarProfiles);
     await _database.delete(DbConstants.tableGlossary);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // EVENT TICKETS (Stripe in-app purchases & QR tickets)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  Future<int> insertTicket(TicketEntity ticket) async {
+    await initDatabase();
+    return await _database.insert(
+      DbConstants.tableTickets,
+      ticket.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<List<TicketEntity>> getTicketsByUser(String userId) async {
+    await initDatabase();
+    final maps = await _database.query(
+      DbConstants.tableTickets,
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      orderBy: 'purchased_at DESC',
+    );
+    return maps.map((m) => TicketEntity.fromMap(m)).toList();
+  }
+
+  Future<List<TicketEntity>> getAllTickets() async {
+    await initDatabase();
+    final maps = await _database.query(
+      DbConstants.tableTickets,
+      orderBy: 'purchased_at DESC',
+    );
+    return maps.map((m) => TicketEntity.fromMap(m)).toList();
+  }
+
+  Future<TicketEntity?> getTicketById(String ticketId) async {
+    await initDatabase();
+    final maps = await _database.query(
+      DbConstants.tableTickets,
+      where: 'ticket_id = ?',
+      whereArgs: [ticketId],
+      limit: 1,
+    );
+    if (maps.isEmpty) return null;
+    return TicketEntity.fromMap(maps.first);
   }
 }

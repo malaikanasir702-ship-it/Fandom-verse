@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_display_image.dart';
 import '../../../../core/widgets/skewed_button.dart';
+import '../../../../core/widgets/skeleton_loader.dart';
 import '../bloc/admin_bloc.dart';
 import '../bloc/admin_event.dart';
 import '../bloc/admin_state.dart';
@@ -78,7 +79,7 @@ class _AdminStoriesPageState extends State<AdminStoriesPage> {
       body: BlocBuilder<AdminBloc, AdminState>(
         builder: (context, state) {
           if (state is AdminLoading) {
-            return const Center(child: CircularProgressIndicator(color: Color(0xFF8B5CF6)));
+            return const SkeletonAdminListPage();
           }
 
           final allStories = state is AdminStatsLoaded ? state.heroStories : <Map<String, dynamic>>[];

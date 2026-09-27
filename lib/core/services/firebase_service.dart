@@ -23,7 +23,7 @@ class FirebaseService {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       ).timeout(
-        const Duration(seconds: 15),
+        const Duration(milliseconds: 3500),
         onTimeout: () => throw TimeoutException(
           'Firebase initialization timed out. Running in offline mode.',
         ),
@@ -37,23 +37,17 @@ class FirebaseService {
       _isInitialized = false;
       debugPrint('⚠️ [FirebaseService] Network unavailable: $e\nRunning in offline/local mode.');
     } catch (e) {
+      // Single fallback attempt with short 1.5s timeout
       try {
         await Firebase.initializeApp().timeout(
-          const Duration(seconds: 15),
-          onTimeout: () => throw TimeoutException('Firebase native init timed out.'),
+          const Duration(milliseconds: 1500),
         );
         _isInitialized = true;
         debugPrint('🔥 [FirebaseService] Firebase initialized via native configuration.');
-      } on TimeoutException catch (e2) {
-        _isInitialized = false;
-        debugPrint('⚠️ [FirebaseService] Firebase init timed out: $e2\nRunning in offline/local mode.');
-      } on SocketException catch (e2) {
-        _isInitialized = false;
-        debugPrint('⚠️ [FirebaseService] Network error: $e2\nRunning in offline/local mode.');
       } catch (e2) {
         _isInitialized = false;
         debugPrint(
-          '⚠️ [FirebaseService] Firebase initialization failed: $e | $e2.\n'
+          '⚠️ [FirebaseService] Firebase initialization failed or timed out: $e | $e2.\n'
           'Running in offline/local mock mode.',
         );
       }

@@ -2,4 +2,6 @@
 <resources>
     <!-- FCM notification accent color — Fandom Verse red -->
     <color name="notification_color">#E51924</color>
+    <!-- Fandom Verse brand dark background for launch splash -->
+    <color name="splash_background">#0A0A1A</color>
 </resources>

@@ -6,6 +6,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../../../../core/widgets/skewed_button.dart';
 import '../../../../core/widgets/app_display_image.dart';
+import '../../../../core/widgets/skeleton_loader.dart';
 import '../bloc/store_bloc.dart';
 import '../bloc/store_event.dart';
 import '../bloc/store_state.dart';
@@ -119,7 +120,7 @@ class _StorefrontPageState extends State<StorefrontPage> {
       body: BlocBuilder<StoreBloc, StoreState>(
         builder: (context, state) {
           if (state is StoreLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const SkeletonStorePage();
           }
 
           if (state is StoreError) {

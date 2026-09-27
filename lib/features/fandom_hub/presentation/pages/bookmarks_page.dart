@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/skeleton_loader.dart';
 import '../bloc/fandom_hub_bloc.dart';
 import '../bloc/fandom_hub_event.dart';
 import '../bloc/fandom_hub_state.dart';
@@ -63,7 +64,14 @@ class _BookmarksPageState extends State<BookmarksPage> with SingleTickerProvider
       body: BlocBuilder<FandomHubBloc, FandomHubState>(
         builder: (context, state) {
           if (state is! FandomHubLoaded) {
-            return const Center(child: CircularProgressIndicator(color: AppColors.comicRed));
+            return ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: 4,
+              itemBuilder: (_, __) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: SkeletonLoader(width: double.infinity, height: 90, borderRadius: 14),
+              ),
+            );
           }
 
           // Combine and deduplicate saved posts from latestNews and trendingPosts

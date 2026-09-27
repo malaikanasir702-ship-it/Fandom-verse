@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/di/service_locator.dart';
 import 'core/routes/app_router.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/fcm_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/bloc/theme_bloc.dart';
 import 'core/theme/bloc/theme_state.dart';
@@ -20,25 +21,41 @@ import 'features/admin/presentation/bloc/admin_bloc.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ── Performance: Lock to portrait during startup to avoid layout jank ──
+  // Prevent red/grey screen of death in release mode
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    debugPrint('⚠️ [FlutterError] ${details.exceptionAsString()}');
+  };
+
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
-  // ── Performance: Set status bar style early to avoid flash ──
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: Color(0xFF0A0A1A),
+      systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
 
-  // ── Critical path: init dependencies first (SQLite + Firebase) ──
-  await initDependencies();
+  // ── Critical path: Firebase + SQLite + SharedPrefs ──
+  // Wrapped in try/catch to guarantee runApp is ALWAYS called
+  try {
+    await initDependencies();
+  } catch (e, stack) {
+    debugPrint('❌ [main] Dependency initialization error: $e\n$stack');
+  }
 
-  // ── Non-critical: init notifications in background, do NOT await ──
+  // ── Non-critical background inits — do NOT await ──
   NotificationService.initialize().catchError((_) {});
+
+  // FCM must initialize AFTER app is running — requestPermission() can block
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    FCMService.initialize().catchError((_) {});
+  });
 
   runApp(const FandomVerseApp());
 }
@@ -74,6 +91,7 @@ class FandomVerseAppState extends State<FandomVerseApp> {
           return MaterialApp(
             title: 'Fandom Verse Pocket Edition',
             debugShowCheckedModeBanner: false,
+            color: const Color(0xFF0A0A1A),
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeState.themeMode,

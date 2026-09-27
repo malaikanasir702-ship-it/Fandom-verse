@@ -3,6 +3,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/skewed_button.dart';
+import '../../../../core/widgets/skeleton_loader.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../bloc/admin_bloc.dart';
 import '../bloc/admin_event.dart';
@@ -110,7 +111,7 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
                   if (name.isNotEmpty) {
                     if (isEdit) {
                       final catData = Map<String, dynamic>.from(
-                          existingCategory!);
+                          existingCategory);
                       catData['name'] = name;
                       catData['description'] = descCtrl.text.trim();
                       catData['banner_url'] = bannerPathOrUrl.trim();
@@ -179,7 +180,7 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
       body: BlocBuilder<AdminBloc, AdminState>(
         builder: (context, state) {
           if (state is AdminLoading) {
-            return const Center(child: CircularProgressIndicator(color: AppColors.comicRed));
+            return const SkeletonAdminListPage();
           }
 
           final users = state is AdminStatsLoaded ? state.users : <Map<String, dynamic>>[];

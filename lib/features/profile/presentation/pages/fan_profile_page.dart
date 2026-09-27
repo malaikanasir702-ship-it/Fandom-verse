@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../../../../core/widgets/skewed_button.dart';
+import '../../../../core/widgets/skeleton_loader.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../bloc/profile_bloc.dart';
@@ -118,6 +119,26 @@ class _FanProfilePageState extends State<FanProfilePage> {
       ),
       body: BlocBuilder<ProfileBloc, ProfileState>(
         builder: (context, profileState) {
+          // Show skeleton while profile data loads
+          if (profileState is ProfileLoading) {
+            return const SingleChildScrollView(
+              padding: EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  SkeletonProfileHeader(),
+                  SizedBox(height: 20),
+                  SkeletonLoader(width: double.infinity, height: 80, borderRadius: 14),
+                  SizedBox(height: 14),
+                  SkeletonLoader(width: double.infinity, height: 56, borderRadius: 14),
+                  SizedBox(height: 10),
+                  SkeletonLoader(width: double.infinity, height: 56, borderRadius: 14),
+                  SizedBox(height: 10),
+                  SkeletonLoader(width: double.infinity, height: 56, borderRadius: 14),
+                ],
+              ),
+            );
+          }
+
           final profileLoaded =
               profileState is ProfileLoaded ? profileState : null;
 

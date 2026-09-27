@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../../../../core/widgets/skewed_button.dart';
+import '../../../../core/widgets/skeleton_loader.dart';
 import '../bloc/fandom_hub_bloc.dart';
 import '../bloc/fandom_hub_state.dart';
 import '../bloc/fandom_hub_event.dart';
@@ -208,7 +209,16 @@ class _GlossaryTabState extends State<_GlossaryTab> {
 
     return BlocBuilder<FandomHubBloc, FandomHubState>(
       builder: (context, state) {
-        if (state is! FandomHubLoaded) return const Center(child: CircularProgressIndicator());
+        if (state is! FandomHubLoaded) {
+          return ListView.builder(
+            padding: const EdgeInsets.all(20),
+            itemCount: 6,
+            itemBuilder: (_, __) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: SkeletonLoader(width: double.infinity, height: 80, borderRadius: 12),
+            ),
+          );
+        }
 
         final terms = state.glossary
             .where((t) =>
@@ -323,7 +333,16 @@ class _MediaTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<FandomHubBloc, FandomHubState>(
       builder: (context, state) {
-        if (state is! FandomHubLoaded) return const Center(child: CircularProgressIndicator());
+        if (state is! FandomHubLoaded) {
+          return GridView.builder(
+            padding: const EdgeInsets.all(16),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 0.85,
+            ),
+            itemCount: 6,
+            itemBuilder: (_, __) => SkeletonLoader(width: double.infinity, height: double.infinity, borderRadius: 14),
+          );
+        }
         return ListView(
           padding: const EdgeInsets.all(20),
           children: [

@@ -5,6 +5,10 @@ abstract class FandomHubState {
   const FandomHubState();
 }
 
+class FandomHubInitial extends FandomHubState {
+  const FandomHubInitial();
+}
+
 class FandomHubLoading extends FandomHubState {
   const FandomHubLoading();
 }

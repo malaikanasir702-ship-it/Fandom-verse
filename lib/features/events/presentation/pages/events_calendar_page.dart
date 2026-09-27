@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_display_image.dart';
+import '../../../../core/widgets/skeleton_loader.dart';
 import '../bloc/event_bloc.dart';
 import '../bloc/event_event.dart';
 import '../bloc/event_state.dart';
@@ -18,12 +19,12 @@ class EventsCalendarPage extends StatelessWidget {
     return BlocBuilder<EventCalendarBloc, EventCalendarState>(
       builder: (context, state) {
         if (state is EventLoading) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          return const Scaffold(body: SkeletonEventsPage());
         }
         if (state is EventLoaded) {
           return _EventsContent(state: state);
         }
-        return const Scaffold(body: Center(child: Text('No events found.')));
+        return const Scaffold(body: SkeletonEventsPage());
       },
     );
   }

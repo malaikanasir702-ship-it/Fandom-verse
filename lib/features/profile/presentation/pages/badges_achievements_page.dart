@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../../../../core/widgets/glowing_badge.dart';
+import '../../../../core/widgets/skeleton_loader.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/profile_bloc.dart';
 import '../bloc/profile_state.dart';
@@ -108,6 +109,10 @@ class BadgesAchievementsPage extends StatelessWidget {
       ),
       body: BlocBuilder<ProfileBloc, ProfileState>(
         builder: (context, profileState) {
+          if (authUser == null && profileState is ProfileLoading) {
+            return const SkeletonAdminListPage();
+          }
+
           // Get real badges from AuthBloc (live user) or ProfileBloc (DB user)
           List<String> userBadges = [];
           if (authUser != null) {

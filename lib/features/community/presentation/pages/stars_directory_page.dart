@@ -1,8 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
+import '../../../../core/widgets/skeleton_loader.dart';
 import '../bloc/community_bloc.dart';
 import '../bloc/community_event.dart';
 import '../bloc/community_state.dart';
@@ -31,7 +32,7 @@ class _StarsDirectoryPageState extends State<StarsDirectoryPage> {
       body: BlocBuilder<CommunityBloc, CommunityState>(
         builder: (context, state) {
           if (state is! CommunityLoaded) {
-            return const Center(child: CircularProgressIndicator());
+            return const SkeletonStarsDirectoryPage();
           }
 
           final stars = state.starProfiles.where((s) {

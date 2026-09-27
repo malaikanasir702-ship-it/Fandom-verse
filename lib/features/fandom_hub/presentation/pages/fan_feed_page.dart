@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/comic_ui_widgets.dart';
 import '../../../../core/widgets/skewed_button.dart';
+import '../../../../core/widgets/skeleton_loader.dart';
 import '../../../../core/database/sqlite_helper.dart';
 import '../bloc/fandom_hub_bloc.dart';
 import '../bloc/fandom_hub_state.dart';
@@ -23,13 +24,15 @@ class FanFeedPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<FandomHubBloc, FandomHubState>(
       builder: (context, state) {
-        if (state is FandomHubLoading) {
-          return const Center(child: CircularProgressIndicator(color: AppColors.comicRed));
+        if (state is FandomHubLoading || state is FandomHubInitial) {
+          // Show skeleton while loading instead of blank screen
+          return const SkeletonFeedPage();
         }
         if (state is FandomHubLoaded) {
           return _FanFeedContent(state: state);
         }
-        return const SizedBox.shrink();
+        // Error or unknown — show skeleton (app won't be blank)
+        return const SkeletonFeedPage();
       },
     );
   }

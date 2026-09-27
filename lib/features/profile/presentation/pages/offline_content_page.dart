@@ -4,6 +4,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../../../../core/widgets/skewed_button.dart';
+import '../../../../core/widgets/skeleton_loader.dart';
 import '../bloc/profile_bloc.dart';
 import '../bloc/profile_event.dart';
 import '../bloc/profile_state.dart';
@@ -394,9 +395,7 @@ class _EventsOfflineTab extends StatelessWidget {
     return BlocBuilder<EventCalendarBloc, EventCalendarState>(
       builder: (context, state) {
         if (state is! EventLoaded) {
-          return const Center(
-              child:
-                  CircularProgressIndicator(color: AppColors.comicRed));
+          return const SkeletonOfflineContentPage();
         }
 
         final events = state.allEvents;

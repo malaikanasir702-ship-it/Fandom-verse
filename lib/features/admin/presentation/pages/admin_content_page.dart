@@ -3,6 +3,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_display_image.dart';
+import '../../../../core/widgets/skeleton_loader.dart';
 import '../bloc/admin_bloc.dart';
 import '../bloc/admin_event.dart';
 import '../bloc/admin_state.dart';
@@ -68,7 +69,7 @@ class _AdminContentPageState extends State<AdminContentPage> {
       body: BlocBuilder<AdminBloc, AdminState>(
         builder: (context, state) {
           if (state is AdminLoading) {
-            return const Center(child: CircularProgressIndicator(color: AppColors.comicRed));
+            return const SkeletonAdminListPage();
           }
 
           final allArticles = state is AdminStatsLoaded ? state.articles : [];

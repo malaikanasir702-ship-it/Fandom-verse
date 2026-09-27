@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
+import '../../../../core/widgets/skeleton_loader.dart';
 import '../bloc/community_bloc.dart';
 import '../bloc/community_event.dart';
 import '../bloc/community_state.dart';
@@ -17,12 +18,32 @@ class DiscussionsPage extends StatelessWidget {
     return BlocBuilder<CommunityBloc, CommunityState>(
       builder: (context, state) {
         if (state is CommunityLoading) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          return Scaffold(
+            appBar: AppBar(title: const Text('Community', style: TextStyle(fontWeight: FontWeight.w800))),
+            body: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: 5,
+              itemBuilder: (_, __) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: SkeletonLoader(width: double.infinity, height: 120, borderRadius: 16),
+              ),
+            ),
+          );
         }
         if (state is CommunityLoaded) {
           return _DiscussionsContent(state: state);
         }
-        return const Scaffold(body: Center(child: Text('Error loading discussions.')));
+        return Scaffold(
+          appBar: AppBar(title: const Text('Community', style: TextStyle(fontWeight: FontWeight.w800))),
+          body: ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: 5,
+            itemBuilder: (_, __) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: SkeletonLoader(width: double.infinity, height: 120, borderRadius: 16),
+            ),
+          ),
+        );
       },
     );
   }

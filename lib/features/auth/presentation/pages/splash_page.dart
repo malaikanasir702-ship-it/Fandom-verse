@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,13 +21,15 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _opacityAnimation;
+  Timer? _fallbackTimer;
+  bool _hasNavigated = false;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800), // Reduced from 1400ms
+      duration: const Duration(milliseconds: 800),
     );
 
     _scaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
@@ -39,15 +42,69 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
 
     _controller.forward();
 
-    // ── Performance: Fire auth check immediately, no delay ──
-    // Previously had 400ms delay — removed completely
-    context.read<AuthBloc>().add(const CheckAuthSessionEvent());
+    // Fire auth session check
+    final authBloc = context.read<AuthBloc>();
+    authBloc.add(const CheckAuthSessionEvent());
+
+    // Safety fallback timer: guarantees splash NEVER gets stuck on slow or offline devices
+    _fallbackTimer = Timer(const Duration(milliseconds: 2400), () async {
+      if (_hasNavigated || !mounted) return;
+      debugPrint('⏱️ [SplashPage] Safety timeout reached, navigating to fallback route.');
+      await _navigateUnauthenticated();
+    });
+
+    // Check if state is already resolved
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_hasNavigated || !mounted) return;
+      final currentState = authBloc.state;
+      if (currentState is FanAuthenticated || currentState is AdminAuthenticated) {
+        _handleAuthState(currentState);
+      }
+    });
   }
 
   @override
   void dispose() {
+    _fallbackTimer?.cancel();
     _controller.dispose();
     super.dispose();
+  }
+
+  void _safeNavigate(String route) {
+    if (_hasNavigated || !mounted) return;
+    _hasNavigated = true;
+    _fallbackTimer?.cancel();
+    Navigator.of(context).pushReplacementNamed(route);
+  }
+
+  Future<void> _navigateUnauthenticated() async {
+    if (_hasNavigated || !mounted) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final seen = prefs.getBool('onboarding_seen') ?? false;
+      _safeNavigate(seen ? '/login' : '/onboarding');
+    } catch (_) {
+      _safeNavigate('/onboarding');
+    }
+  }
+
+  void _handleAuthState(AuthState state) {
+    if (_hasNavigated || !mounted) return;
+
+    if (state is FanAuthenticated) {
+      if (state.user.selectedFandoms.isEmpty) {
+        _safeNavigate('/interest-setup');
+      } else {
+        _safeNavigate('/fan-home');
+      }
+    } else if (state is AdminAuthenticated) {
+      _safeNavigate('/admin-dashboard');
+    } else if (state is Unauthenticated || state is AuthFailure) {
+      Future.delayed(const Duration(milliseconds: 250), () {
+        if (!mounted || _hasNavigated) return;
+        _navigateUnauthenticated();
+      });
+    }
   }
 
   @override
@@ -55,32 +112,9 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return BlocListener<AuthBloc, AuthState>(
-      listener: (context, state) {
-        if (state is FanAuthenticated) {
-          if (state.user.selectedFandoms.isEmpty) {
-            Navigator.of(context).pushReplacementNamed('/interest-setup');
-          } else {
-            Navigator.of(context).pushReplacementNamed('/fan-home');
-          }
-        } else if (state is AdminAuthenticated) {
-          Navigator.of(context).pushReplacementNamed('/admin-dashboard');
-        } else if (state is Unauthenticated || state is AuthFailure) {
-          // ── Performance: Minimal delay — just enough for animation to show ──
-          // Reduced from 1800ms to 300ms
-          Future.delayed(const Duration(milliseconds: 300), () async {
-            if (!context.mounted) return;
-            final prefs = await SharedPreferences.getInstance();
-            final seen = prefs.getBool('onboarding_seen') ?? false;
-            if (!context.mounted) return;
-            if (seen) {
-              Navigator.of(context).pushReplacementNamed('/login');
-            } else {
-              Navigator.of(context).pushReplacementNamed('/onboarding');
-            }
-          });
-        }
-      },
+      listener: (context, state) => _handleAuthState(state),
       child: Scaffold(
+        backgroundColor: const Color(0xFF0A0A1A),
         body: Stack(
           children: [
             // Background ambient gradient

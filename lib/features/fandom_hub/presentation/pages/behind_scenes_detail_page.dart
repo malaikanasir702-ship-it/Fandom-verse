@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:video_player/video_player.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
@@ -42,84 +43,7 @@ class BehindScenesDetailPage extends StatelessWidget {
         ),
       );
     } else if (type == 'video') {
-      return Container(
-        height: 220,
-        decoration: BoxDecoration(
-          color: Colors.black,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.comicYellow.withValues(alpha: 0.3)),
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            if (scene.mediaUrl != null && scene.mediaUrl!.isNotEmpty)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Opacity(
-                  opacity: 0.5,
-                  child: CachedNetworkImage(
-                    imageUrl: scene.mediaUrl!,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
-                    errorWidget: (_, __, ___) => const SizedBox.shrink(),
-                  ),
-                ),
-              ),
-            GestureDetector(
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Playing behind-the-scenes video...'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              },
-              child: Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: AppColors.comicRed,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.comicRed.withValues(alpha: 0.5),
-                      blurRadius: 16,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-                child: const Center(
-                  child: Icon(
-                    Icons.play_arrow_rounded,
-                    size: 36,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 12,
-              right: 14,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.black87,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: const Text(
-                  'VIDEO CONTENT',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
+      return _InAppVideoPlayer(videoUrl: scene.mediaUrl ?? '');
     } else {
       // Article type
       return GlassContainer(
@@ -263,6 +187,143 @@ class BehindScenesDetailPage extends StatelessWidget {
           ),
           const SizedBox(height: 40),
         ],
+      ),
+    );
+  }
+}
+
+/// In-app video player using video_player package.
+/// Plays network videos directly inside the app.
+class _InAppVideoPlayer extends StatefulWidget {
+  final String videoUrl;
+  const _InAppVideoPlayer({required this.videoUrl});
+
+  @override
+  State<_InAppVideoPlayer> createState() => _InAppVideoPlayerState();
+}
+
+class _InAppVideoPlayerState extends State<_InAppVideoPlayer> {
+  VideoPlayerController? _controller;
+  bool _isInitialized = false;
+  bool _hasError = false;
+  bool _isPlaying = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.videoUrl.isNotEmpty) {
+      _controller = VideoPlayerController.networkUrl(
+        Uri.parse(widget.videoUrl),
+      )..initialize().then((_) {
+          if (mounted) setState(() => _isInitialized = true);
+        }).catchError((_) {
+          if (mounted) setState(() => _hasError = true);
+        });
+    } else {
+      _hasError = true;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  void _togglePlay() {
+    if (_controller == null) return;
+    setState(() {
+      _isPlaying = !_isPlaying;
+      _isPlaying ? _controller!.play() : _controller!.pause();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        color: Colors.black,
+        child: AspectRatio(
+          aspectRatio: _isInitialized
+              ? _controller!.value.aspectRatio
+              : 16 / 9,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              if (_isInitialized && !_hasError)
+                VideoPlayer(_controller!)
+              else if (_hasError)
+                const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.videocam_off_rounded,
+                          color: Colors.white38, size: 40),
+                      SizedBox(height: 8),
+                      Text('Video unavailable',
+                          style: TextStyle(color: Colors.white54, fontSize: 13)),
+                    ],
+                  ),
+                )
+              else
+                const CircularProgressIndicator(
+                    color: AppColors.comicRed, strokeWidth: 2),
+
+              // Play/Pause overlay
+              if (_isInitialized && !_hasError)
+                GestureDetector(
+                  onTap: _togglePlay,
+                  child: AnimatedOpacity(
+                    opacity: _isPlaying ? 0.0 : 1.0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: AppColors.comicRed,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.comicRed.withValues(alpha: 0.5),
+                            blurRadius: 16,
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        _isPlaying
+                            ? Icons.pause_rounded
+                            : Icons.play_arrow_rounded,
+                        size: 36,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+
+              // VIDEO CONTENT badge
+              Positioned(
+                bottom: 10,
+                right: 12,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.black87,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Text(
+                    'VIDEO CONTENT',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

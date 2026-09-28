@@ -5,12 +5,11 @@ import 'package:http/http.dart' as http;
 import 'package:crypto/crypto.dart';
 
 /// Cloudinary CDN Service for Fandom Verse Pocket Edition
-/// Handles image, video, and audio uploads via REST API (unsigned + signed)
 /// Cloud: hpihaiub
 class CloudinaryService {
   static const String _cloudName = 'hpihaiub';
-  static const String _apiKey = '515492813748927';
-  static const String _apiSecret = 'uKfG2Ok2tUsMOCDejh15TMrN8B0';
+  static const String _apiKey = '637556628869215';
+  static const String _apiSecret = 'leKpBv-BJWrIvbTAjB8sfHEL6aAye';
   static const String _uploadBaseUrl =
       'https://api.cloudinary.com/v1_1/$_cloudName';
 
@@ -29,11 +28,15 @@ class CloudinaryService {
   static CloudinaryService get instance => _instance;
 
   // ── Upload Image from File ────────────────────────────────────────────────
-  /// Upload any local image file to Cloudinary.
-  /// Returns the secure_url on success, throws on failure.
   Future<String> uploadImage(File imageFile, {String folder = folderPosts}) async {
     final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    final signature = _generateSignature(folder: folder, timestamp: timestamp);
+
+    // All params that will be sent (excluding file & api_key, sorted alpha)
+    final params = <String, String>{
+      'folder': folder,
+      'timestamp': timestamp.toString(),
+    };
+    final signature = _sign(params);
 
     final request = http.MultipartRequest(
       'POST',
@@ -44,14 +47,12 @@ class CloudinaryService {
     request.fields['timestamp'] = timestamp.toString();
     request.fields['folder'] = folder;
     request.fields['signature'] = signature;
-    // Auto quality + auto format for 60-80% smaller files
-    request.fields['transformation'] = 'q_auto,f_auto';
 
     request.files.add(
       await http.MultipartFile.fromPath('file', imageFile.path),
     );
 
-    debugPrint('[Cloudinary] Uploading image to folder: $folder');
+    debugPrint('[Cloudinary] Uploading image → $folder');
     final response = await request.send().timeout(const Duration(seconds: 30));
     final body = await response.stream.bytesToString();
 
@@ -62,7 +63,7 @@ class CloudinaryService {
       return url;
     } else {
       debugPrint('[Cloudinary] ❌ Upload failed (${response.statusCode}): $body');
-      throw Exception('Cloudinary upload failed: ${response.statusCode}');
+      throw Exception('Cloudinary upload failed (${response.statusCode}): $body');
     }
   }
 
@@ -73,7 +74,11 @@ class CloudinaryService {
     String folder = folderPosts,
   }) async {
     final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    final signature = _generateSignature(folder: folder, timestamp: timestamp);
+    final params = <String, String>{
+      'folder': folder,
+      'timestamp': timestamp.toString(),
+    };
+    final signature = _sign(params);
 
     final request = http.MultipartRequest(
       'POST',
@@ -84,7 +89,6 @@ class CloudinaryService {
     request.fields['timestamp'] = timestamp.toString();
     request.fields['folder'] = folder;
     request.fields['signature'] = signature;
-    request.fields['transformation'] = 'q_auto,f_auto';
 
     request.files.add(
       http.MultipartFile.fromBytes('file', bytes, filename: filename),
@@ -97,14 +101,19 @@ class CloudinaryService {
       final data = jsonDecode(body) as Map<String, dynamic>;
       return data['secure_url'] as String;
     } else {
-      throw Exception('Cloudinary image bytes upload failed: ${response.statusCode}');
+      throw Exception('Cloudinary image bytes upload failed (${response.statusCode}): $body');
     }
   }
 
   // ── Upload Video from File ────────────────────────────────────────────────
   Future<String> uploadVideo(File videoFile, {String folder = folderVideos}) async {
     final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    final signature = _generateSignature(folder: folder, timestamp: timestamp, resourceType: 'video');
+    final params = <String, String>{
+      'folder': folder,
+      'resource_type': 'video',
+      'timestamp': timestamp.toString(),
+    };
+    final signature = _sign(params);
 
     final request = http.MultipartRequest(
       'POST',
@@ -114,13 +123,14 @@ class CloudinaryService {
     request.fields['api_key'] = _apiKey;
     request.fields['timestamp'] = timestamp.toString();
     request.fields['folder'] = folder;
+    request.fields['resource_type'] = 'video';
     request.fields['signature'] = signature;
 
     request.files.add(
       await http.MultipartFile.fromPath('file', videoFile.path),
     );
 
-    debugPrint('[Cloudinary] Uploading video to folder: $folder');
+    debugPrint('[Cloudinary] Uploading video → $folder');
     final response = await request.send().timeout(const Duration(seconds: 120));
     final body = await response.stream.bytesToString();
 
@@ -130,14 +140,19 @@ class CloudinaryService {
       debugPrint('[Cloudinary] ✅ Video uploaded: $url');
       return url;
     } else {
-      throw Exception('Cloudinary video upload failed: ${response.statusCode}');
+      throw Exception('Cloudinary video upload failed (${response.statusCode}): $body');
     }
   }
 
   // ── Upload Audio from File ────────────────────────────────────────────────
   Future<String> uploadAudio(File audioFile, {String folder = folderPodcasts}) async {
     final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    final signature = _generateSignature(folder: folder, timestamp: timestamp, resourceType: 'video');
+    final params = <String, String>{
+      'folder': folder,
+      'resource_type': 'video',
+      'timestamp': timestamp.toString(),
+    };
+    final signature = _sign(params);
 
     // Cloudinary treats audio as 'video' resource type
     final request = http.MultipartRequest(
@@ -148,14 +163,14 @@ class CloudinaryService {
     request.fields['api_key'] = _apiKey;
     request.fields['timestamp'] = timestamp.toString();
     request.fields['folder'] = folder;
+    request.fields['resource_type'] = 'video';
     request.fields['signature'] = signature;
-    request.fields['resource_type'] = 'video'; // audio uses video endpoint
 
     request.files.add(
       await http.MultipartFile.fromPath('file', audioFile.path),
     );
 
-    debugPrint('[Cloudinary] Uploading audio/podcast to folder: $folder');
+    debugPrint('[Cloudinary] Uploading audio → $folder');
     final response = await request.send().timeout(const Duration(seconds: 120));
     final body = await response.stream.bytesToString();
 
@@ -165,15 +180,18 @@ class CloudinaryService {
       debugPrint('[Cloudinary] ✅ Audio uploaded: $url');
       return url;
     } else {
-      throw Exception('Cloudinary audio upload failed: ${response.statusCode}');
+      throw Exception('Cloudinary audio upload failed (${response.statusCode}): $body');
     }
   }
 
-  // ── Upload via URL (fetch from external URL → store on Cloudinary) ────────
-  /// Migrates any external URL (Unsplash, etc.) to Cloudinary automatically.
+  // ── Upload via URL ────────────────────────────────────────────────────────
   Future<String> uploadFromUrl(String sourceUrl, {String folder = folderPosts}) async {
     final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    final signature = _generateSignature(folder: folder, timestamp: timestamp);
+    final params = <String, String>{
+      'folder': folder,
+      'timestamp': timestamp.toString(),
+    };
+    final signature = _sign(params);
 
     final response = await http.post(
       Uri.parse('$_uploadBaseUrl/image/upload'),
@@ -183,7 +201,6 @@ class CloudinaryService {
         'timestamp': timestamp.toString(),
         'folder': folder,
         'signature': signature,
-        'transformation': 'q_auto,f_auto',
       },
     ).timeout(const Duration(seconds: 30));
 
@@ -192,16 +209,18 @@ class CloudinaryService {
       return data['secure_url'] as String;
     } else {
       debugPrint('[Cloudinary] uploadFromUrl failed (${response.statusCode}): ${response.body}');
-      // Return original URL as fallback — non-critical
-      return sourceUrl;
+      return sourceUrl; // fallback — return original URL
     }
   }
 
   // ── Delete Asset ─────────────────────────────────────────────────────────
   Future<bool> deleteAsset(String publicId) async {
     final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    final sigString = 'public_id=$publicId&timestamp=$timestamp$_apiSecret';
-    final signature = sha1.convert(utf8.encode(sigString)).toString();
+    final params = <String, String>{
+      'public_id': publicId,
+      'timestamp': timestamp.toString(),
+    };
+    final signature = _sign(params);
 
     final response = await http.post(
       Uri.parse('$_uploadBaseUrl/image/destroy'),
@@ -217,9 +236,6 @@ class CloudinaryService {
   }
 
   // ── URL Optimization Helpers ──────────────────────────────────────────────
-
-  /// Add auto-quality + auto-format transformations to any Cloudinary URL.
-  /// Also resizes to the specified width for faster loading.
   static String optimizeUrl(
     String url, {
     int? width,
@@ -229,49 +245,35 @@ class CloudinaryService {
     String crop = 'fill',
   }) {
     if (!url.contains('res.cloudinary.com')) return url;
-
-    // Build transformation string
     final transforms = <String>['q_$quality', 'f_$format'];
     if (width != null) transforms.add('w_$width');
     if (height != null) transforms.add('h_$height');
     if (width != null || height != null) transforms.add('c_$crop');
-
-    final transform = transforms.join(',');
-
-    // Insert transformation before the version/public_id part
-    return url.replaceFirst(
-      '/upload/',
-      '/upload/$transform/',
-    );
+    return url.replaceFirst('/upload/', '/upload/${transforms.join(',')}/');
   }
 
-  /// Quick helper: thumbnail URL (400px wide, auto quality)
   static String thumbnail(String url, {int width = 400}) =>
       optimizeUrl(url, width: width);
 
-  /// Quick helper: avatar URL (200x200 fill, auto quality)
   static String avatar(String url) =>
       optimizeUrl(url, width: 200, height: 200, crop: 'fill');
 
-  /// Quick helper: banner URL (800px wide, auto quality)
   static String banner(String url) =>
       optimizeUrl(url, width: 800);
 
-  /// Returns true if a URL is hosted on Cloudinary
   static bool isCloudinaryUrl(String url) =>
-      url.contains('res.cloudinary.com') && url.contains('hpihaiub');
+      url.contains('res.cloudinary.com') && url.contains(_cloudName);
 
-  // ── HMAC-SHA1 Signature Generation ───────────────────────────────────────
-  String _generateSignature({
-    required String folder,
-    required int timestamp,
-    String resourceType = 'image',
-  }) {
-    // Cloudinary signature: alphabetically sorted params + api_secret
-    final paramsToSign =
-        'folder=$folder&timestamp=$timestamp$_apiSecret';
-    final bytes = utf8.encode(paramsToSign);
-    final digest = sha1.convert(bytes);
-    return digest.toString();
+  // ── HMAC-SHA1 Signature (Cloudinary spec) ────────────────────────────────
+  /// Cloudinary signed upload signature:
+  ///   SHA1( "param1=val1&param2=val2" + apiSecret )
+  /// where params are all non-file, non-api_key fields, sorted alphabetically.
+  String _sign(Map<String, String> params) {
+    // Sort keys alphabetically
+    final sortedKeys = params.keys.toList()..sort();
+    final paramString =
+        sortedKeys.map((k) => '$k=${params[k]}').join('&');
+    final toSign = '$paramString$_apiSecret';
+    return sha1.convert(utf8.encode(toSign)).toString();
   }
 }

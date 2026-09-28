@@ -647,7 +647,7 @@ class _FavouriteHeroesPageState extends State<FavouriteHeroesPage> {
                         crossAxisCount: 2,
                         mainAxisSpacing: 14,
                         crossAxisSpacing: 14,
-                        childAspectRatio: 0.65,
+                        childAspectRatio: 0.62,
                       ),
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
@@ -675,140 +675,199 @@ class _FavouriteHeroesPageState extends State<FavouriteHeroesPage> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // Hero Image with Category Badge & Favorite Button
-                                  Stack(
-                                    children: [
-                                      ClipRRect(
-                                        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                                        child: SizedBox(
-                                          height: 140,
-                                          width: double.infinity,
-                                          child: CachedNetworkImage(
+                                  // ── Hero Image (fixed height) ──────────
+                                  ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(
+                                        top: Radius.circular(16)),
+                                    child: SizedBox(
+                                      height: 130,
+                                      width: double.infinity,
+                                      child: Stack(
+                                        fit: StackFit.expand,
+                                        children: [
+                                          CachedNetworkImage(
                                             imageUrl: hero.avatarUrl,
                                             fit: BoxFit.cover,
                                             placeholder: (_, __) => Container(
-                                              color: hero.ringColor.withValues(alpha: 0.2),
+                                              color: hero.ringColor
+                                                  .withValues(alpha: 0.2),
                                               child: const Center(
-                                                child: CircularProgressIndicator(
+                                                child:
+                                                    CircularProgressIndicator(
                                                   strokeWidth: 2,
-                                                  color: AppColors.comicYellow,
+                                                  color:
+                                                      AppColors.comicYellow,
                                                 ),
                                               ),
                                             ),
-                                            errorWidget: (_, __, ___) => Container(
-                                              color: hero.ringColor.withValues(alpha: 0.3),
+                                            errorWidget: (_, __, ___) =>
+                                                Container(
+                                              color: hero.ringColor
+                                                  .withValues(alpha: 0.3),
                                               child: Center(
-                                                child: Icon(Iconsax.star_1, color: hero.ringColor, size: 40),
+                                                child: Icon(Iconsax.star_1,
+                                                    color: hero.ringColor,
+                                                    size: 40),
                                               ),
                                             ),
                                           ),
-                                        ),
-                                      ),
-                                      // Category Pill
-                                      Positioned(
-                                        top: 8,
-                                        left: 8,
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                          decoration: BoxDecoration(
-                                            color: Colors.black.withValues(alpha: 0.75),
-                                            borderRadius: BorderRadius.circular(8),
-                                            border: Border.all(color: hero.ringColor, width: 1),
-                                          ),
-                                          child: Text(
-                                            hero.category.split(' ').first.toUpperCase(),
-                                            style: TextStyle(
-                                              color: hero.ringColor,
-                                              fontSize: 9,
-                                              fontWeight: FontWeight.w900,
+                                          // Category Pill
+                                          Positioned(
+                                            top: 8,
+                                            left: 8,
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 3),
+                                              decoration: BoxDecoration(
+                                                color: Colors.black
+                                                    .withValues(alpha: 0.75),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                border: Border.all(
+                                                    color: hero.ringColor,
+                                                    width: 1),
+                                              ),
+                                              child: Text(
+                                                hero.category
+                                                    .split(' ')
+                                                    .first
+                                                    .toUpperCase(),
+                                                style: TextStyle(
+                                                  color: hero.ringColor,
+                                                  fontSize: 9,
+                                                  fontWeight: FontWeight.w900,
+                                                ),
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                      ),
-                                      // Favorite Button
-                                      Positioned(
-                                        top: 4,
-                                        right: 4,
-                                        child: GestureDetector(
-                                          onTap: () => _toggleFavorite(hero.id),
-                                          child: Container(
-                                            padding: const EdgeInsets.all(6),
-                                            decoration: BoxDecoration(
-                                              color: Colors.black.withValues(alpha: 0.65),
-                                              shape: BoxShape.circle,
-                                            ),
-                                            child: Icon(
-                                              isFav ? Icons.favorite : Icons.favorite_border,
-                                              color: isFav ? AppColors.comicRed : Colors.white,
-                                              size: 18,
+                                          // Favourite Button
+                                          Positioned(
+                                            top: 4,
+                                            right: 4,
+                                            child: GestureDetector(
+                                              onTap: () =>
+                                                  _toggleFavorite(hero.id),
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.all(6),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.black
+                                                      .withValues(alpha: 0.65),
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: Icon(
+                                                  isFav
+                                                      ? Icons.favorite
+                                                      : Icons.favorite_border,
+                                                  color: isFav
+                                                      ? AppColors.comicRed
+                                                      : Colors.white,
+                                                  size: 18,
+                                                ),
+                                              ),
                                             ),
                                           ),
-                                        ),
+                                        ],
                                       ),
-                                    ],
+                                    ),
                                   ),
 
-                                  // Hero Info
-                                  Padding(
-                                    padding: const EdgeInsets.all(10),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          hero.heroName,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w900,
-                                            fontSize: 15,
-                                            letterSpacing: 0.3,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          hero.tagline.isNotEmpty ? hero.tagline : hero.category,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            height: 1.3,
-                                            fontStyle: FontStyle.italic,
-                                            color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-
-                                        // Story Button
-                                        InkWell(
-                                          onTap: () => _openStoryForHero(hero),
-                                          borderRadius: BorderRadius.circular(8),
-                                          child: Container(
-                                            width: double.infinity,
-                                            padding: const EdgeInsets.symmetric(vertical: 6),
-                                            decoration: BoxDecoration(
-                                              color: hero.ringColor.withValues(alpha: 0.15),
-                                              borderRadius: BorderRadius.circular(8),
-                                              border: Border.all(color: hero.ringColor.withValues(alpha: 0.4)),
-                                            ),
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              children: [
-                                                Icon(Iconsax.play, size: 12, color: hero.ringColor),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  'VIEW STORY',
-                                                  style: TextStyle(
-                                                    color: hero.ringColor,
-                                                    fontSize: 10,
-                                                    fontWeight: FontWeight.w900,
-                                                    letterSpacing: 0.5,
-                                                  ),
+                                  // ── Hero Info (Expanded fills remaining height) ──
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.fromLTRB(
+                                          10, 8, 10, 8),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          // Name + tagline
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                hero.heroName,
+                                                maxLines: 1,
+                                                overflow:
+                                                    TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w900,
+                                                  fontSize: 14,
+                                                  letterSpacing: 0.3,
                                                 ),
-                                              ],
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                hero.tagline.isNotEmpty
+                                                    ? hero.tagline
+                                                    : hero.category,
+                                                maxLines: 1,
+                                                overflow:
+                                                    TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  height: 1.3,
+                                                  fontStyle: FontStyle.italic,
+                                                  color: isDark
+                                                      ? AppColors
+                                                          .darkTextSecondary
+                                                      : AppColors
+                                                          .lightTextSecondary,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+
+                                          // View Story button
+                                          InkWell(
+                                            onTap: () =>
+                                                _openStoryForHero(hero),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            child: Container(
+                                              width: double.infinity,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 6),
+                                              decoration: BoxDecoration(
+                                                color: hero.ringColor
+                                                    .withValues(alpha: 0.15),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                border: Border.all(
+                                                    color: hero.ringColor
+                                                        .withValues(
+                                                            alpha: 0.4)),
+                                              ),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Icon(Iconsax.play,
+                                                      size: 12,
+                                                      color: hero.ringColor),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    'VIEW STORY',
+                                                    style: TextStyle(
+                                                      color: hero.ringColor,
+                                                      fontSize: 10,
+                                                      fontWeight:
+                                                          FontWeight.w900,
+                                                      letterSpacing: 0.5,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ],

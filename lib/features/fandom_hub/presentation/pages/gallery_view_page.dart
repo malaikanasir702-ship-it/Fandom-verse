@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:share_plus/share_plus.dart';
+import 'dart:math' as math;
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
@@ -57,22 +59,59 @@ class GalleryViewPage extends StatefulWidget {
   State<GalleryViewPage> createState() => _GalleryViewPageState();
 }
 
-class _GalleryViewPageState extends State<GalleryViewPage> {
+class _GalleryViewPageState extends State<GalleryViewPage>
+    with TickerProviderStateMixin {
   late bool _isLiked;
   late int _likeCount;
+
+  late AnimationController _heartCtrl;
+  late Animation<double> _heartScale;
+  final List<_GalleryParticle> _particles = [];
 
   @override
   void initState() {
     super.initState();
     _isLiked = widget.item.isLiked;
     _likeCount = widget.item.likeCount;
+    _heartCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _heartScale = Tween<double>(begin: 1.0, end: 1.6).animate(
+      CurvedAnimation(parent: _heartCtrl, curve: Curves.elasticOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _heartCtrl.dispose();
+    super.dispose();
   }
 
   void _toggleLike() {
     setState(() {
       _isLiked = !_isLiked;
       _likeCount += _isLiked ? 1 : -1;
+      if (_isLiked) {
+        _particles.clear();
+        final rng = math.Random();
+        for (int i = 0; i < 8; i++) {
+          _particles.add(_GalleryParticle(
+            angle: rng.nextDouble() * 2 * math.pi,
+            distance: 20 + rng.nextDouble() * 30,
+          ));
+        }
+        _heartCtrl.forward(from: 0);
+      }
     });
+  }
+
+  void _share() {
+    Share.share(
+      '🎨 Check out this amazing fan art on Fandom Verse!\n\n'
+      '"${widget.item.title}" by ${widget.item.artistName}\n\n'
+      '📲 Download Fandom Verse — Your fandom pocket companion!',
+    );
   }
 
   @override
@@ -96,14 +135,57 @@ class _GalleryViewPageState extends State<GalleryViewPage> {
           ),
         ),
         actions: [
-          IconButton(
-            icon: Icon(
-              _isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-              color: _isLiked ? AppColors.comicRed : Colors.white70,
+            // Share button
+            IconButton(
+              icon: const Icon(Iconsax.share, color: Colors.white70),
+              onPressed: _share,
             ),
-            onPressed: _toggleLike,
-          ),
-        ],
+            // Like with burst animation
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                AnimatedBuilder(
+                  animation: _heartCtrl,
+                  builder: (_, __) => Transform.scale(
+                    scale: _isLiked ? _heartScale.value : 1.0,
+                    child: IconButton(
+                      icon: Icon(
+                        _isLiked
+                            ? Icons.favorite_rounded
+                            : Icons.favorite_border_rounded,
+                        color: _isLiked ? AppColors.comicRed : Colors.white70,
+                      ),
+                      onPressed: _toggleLike,
+                    ),
+                  ),
+                ),
+                if (_isLiked)
+                  ...List.generate(_particles.length, (i) {
+                    final p = _particles[i];
+                    return AnimatedBuilder(
+                      animation: _heartCtrl,
+                      builder: (_, __) {
+                        final progress = _heartCtrl.value;
+                        final dist = p.distance * progress;
+                        final opacity =
+                            (1.0 - progress * 1.2).clamp(0.0, 1.0);
+                        return Positioned(
+                          left: 20 + dist * math.cos(p.angle) - 5,
+                          top: 20 + dist * math.sin(p.angle) - 5,
+                          child: IgnorePointer(
+                            child: Opacity(
+                              opacity: opacity,
+                              child: const Icon(Icons.favorite_rounded,
+                                  color: AppColors.comicRed, size: 10),
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  }),
+              ],
+            ),
+          ],
       ),
       body: SafeArea(
         child: Column(
@@ -207,24 +289,37 @@ class _GalleryViewPageState extends State<GalleryViewPage> {
                       color: Colors.white.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          _isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                          size: 14,
-                          color: _isLiked ? AppColors.comicRed : Colors.white70,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '$_likeCount',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
+                    child: GestureDetector(
+                      onTap: _toggleLike,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          AnimatedBuilder(
+                            animation: _heartCtrl,
+                            builder: (_, __) => Transform.scale(
+                              scale: _isLiked ? _heartScale.value : 1.0,
+                              child: Icon(
+                                _isLiked
+                                    ? Icons.favorite_rounded
+                                    : Icons.favorite_border_rounded,
+                                size: 14,
+                                color: _isLiked
+                                    ? AppColors.comicRed
+                                    : Colors.white70,
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 4),
+                          Text(
+                            '$_likeCount',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -235,4 +330,10 @@ class _GalleryViewPageState extends State<GalleryViewPage> {
       ),
     );
   }
+}
+
+class _GalleryParticle {
+  final double angle;
+  final double distance;
+  _GalleryParticle({required this.angle, required this.distance});
 }

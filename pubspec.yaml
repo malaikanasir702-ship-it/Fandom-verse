@@ -61,6 +61,7 @@ dependencies:
   qr_flutter: ^4.1.0
   flutter_stripe: ^14.1.0
   geolocator: ^13.0.4
+  share_plus: ^10.1.4
   file_picker: ^11.0.3
   audioplayers: ^6.7.1
   video_player: ^2.9.2

@@ -584,22 +584,26 @@ class _FanFeedContentState extends State<_FanFeedContent> {
                 Expanded(
                   child: Row(
                     children: [
-                      const Icon(Iconsax.cup, color: AppColors.comicYellow, size: 22),
+                      const Icon(Iconsax.cup, color: AppColors.comicYellow, size: 20),
                       const SizedBox(width: 8),
-                      const Text(
-                        'TRIVIA CHALLENGE',
-                        style: TextStyle(
-                          fontStyle: FontStyle.italic,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 16,
-                          color: AppColors.comicRed,
+                      const Flexible(
+                        child: Text(
+                          'TRIVIA CHALLENGE',
+                          style: TextStyle(
+                            fontStyle: FontStyle.italic,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 15,
+                            color: AppColors.comicRed,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
                   ),
                 ),
+                const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: AppColors.darkAccentGold.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
@@ -609,7 +613,7 @@ class _FanFeedContentState extends State<_FanFeedContent> {
                     style: const TextStyle(
                       color: AppColors.darkAccentGold,
                       fontWeight: FontWeight.w800,
-                      fontSize: 13,
+                      fontSize: 12,
                     ),
                   ),
                 ),

@@ -134,15 +134,13 @@ class _SplashPageState extends State<SplashPage>
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // ── FANDOM VERSE wordmark logo ──────────────────
+                          // ── FANDOM VERSE splash logo ────────────────────
                           Image.asset(
                             'assets/images/splash_logo.png',
                             width: 280,
                             fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) {
-                              // Fallback: draw the logo in code if image missing
-                              return _FandomVerseFallbackLogo();
-                            },
+                            errorBuilder: (_, __, ___) =>
+                                const _FandomVerseFallbackLogo(),
                           ),
 
                           const SizedBox(height: 48),

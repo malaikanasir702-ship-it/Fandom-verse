@@ -14,14 +14,36 @@ import '../services/firebase_auth_service.dart';
 
 void initDevADependencies(GetIt sl) {
   // Repositories
-  sl.registerLazySingleton<IFandomHubRepository>(() => FandomHubRepositoryImpl());
-  sl.registerLazySingleton<IEventsRepository>(() => EventsRepositoryImpl());
-  sl.registerLazySingleton<ICommunityRepository>(() => CommunityRepositoryImpl());
+  if (!sl.isRegistered<IFandomHubRepository>()) {
+    sl.registerLazySingleton<IFandomHubRepository>(
+        () => FandomHubRepositoryImpl());
+  }
+  if (!sl.isRegistered<IEventsRepository>()) {
+    sl.registerLazySingleton<IEventsRepository>(() => EventsRepositoryImpl());
+  }
+  if (!sl.isRegistered<ICommunityRepository>()) {
+    sl.registerLazySingleton<ICommunityRepository>(
+        () => CommunityRepositoryImpl());
+  }
 
   // Blocs
-  sl.registerLazySingleton<AuthBloc>(() => AuthBloc(authService: sl<FirebaseAuthService>()));
-  sl.registerFactory(() => FandomHubBloc(repository: sl<IFandomHubRepository>()));
-  sl.registerFactory(() => EventCalendarBloc(repository: sl<IEventsRepository>()));
-  sl.registerFactory(() => CommunityBloc(repository: sl<ICommunityRepository>()));
-  sl.registerFactory(() => AIAssistantBloc());
+  if (!sl.isRegistered<AuthBloc>()) {
+    sl.registerLazySingleton<AuthBloc>(
+        () => AuthBloc(authService: sl<FirebaseAuthService>()));
+  }
+  if (!sl.isRegistered<FandomHubBloc>()) {
+    sl.registerFactory(
+        () => FandomHubBloc(repository: sl<IFandomHubRepository>()));
+  }
+  if (!sl.isRegistered<EventCalendarBloc>()) {
+    sl.registerFactory(
+        () => EventCalendarBloc(repository: sl<IEventsRepository>()));
+  }
+  if (!sl.isRegistered<CommunityBloc>()) {
+    sl.registerFactory(
+        () => CommunityBloc(repository: sl<ICommunityRepository>()));
+  }
+  if (!sl.isRegistered<AIAssistantBloc>()) {
+    sl.registerFactory(() => AIAssistantBloc());
+  }
 }

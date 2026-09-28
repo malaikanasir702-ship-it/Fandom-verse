@@ -613,40 +613,47 @@ class SkeletonAdminListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        // Search & Filter Bar
-        Row(
+    // Admin panel is always light-themed — force light skeleton colors
+    return Theme(
+      data: Theme.of(context).copyWith(brightness: Brightness.light),
+      child: Container(
+        color: const Color(0xFFF8F9FA),
+        child: ListView(
+          padding: const EdgeInsets.all(16),
           children: [
-            Expanded(child: SkeletonLoader(width: double.infinity, height: 44, borderRadius: 12)),
-            const SizedBox(width: 10),
-            SkeletonLoader(width: 44, height: 44, borderRadius: 12),
+            // Search & Filter Bar
+            Row(
+              children: [
+                Expanded(child: SkeletonLoader(width: double.infinity, height: 44, borderRadius: 12)),
+                const SizedBox(width: 10),
+                SkeletonLoader(width: 44, height: 44, borderRadius: 12),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // Filter pills
+            SizedBox(
+              height: 34,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: 4,
+                itemBuilder: (_, i) => Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: SkeletonLoader(width: 80, height: 34, borderRadius: 17),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Admin Item Cards
+            ...List.generate(
+              5,
+              (_) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: SkeletonLoader(width: double.infinity, height: 86, borderRadius: 16),
+              ),
+            ),
           ],
         ),
-        const SizedBox(height: 16),
-        // Filter pills
-        SizedBox(
-          height: 34,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: 4,
-            itemBuilder: (_, i) => Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: SkeletonLoader(width: 80, height: 34, borderRadius: 17),
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        // Admin Item Cards
-        ...List.generate(
-          5,
-          (_) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: SkeletonLoader(width: double.infinity, height: 86, borderRadius: 16),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

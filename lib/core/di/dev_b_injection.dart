@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import '../database/sqlite_helper.dart';
 import '../services/local_storage_service.dart';
@@ -15,45 +16,77 @@ import '../../features/admin/presentation/bloc/admin_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> initDevBInjection(GetIt sl) async {
-  // ── Performance: Run SQLite init and SharedPreferences in parallel ──
-  final results = await Future.wait([
-    SqliteHelper.instance.initDatabase(),
-    SharedPreferences.getInstance(),
-  ]);
+  // ── Initialize SQLite safely — must not crash the app ──────────────────────
+  try {
+    await SqliteHelper.instance.initDatabase();
+    debugPrint('✅ [DevB] SQLite initialized.');
+  } catch (e) {
+    debugPrint('⚠️ [DevB] SQLite init failed (non-fatal): $e');
+  }
 
   final dbHelper = SqliteHelper.instance;
-  final sharedPrefs = results[1] as SharedPreferences;
+  SharedPreferences sharedPrefs;
 
-  sl.registerLazySingleton<SqliteHelper>(() => dbHelper);
-  sl.registerLazySingleton<LocalStorageService>(
-    () => LocalStorageService(sharedPrefs),
-  );
+  try {
+    sharedPrefs = await SharedPreferences.getInstance();
+  } catch (e) {
+    debugPrint('⚠️ [DevB] SharedPreferences init failed: $e');
+    sharedPrefs = await SharedPreferences.getInstance(); // retry once
+  }
 
-  // Repositories (Dev B)
-  sl.registerLazySingleton<IStoreRepository>(
-    () => StoreRepositoryImpl(dbHelper: dbHelper),
-  );
-  sl.registerLazySingleton<ICartRepository>(
-    () => CartRepositoryImpl(dbHelper: dbHelper),
-  );
-  sl.registerLazySingleton<IAdminRepository>(
-    () => AdminRepositoryImpl(dbHelper: dbHelper),
-  );
+  // ── Register services ──────────────────────────────────────────────────────
+  if (!sl.isRegistered<SqliteHelper>()) {
+    sl.registerLazySingleton<SqliteHelper>(() => dbHelper);
+  }
+  if (!sl.isRegistered<LocalStorageService>()) {
+    sl.registerLazySingleton<LocalStorageService>(
+      () => LocalStorageService(sharedPrefs),
+    );
+  }
 
-  // BLoCs — registerFactory for short-lived, registerLazySingleton for global
-  sl.registerLazySingleton<ThemeBloc>(
-    () => ThemeBloc(sl<LocalStorageService>()),
-  );
-  sl.registerFactory<StoreBloc>(
-    () => StoreBloc(repository: sl<IStoreRepository>()),
-  );
-  sl.registerFactory<CartBloc>(
-    () => CartBloc(repository: sl<ICartRepository>()),
-  );
-  sl.registerFactory<ProfileBloc>(
-    () => ProfileBloc(dbHelper: sl<SqliteHelper>()),
-  );
-  sl.registerFactory<AdminBloc>(
-    () => AdminBloc(repository: sl<IAdminRepository>()),
-  );
+  // ── Repositories ───────────────────────────────────────────────────────────
+  if (!sl.isRegistered<IStoreRepository>()) {
+    sl.registerLazySingleton<IStoreRepository>(
+      () => StoreRepositoryImpl(dbHelper: dbHelper),
+    );
+  }
+  if (!sl.isRegistered<ICartRepository>()) {
+    sl.registerLazySingleton<ICartRepository>(
+      () => CartRepositoryImpl(dbHelper: dbHelper),
+    );
+  }
+  if (!sl.isRegistered<IAdminRepository>()) {
+    sl.registerLazySingleton<IAdminRepository>(
+      () => AdminRepositoryImpl(dbHelper: dbHelper),
+    );
+  }
+
+  // ── BLoCs — ThemeBloc MUST always be registered ───────────────────────────
+  if (!sl.isRegistered<ThemeBloc>()) {
+    sl.registerLazySingleton<ThemeBloc>(
+      () => ThemeBloc(sl<LocalStorageService>()),
+    );
+  }
+  if (!sl.isRegistered<StoreBloc>()) {
+    sl.registerFactory<StoreBloc>(
+      () => StoreBloc(repository: sl<IStoreRepository>()),
+    );
+  }
+  if (!sl.isRegistered<CartBloc>()) {
+    sl.registerFactory<CartBloc>(
+      () => CartBloc(repository: sl<ICartRepository>()),
+    );
+  }
+  if (!sl.isRegistered<ProfileBloc>()) {
+    sl.registerFactory<ProfileBloc>(
+      () => ProfileBloc(dbHelper: sl<SqliteHelper>()),
+    );
+  }
+  if (!sl.isRegistered<AdminBloc>()) {
+    sl.registerFactory<AdminBloc>(
+      () => AdminBloc(repository: sl<IAdminRepository>()),
+    );
+  }
+
+  debugPrint('✅ [DevB] All dependencies registered.');
 }

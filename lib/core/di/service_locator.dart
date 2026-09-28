@@ -13,11 +13,17 @@ Future<void> initDependencies() async {
   await FirebaseService.initialize();
 
   // Register Firebase Services
-  sl.registerLazySingleton<FirebaseAuthService>(() => FirebaseAuthService());
-  sl.registerLazySingleton<FirestoreService>(() => FirestoreService());
+  if (!sl.isRegistered<FirebaseAuthService>()) {
+    sl.registerLazySingleton<FirebaseAuthService>(() => FirebaseAuthService());
+  }
+  if (!sl.isRegistered<FirestoreService>()) {
+    sl.registerLazySingleton<FirestoreService>(() => FirestoreService());
+  }
 
   // Register Cloudinary CDN Service
-  sl.registerLazySingleton<CloudinaryService>(() => CloudinaryService.instance);
+  if (!sl.isRegistered<CloudinaryService>()) {
+    sl.registerLazySingleton<CloudinaryService>(() => CloudinaryService.instance);
+  }
 
   // Initialize FCM — real push notifications (non-blocking, after app starts)
   // NOTE: FCMService.initialize() moved to post-frame in main.dart

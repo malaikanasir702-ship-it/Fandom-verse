@@ -1,0 +1,53 @@
+  Future<void> initDatabase() async {
+    if (_db != null) return;
+
+    final dbPath = await getDatabasesPath();
+    final fullPath = p.join(dbPath, DbConstants.databaseName);
+
+    _db = await openDatabase(
+      fullPath,
+      version: DbConstants.databaseVersion,
+      onConfigure: (db) async {
+        // -- Performance: WAL mode = concurrent reads + writes, ~3x faster --
+        await db.rawQuery('PRAGMA journal_mode = WAL');
+        await db.execute('PRAGMA foreign_keys = ON');
+        // -- Performance: Keep 4MB in memory page cache --
+        await db.execute('PRAGMA cache_size = -4000');
+        // -- Performance: Sync only at critical moments (safe on mobile) --
+        await db.execute('PRAGMA synchronous = NORMAL');
+        // -- Performance: Store temp tables in memory --
+        await db.execute('PRAGMA temp_store = MEMORY');
+      },
+      onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
+    );
+
+    debugPrint('? [SqliteHelper] Database ready at: $fullPath');
+    
+    // -- Performance: Run seeding in background (non-blocking) --
+    _runBackgroundSeeding();
+  }
+
+  /// Runs seeding and cleanup tasks in the background without blocking database initialization
+  void _runBackgroundSeeding() {
+    Future.microtask(() async {
+      try {
+        final db = _db;
+        if (db == null) return;
+        
+        await _seedHeroStoriesIfEmpty(db);
+        await _seedNotificationsIfEmpty(db);
+        await _seedDeepDiveIfEmpty(db);
+        
+        // One-time purge: remove seeded/fake notifications
+        await db.delete(
+          DbConstants.tableNotifications,
+          where: "id IN ('notif-1','notif-2','notif-3','notif-4','notif-5')",
+        );
+        
+        debugPrint('? [SqliteHelper] Background seeding completed');
+      } catch (e) {
+        debugPrint('[SqliteHelper] Background seeding error: $e');
+      }
+    });
+  }

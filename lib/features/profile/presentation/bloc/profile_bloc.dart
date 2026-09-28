@@ -17,6 +17,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<ClearLocalCacheStorageEvent>(_onClearCache);
     on<UpdateAvatarEvent>(_onUpdateAvatar);
     on<ToggleLikeFandomEvent>(_onToggleLikeFandom);
+    on<UpdateProfileEvent>(_onUpdateProfile);
   }
 
   Future<void> _onLoadUserProfile(
@@ -111,7 +112,30 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     }
   }
 
-  Future<void> _onToggleLikeFandom(
+  Future<void> _onUpdateProfile(
+    UpdateProfileEvent event,
+    Emitter<ProfileState> emit,
+  ) async {
+    try {
+      final updates = <String, dynamic>{};
+      if (event.bio != null) updates['bio'] = event.bio;
+      if (event.city != null) updates['city'] = event.city;
+      if (event.fanbase != null) updates['fanbase'] = event.fanbase;
+      
+      if (updates.isNotEmpty) {
+        await _dbHelper.update(
+          DbConstants.tableUsers,
+          'user_id',
+          event.userId,
+          updates,
+        );
+        add(LoadUserProfileEvent(userId: event.userId));
+      }
+    } catch (e) {
+      emit(ProfileError('Failed to update profile: ${e.toString()}'));
+    }
+  }
+    Future<void> _onToggleLikeFandom(
     ToggleLikeFandomEvent event,
     Emitter<ProfileState> emit,
   ) async {

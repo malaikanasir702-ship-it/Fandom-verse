@@ -185,6 +185,18 @@ class SqliteHelper {
         'liked_fandoms',
         "TEXT DEFAULT '[]'",
       );
+      await _safeAddColumn(
+        db,
+        DbConstants.tableUsers,
+        'city',
+        'TEXT',
+      );
+      await _safeAddColumn(
+        db,
+        DbConstants.tableUsers,
+        'fanbase',
+        'TEXT',
+      );
       await _createNewTableIndexes(db);
     }
 

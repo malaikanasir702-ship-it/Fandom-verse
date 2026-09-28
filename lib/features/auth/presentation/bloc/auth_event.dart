@@ -46,12 +46,16 @@ class LogoutEvent extends AuthEvent {
 class UpdateUserProfileEvent extends AuthEvent {
   final String? name;
   final String? bio;
+  final String? city;
+  final String? fanbase;
   final String? avatarUrl;
   final bool removeAvatar;
 
   const UpdateUserProfileEvent({
     this.name,
     this.bio,
+    this.city,
+    this.fanbase,
     this.avatarUrl,
     this.removeAvatar = false,
   });

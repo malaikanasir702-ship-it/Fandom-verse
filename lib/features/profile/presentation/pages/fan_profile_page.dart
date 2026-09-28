@@ -247,6 +247,22 @@ class _FanProfilePageState extends State<FanProfilePage> {
                               : AppColors.lightTextSecondary,
                         ),
                       ),
+                      const SizedBox(height: 12),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton.icon(
+                          onPressed: () => Navigator.of(context).pushNamed('/edit-profile'),
+                          icon: const Icon(Iconsax.edit_2, size: 14, color: AppColors.comicRed),
+                          label: const Text(
+                            'Edit Profile',
+                            style: TextStyle(
+                              color: AppColors.comicRed,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),

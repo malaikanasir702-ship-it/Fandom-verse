@@ -62,6 +62,22 @@ class UpdateAvatarEvent extends ProfileEvent {
   List<Object?> get props => [userId, imagePath];
 }
 
+class UpdateProfileEvent extends ProfileEvent {
+  final String userId;
+  final String? bio;
+  final String? city;
+  final String? fanbase;
+
+  const UpdateProfileEvent({
+    required this.userId,
+    this.bio,
+    this.city,
+    this.fanbase,
+  });
+
+  @override
+  List<Object?> get props => [userId, bio, city, fanbase];
+}
 class ToggleLikeFandomEvent extends ProfileEvent {
   final String userId;
   final String categoryId;

@@ -9,6 +9,8 @@ class UserEntity extends Equatable {
   final String status; // 'active', 'suspended', 'banned'
   final String? avatarUrl;
   final String? bio;
+  final String? city;
+  final String? fanbase;
   final List<String> badges;
   final List<String> selectedFandoms;
   final List<String> likedFandoms;
@@ -21,6 +23,8 @@ class UserEntity extends Equatable {
     this.status = 'active',
     this.avatarUrl,
     this.bio,
+    this.city,
+    this.fanbase,
     this.badges = const [],
     this.selectedFandoms = const [],
     this.likedFandoms = const [],
@@ -52,6 +56,8 @@ class UserEntity extends Equatable {
       status: (map['status'] ?? 'active').toString(),
       avatarUrl: (map['avatar_url'] ?? map['avatarUrl'])?.toString(),
       bio: map['bio']?.toString() ?? '',
+      city: map['city']?.toString(),
+      fanbase: map['fanbase']?.toString(),
       badges: parseList(map['badges']),
       selectedFandoms: parseList(map['selected_fandoms'] ?? map['selectedFandoms']),
       likedFandoms: parseList(map['liked_fandoms'] ?? map['likedFandoms']),
@@ -67,6 +73,8 @@ class UserEntity extends Equatable {
       'status': status,
       'avatar_url': avatarUrl,
       'bio': bio ?? '',
+      'city': city,
+      'fanbase': fanbase,
       'badges': jsonEncode(badges),
       'selected_fandoms': jsonEncode(selectedFandoms),
       'liked_fandoms': jsonEncode(likedFandoms),
@@ -82,6 +90,8 @@ class UserEntity extends Equatable {
     String? avatarUrl,
     bool clearAvatar = false,
     String? bio,
+    String? city,
+    String? fanbase,
     List<String>? badges,
     List<String>? selectedFandoms,
     List<String>? likedFandoms,
@@ -94,6 +104,8 @@ class UserEntity extends Equatable {
       status: status ?? this.status,
       avatarUrl: clearAvatar ? null : (avatarUrl ?? this.avatarUrl),
       bio: bio ?? this.bio,
+      city: city ?? this.city,
+      fanbase: fanbase ?? this.fanbase,
       badges: badges ?? this.badges,
       selectedFandoms: selectedFandoms ?? this.selectedFandoms,
       likedFandoms: likedFandoms ?? this.likedFandoms,
@@ -109,6 +121,8 @@ class UserEntity extends Equatable {
         status,
         avatarUrl,
         bio,
+        city,
+        fanbase,
         badges,
         selectedFandoms,
         likedFandoms,

@@ -1,8 +1,10 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/services/stripe_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/widgets/skewed_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/glass_container.dart';
@@ -42,6 +44,7 @@ class _CheckoutInvoicePageState extends State<CheckoutInvoicePage> {
   String _userId = 'fan-01';
 
   String _selectedPaymentMethod = 'Cash on Delivery';
+  bool _isProcessingStripe = false;
 
   @override
   void initState() {
@@ -59,16 +62,19 @@ class _CheckoutInvoicePageState extends State<CheckoutInvoicePage> {
       'title': 'Cash on Delivery',
       'desc': 'Pay when your order arrives',
       'icon': Iconsax.shop,
+      'isStripe': false,
     },
     {
       'title': 'Credit / Debit Card',
-      'desc': 'Visa, Mastercard, or any debit card',
+      'desc': 'Pay securely via Stripe payment sheet',
       'icon': Iconsax.card,
+      'isStripe': true,
     },
     {
       'title': 'Fan Reward Points',
       'desc': 'Redeem your Otaku Lore XP Points',
       'icon': Iconsax.star_1,
+      'isStripe': false,
     },
   ];
 
@@ -302,24 +308,145 @@ class _CheckoutInvoicePageState extends State<CheckoutInvoicePage> {
               // Submit & Generate Invoice CTA
               BlocBuilder<CartBloc, CartState>(
                 builder: (context, state) {
-                  final isLoading = state is CartLoading;
-                  return SkewedButton(
-                    text: isLoading ? 'Processing...' : 'Confirm & Generate Invoice Bill',
-                    icon: Iconsax.receipt_1,
-                    height: 52,
-                    fontSize: 12,
-                    onPressed: isLoading ? null : () {
-                      final fullAddress =
-                          '${_nameController.text.trim()}, ${_addressController.text.trim()}, ${_cityController.text.trim()} (Phone: ${_phoneController.text.trim()})';
+                  final isCartLoading = state is CartLoading;
+                  final isLoading = isCartLoading || _isProcessingStripe;
+                  final isStripe = _selectedPaymentMethod == 'Credit / Debit Card';
 
-                      context.read<CartBloc>().add(
-                            ExecuteCheckoutEvent(
-                              userId: _userId,
-                              shippingAddress: fullAddress,
-                              paymentMethod: _selectedPaymentMethod,
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Stripe info banner when card is selected
+                      if (isStripe) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 10),
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF635BFF).withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: const Color(0xFF635BFF).withValues(alpha: 0.35),
                             ),
-                          );
-                    },
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF635BFF),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Text(
+                                  'stripe',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              const Expanded(
+                                child: Text(
+                                  'Your card details are handled securely by Stripe. We never store card data.',
+                                  style: TextStyle(fontSize: 11, height: 1.4),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+
+                      SkewedButton(
+                        text: isLoading
+                            ? (isStripe
+                                ? 'OPENING STRIPE...'
+                                : 'Processing...')
+                            : (isStripe
+                                ? 'PAY \$${widget.totalAmount.toStringAsFixed(2)} VIA STRIPE'
+                                : 'Confirm & Generate Invoice Bill'),
+                        icon: isLoading
+                            ? null
+                            : (isStripe ? Iconsax.lock : Iconsax.receipt_1),
+                        height: 52,
+                        fontSize: 12,
+                        onPressed: isLoading
+                            ? null
+                            : () async {
+                                if (isStripe) {
+                                  // ── Stripe Payment Flow ──────────────────
+                                  setState(
+                                      () => _isProcessingStripe = true);
+
+                                  // Get first item name for description
+                                  final cartState =
+                                      context.read<CartBloc>().state;
+                                  final productName =
+                                      cartState is CartLoaded &&
+                                              cartState.items.isNotEmpty
+                                          ? cartState.items.first.product.name
+                                          : 'Fandom Merchandise';
+
+                                  final result =
+                                      await StripeService.processMerchPayment(
+                                    amount: widget.totalAmount,
+                                    productName: productName,
+                                    quantity: 1,
+                                  );
+
+                                  if (!mounted) return;
+                                  setState(
+                                      () => _isProcessingStripe = false);
+
+                                  if (!result.success) {
+                                    if (result.errorMessage != null &&
+                                        result.errorMessage!
+                                            .contains('cancelled')) {
+                                      return; // user dismissed — no error
+                                    }
+                                    AppSnackbar.showError(
+                                      context,
+                                      result.errorMessage ??
+                                          'Payment failed. Please try again.',
+                                    );
+                                    return;
+                                  }
+
+                                  // Stripe succeeded → run normal checkout flow
+                                  final fullAddress =
+                                      '${_nameController.text.trim()}, '
+                                      '${_addressController.text.trim()}, '
+                                      '${_cityController.text.trim()} '
+                                      '(Phone: ${_phoneController.text.trim()})';
+                                  if (!mounted) return;
+                                  context.read<CartBloc>().add(
+                                        ExecuteCheckoutEvent(
+                                          userId: _userId,
+                                          shippingAddress: fullAddress,
+                                          paymentMethod:
+                                              'Credit / Debit Card (Stripe)',
+                                        ),
+                                      );
+                                } else {
+                                  // ── Cash / Points flow (unchanged) ───────
+                                  final fullAddress =
+                                      '${_nameController.text.trim()}, '
+                                      '${_addressController.text.trim()}, '
+                                      '${_cityController.text.trim()} '
+                                      '(Phone: ${_phoneController.text.trim()})';
+                                  context.read<CartBloc>().add(
+                                        ExecuteCheckoutEvent(
+                                          userId: _userId,
+                                          shippingAddress: fullAddress,
+                                          paymentMethod:
+                                              _selectedPaymentMethod,
+                                        ),
+                                      );
+                                }
+                              },
+                      ),
+                    ],
                   );
                 },
               ),

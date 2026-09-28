@@ -44,12 +44,14 @@ void main() async {
 
   await initDependencies();
 
-  // Stripe SDK - safely initialized before runApp with non-blocking error handling
+  // Stripe SDK initialization — must happen before runApp
   try {
     Stripe.publishableKey = StripeConfig.publishableKey;
+    Stripe.merchantIdentifier = 'fandom_verse'; // required for Apple Pay (Android ignores)
     await Stripe.instance.applySettings();
+    debugPrint('[main] ✅ Stripe SDK initialized');
   } catch (e) {
-    debugPrint('⚠️ [main] Stripe SDK init warning: $e');
+    debugPrint('[main] ⚠️ Stripe SDK init warning (non-fatal): $e');
   }
 
   NotificationService.initialize().catchError((_) {});

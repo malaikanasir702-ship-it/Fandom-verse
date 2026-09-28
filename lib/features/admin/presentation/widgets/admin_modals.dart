@@ -342,7 +342,7 @@ class AdminModals {
                 const SizedBox(height: 16),
                 const Row(
                   children: [
-                    Icon(Iconsax.notification_bing, color: Color(0xFF2563EB), size: 24),
+                    Icon(Iconsax.notification_bing, color: AppColors.comicRed, size: 24),
                     SizedBox(width: 8),
                     Text(
                       'Broadcast Push Notification',
@@ -395,7 +395,7 @@ class AdminModals {
                 ),
                 const SizedBox(height: 20),
                 SkewedButton(
-                  text: 'Simulate Push Dispatch',
+                  text: 'Send Notification',
                   icon: Iconsax.send_1,
                   height: 52,
                   fontSize: 13,

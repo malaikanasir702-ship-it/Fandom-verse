@@ -543,46 +543,11 @@ class _DeepDiveTabState extends State<_DeepDiveTab> {
   int _score = 0;
   bool _triviaCompleted = false;
 
-  static final List<TriviaQuestion> _triviaQuestions = [
-    const TriviaQuestion(
-      question:
-          'In Dragon Ball Z, who was the first mortal to defeat Goku in combat?',
-      options: ['Vegeta', 'Master Roshi (Jackie Chun)', 'Yamcha', 'Tien'],
-      correctAnswerIndex: 1,
-      explanation:
-          'Master Roshi disguised as Jackie Chun defeated young Goku in the 21st World Tournament.',
-    ),
-    const TriviaQuestion(
-      question: 'What was the Nintendo GameCube\'s development codename?',
-      options: [
-        'Project Reality',
-        'Project Dolphin',
-        'Ultra 64',
-        'Project Atlantis'
-      ],
-      correctAnswerIndex: 1,
-      explanation:
-          'The GameCube was developed as "Dolphin", hence model numbers start with DOL-001.',
-    ),
-    const TriviaQuestion(
-      question:
-          'Which Marvel villain created the Infinity Gauntlet in the original 1991 comics?',
-      options: [
-        'Eternity',
-        'Thanos himself',
-        'Eitri the Dwarf',
-        'Adam Warlock'
-      ],
-      correctAnswerIndex: 1,
-      explanation:
-          'Thanos attached all 6 Infinity Gems to an ordinary glove — no Eitri was involved in the original.',
-    ),
-  ];
-
   @override
   void initState() {
     super.initState();
-    // Dispatch loads for lore sections
+    // Dispatch loads for all deep dive sections dynamically
+    context.read<FandomHubBloc>().add(const LoadTriviaQuestionsEvent());
     context.read<FandomHubBloc>().add(const LoadAdvancedLoreEvent());
     context.read<FandomHubBloc>().add(const LoadBehindScenesEvent());
     context.read<FandomHubBloc>().add(const LoadInterviewsEvent());
@@ -596,120 +561,149 @@ class _DeepDiveTabState extends State<_DeepDiveTab> {
       builder: (context, hubState) {
         final currentLoaded =
             hubState is FandomHubLoaded ? hubState : null;
+        final triviaQuestions = currentLoaded?.triviaQuestions ?? [];
         final advancedLore = currentLoaded?.advancedLore;
         final behindScenes = currentLoaded?.behindScenes;
         final interviews = currentLoaded?.interviews;
 
-        return ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            // ── Section 1: Deep Dive Trivia ──
-            Row(
-              children: [
-                const Icon(Iconsax.lamp_charge,
-                    size: 20, color: AppColors.comicRed),
-                const SizedBox(width: 8),
-                Text(
-                  'Deep Dive Trivia',
-                  style: AppTextStyles.titleMedium
-                      .copyWith(fontWeight: FontWeight.w800),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
+        // Ensure current question index is in bounds
+        if (_currentQ >= triviaQuestions.length && triviaQuestions.isNotEmpty) {
+          _currentQ = triviaQuestions.length - 1;
+        }
 
-            // Active Question or Completion Card
-            if (!_triviaCompleted) ...[
-              TriviaQuestionCard(
-                key: ValueKey(_currentQ),
-                question: _triviaQuestions[_currentQ],
-                questionNumber: _currentQ + 1,
-                totalQuestions: _triviaQuestions.length,
-                onAnswerSelected: (selectedIdx, isCorrect) {
-                  if (isCorrect) {
-                    _score++;
-                  }
-                },
+        return RefreshIndicator(
+          color: AppColors.comicRed,
+          onRefresh: () async {
+            context.read<FandomHubBloc>().add(const LoadTriviaQuestionsEvent());
+            context.read<FandomHubBloc>().add(const LoadAdvancedLoreEvent());
+            context.read<FandomHubBloc>().add(const LoadBehindScenesEvent());
+            context.read<FandomHubBloc>().add(const LoadInterviewsEvent());
+          },
+          child: ListView(
+            padding: const EdgeInsets.all(20),
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              // ── Section 1: Deep Dive Trivia ──
+              Row(
+                children: [
+                  const Icon(Iconsax.lamp_charge,
+                      size: 20, color: AppColors.comicRed),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Deep Dive Trivia',
+                    style: AppTextStyles.titleMedium
+                        .copyWith(fontWeight: FontWeight.w800),
+                  ),
+                ],
               ),
               const SizedBox(height: 14),
-              SkewedButton(
-                text: _currentQ < _triviaQuestions.length - 1
-                    ? 'Next Question'
-                    : 'Finish Trivia',
-                icon: Iconsax.arrow_right_3,
-                height: 48,
-                fontSize: 13,
-                onPressed: () {
-                  setState(() {
-                    if (_currentQ < _triviaQuestions.length - 1) {
-                      _currentQ++;
-                    } else {
-                      _triviaCompleted = true;
-                    }
-                  });
-                },
-              ),
-            ] else ...[
-              // Final Score Card
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: AppColors.darkAccentGold,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.darkAccentGold.withValues(alpha: 0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
+
+              if (triviaQuestions.isEmpty) ...[
+                GlassContainer(
+                  padding: const EdgeInsets.all(18),
+                  child: Center(
+                    child: Text(
+                      'No trivia questions available yet. Check back soon!',
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.lightTextSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ],
+                  ),
                 ),
-                child: Column(
-                  children: [
-                    const Icon(Iconsax.cup, size: 40, color: Colors.black87),
-                    const SizedBox(height: 10),
-                    const Text(
-                      'Trivia Completed!',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.black,
+              ] else if (!_triviaCompleted) ...[
+                TriviaQuestionCard(
+                  key: ValueKey('${triviaQuestions[_currentQ].id}_$_currentQ'),
+                  question: triviaQuestions[_currentQ],
+                  questionNumber: _currentQ + 1,
+                  totalQuestions: triviaQuestions.length,
+                  onAnswerSelected: (selectedIdx, isCorrect) {
+                    if (isCorrect) {
+                      _score++;
+                    }
+                  },
+                ),
+                const SizedBox(height: 14),
+                SkewedButton(
+                  text: _currentQ < triviaQuestions.length - 1
+                      ? 'Next Question'
+                      : 'Finish Trivia',
+                  icon: Iconsax.arrow_right_3,
+                  height: 48,
+                  fontSize: 13,
+                  onPressed: () {
+                    setState(() {
+                      if (_currentQ < triviaQuestions.length - 1) {
+                        _currentQ++;
+                      } else {
+                        _triviaCompleted = true;
+                      }
+                    });
+                  },
+                ),
+              ] else ...[
+                // Final Score Card
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppColors.darkAccentGold,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.darkAccentGold.withValues(alpha: 0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Score: $_score / ${_triviaQuestions.length}',
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      const Icon(Iconsax.cup, size: 40, color: Colors.black87),
+                      const SizedBox(height: 10),
+                      const Text(
+                        'Trivia Completed!',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.black,
                         ),
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _triviaCompleted = false;
-                          _currentQ = 0;
-                          _score = 0;
-                        });
-                      },
-                      icon: const Icon(Icons.refresh_rounded, size: 16),
-                      label: const Text('Play Again'),
-                    ),
-                  ],
+                      const SizedBox(height: 6),
+                      Text(
+                        'Score: $_score / ${triviaQuestions.length}',
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _triviaCompleted = false;
+                            _currentQ = 0;
+                            _score = 0;
+                          });
+                        },
+                        icon: const Icon(Icons.refresh_rounded, size: 16),
+                        label: const Text('Play Again'),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
 
-            const SizedBox(height: 32),
+              const SizedBox(height: 32),
 
             // ── Section 2: Advanced Lore ──
             Row(
@@ -895,8 +889,9 @@ class _DeepDiveTabState extends State<_DeepDiveTab> {
 
             const SizedBox(height: 60),
           ],
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
 }

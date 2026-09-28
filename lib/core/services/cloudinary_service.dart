@@ -149,7 +149,6 @@ class CloudinaryService {
     request.fields['timestamp'] = timestamp.toString();
     request.fields['folder'] = folder;
     request.fields['signature'] = signature;
-    request.fields['resource_type'] = 'video'; // audio uses video endpoint
 
     request.files.add(
       await http.MultipartFile.fromPath('file', audioFile.path),

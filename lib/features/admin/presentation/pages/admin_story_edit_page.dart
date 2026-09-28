@@ -203,7 +203,7 @@ class _AdminStoryEditPageState extends State<AdminStoryEditPage> {
               _buildSectionCard(
                 title: 'HERO IDENTITY & BRANDING',
                 icon: Iconsax.user_octagon,
-                accentColor: const Color(0xFF8B5CF6),
+                accentColor: AppColors.comicRed,
                 children: [
                   CustomTextField(
                     controller: _heroNameController,
@@ -233,7 +233,7 @@ class _AdminStoryEditPageState extends State<AdminStoryEditPage> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Color(0xFF8B5CF6), width: 1.5),
+                        borderSide: const BorderSide(color: AppColors.comicRed, width: 1.5),
                       ),
                     ),
                     items: _categories.map((cat) {
@@ -445,7 +445,7 @@ class _AdminStoryEditPageState extends State<AdminStoryEditPage> {
               _buildSectionCard(
                 title: 'STORY REEL SLIDES (${_slides.length})',
                 icon: Iconsax.gallery,
-                accentColor: const Color(0xFF2563EB),
+                accentColor: AppColors.comicRed,
                 children: [
                   const Text(
                     'Slides rotate automatically in the fan story viewer with captions and comic art.',
@@ -552,8 +552,8 @@ class _AdminStoryEditPageState extends State<AdminStoryEditPage> {
 
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF2563EB),
-                      side: const BorderSide(color: Color(0xFF2563EB)),
+                      foregroundColor: AppColors.comicRed,
+                      side: const BorderSide(color: AppColors.comicRed),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                     ),

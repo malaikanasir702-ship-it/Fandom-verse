@@ -11,7 +11,8 @@ import '../widgets/admin_modals.dart';
 import 'admin_content_edit_page.dart';
 
 class AdminContentPage extends StatefulWidget {
-  const AdminContentPage({super.key});
+  final bool isEmbedded;
+  const AdminContentPage({super.key, this.isEmbedded = false});
 
   @override
   State<AdminContentPage> createState() => _AdminContentPageState();
@@ -49,10 +50,24 @@ class _AdminContentPageState extends State<AdminContentPage> {
         backgroundColor: Colors.white,
         elevation: 0.5,
         scrolledUnderElevation: 1,
-        leading: IconButton(
-          icon: const Icon(Iconsax.arrow_left, color: AppColors.adminLightTextPrimary, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        leading: widget.isEmbedded
+            ? null
+            : IconButton(
+                icon: const Icon(Iconsax.arrow_left, color: AppColors.adminLightTextPrimary, size: 20),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+        actions: [
+          TextButton.icon(
+            icon: const Icon(Iconsax.lamp_charge, size: 16, color: AppColors.comicRed),
+            label: const Text('Deep Dive',
+                style: TextStyle(
+                    color: AppColors.comicRed,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12)),
+            onPressed: () => Navigator.of(context).pushNamed('/admin/deep-dive'),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.comicRed,
@@ -240,12 +255,12 @@ class _AdminContentPageState extends State<AdminContentPage> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFD97706).withValues(alpha: 0.12),
+                          color: AppColors.comicRed.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: const Text(
                           'TRENDING',
-                          style: TextStyle(color: Color(0xFFD97706), fontSize: 8, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: AppColors.comicRed, fontSize: 8, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],
@@ -269,7 +284,7 @@ class _AdminContentPageState extends State<AdminContentPage> {
           Column(
             children: [
               IconButton(
-                icon: const Icon(Iconsax.edit_2, color: Color(0xFF2563EB), size: 18),
+                icon: const Icon(Iconsax.edit_2, color: AppColors.comicRed, size: 18),
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(

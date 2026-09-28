@@ -211,7 +211,7 @@ class _AdminProductEditPageState extends State<AdminProductEditPage> {
               icon: Iconsax.box,
               height: 52,
               fontSize: 13,
-              backgroundColor: AppColors.success,
+              backgroundColor: AppColors.comicRed,
               textColor: Colors.white,
               onPressed: () {
                 final name = _nameController.text.trim();

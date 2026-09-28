@@ -127,7 +127,9 @@ class _SkewedButtonState extends State<SkewedButton>
                       onTap: null, // handled by GestureDetector
                         child: Center(
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: widget.fontSize < 12 ? 6 : 10,
+                          ),
                           child: widget.isLoading
                               ? SizedBox(
                                   width: widget.height * 0.44,
@@ -141,24 +143,34 @@ class _SkewedButtonState extends State<SkewedButton>
                                 )
                               : Row(
                                   mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     // Custom leading widget (e.g. Google logo)
                                     if (widget.leadingWidget != null) ...[
                                       widget.leadingWidget!,
-                                      const SizedBox(width: 8),
+                                      const SizedBox(width: 6),
                                     ] else if (widget.icon != null) ...[
-                                      Icon(widget.icon,
-                                          size: 14, color: widget.textColor),
-                                      const SizedBox(width: 5),
-                                    ],
-                                    Text(
-                                      widget.text.toUpperCase(),
-                                      style: TextStyle(
+                                      Icon(
+                                        widget.icon,
+                                        size: widget.fontSize < 12 ? 13 : 14,
                                         color: widget.textColor,
-                                        fontSize: widget.fontSize,
-                                        fontWeight: FontWeight.w900,
-                                        fontStyle: FontStyle.italic,
-                                        letterSpacing: 0.6,
+                                      ),
+                                      const SizedBox(width: 4),
+                                    ],
+                                    Flexible(
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          widget.text.toUpperCase(),
+                                          maxLines: 1,
+                                          style: TextStyle(
+                                            color: widget.textColor,
+                                            fontSize: widget.fontSize,
+                                            fontWeight: FontWeight.w900,
+                                            fontStyle: FontStyle.italic,
+                                            letterSpacing: widget.fontSize < 12 ? 0.3 : 0.6,
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ],

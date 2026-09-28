@@ -4,26 +4,83 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
 
+import 'dart:convert';
+
 class TriviaQuestion {
+  final String id;
+  final String fandomCategory;
   final String question;
   final List<String> options;
   final int correctAnswerIndex;
   final String explanation;
+  final int createdAt;
 
   const TriviaQuestion({
+    this.id = '',
+    this.fandomCategory = 'All',
     required this.question,
     required this.options,
     required this.correctAnswerIndex,
     required this.explanation,
+    this.createdAt = 0,
   });
 
-  factory TriviaQuestion.fromMap(Map<String, dynamic> map) {
+  TriviaQuestion copyWith({
+    String? id,
+    String? fandomCategory,
+    String? question,
+    List<String>? options,
+    int? correctAnswerIndex,
+    String? explanation,
+    int? createdAt,
+  }) {
     return TriviaQuestion(
-      question: (map['q'] ?? map['question'] ?? '').toString(),
-      options: (map['options'] as List? ?? []).map((e) => e.toString()).toList(),
-      correctAnswerIndex: (map['answer'] ?? map['correctAnswerIndex'] ?? 0) as int,
-      explanation: (map['explanation'] ?? '').toString(),
+      id: id ?? this.id,
+      fandomCategory: fandomCategory ?? this.fandomCategory,
+      question: question ?? this.question,
+      options: options ?? this.options,
+      correctAnswerIndex: correctAnswerIndex ?? this.correctAnswerIndex,
+      explanation: explanation ?? this.explanation,
+      createdAt: createdAt ?? this.createdAt,
     );
+  }
+
+  factory TriviaQuestion.fromMap(Map<String, dynamic> map) {
+    List<String> parsedOptions = [];
+    final rawOptions = map['options'] ?? map['options_json'];
+    if (rawOptions is String) {
+      try {
+        parsedOptions = (jsonDecode(rawOptions) as List).map((e) => e.toString()).toList();
+      } catch (_) {
+        parsedOptions = [];
+      }
+    } else if (rawOptions is List) {
+      parsedOptions = rawOptions.map((e) => e.toString()).toList();
+    }
+
+    return TriviaQuestion(
+      id: (map['trivia_id'] ?? map['id'] ?? '').toString(),
+      fandomCategory: (map['fandom_category'] ?? 'All').toString(),
+      question: (map['q'] ?? map['question'] ?? '').toString(),
+      options: parsedOptions,
+      correctAnswerIndex: (map['answer'] ?? map['correct_answer_index'] ?? map['correctAnswerIndex'] ?? 0) as int,
+      explanation: (map['explanation'] ?? '').toString(),
+      createdAt: (map['created_at'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  factory TriviaQuestion.fromDbMap(Map<String, dynamic> map) => TriviaQuestion.fromMap(map);
+
+  Map<String, dynamic> toDbMap() {
+    return {
+      'trivia_id': id,
+      'fandom_category': fandomCategory,
+      'question': question,
+      'options_json': jsonEncode(options),
+      'correct_answer_index': correctAnswerIndex,
+      'explanation': explanation,
+      'created_at': createdAt,
+    };
   }
 }
 

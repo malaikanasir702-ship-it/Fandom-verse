@@ -88,6 +88,36 @@ class ToggleUserStatusEvent extends AdminEvent {
   List<Object?> get props => [userId, newStatus];
 }
 
+class CreateUserEvent extends AdminEvent {
+  final Map<String, dynamic> user;
+  final String? password;
+
+  const CreateUserEvent(this.user, {this.password});
+
+  @override
+  List<Object?> get props => [user, password];
+}
+
+class UpdateUserEvent extends AdminEvent {
+  final Map<String, dynamic> user;
+  final String? newPassword;
+
+  const UpdateUserEvent(this.user, {this.newPassword});
+
+  @override
+  List<Object?> get props => [user, newPassword];
+}
+
+class DeleteUserEvent extends AdminEvent {
+  final String userId;
+
+  const DeleteUserEvent(this.userId);
+
+  @override
+  List<Object?> get props => [userId];
+}
+
+
 class CreateCategoryEvent extends AdminEvent {
   final Map<String, dynamic> category;
 
@@ -147,4 +177,82 @@ class DeleteHeroStoryEvent extends AdminEvent {
 
   @override
   List<Object?> get props => [storyId];
+}
+
+// ── DEEP DIVE CRUD EVENTS ──
+
+class CreateOrUpdateTriviaEvent extends AdminEvent {
+  final Map<String, dynamic> trivia;
+  final bool isEdit;
+
+  const CreateOrUpdateTriviaEvent(this.trivia, {this.isEdit = false});
+
+  @override
+  List<Object?> get props => [trivia, isEdit];
+}
+
+class DeleteTriviaEvent extends AdminEvent {
+  final String triviaId;
+
+  const DeleteTriviaEvent(this.triviaId);
+
+  @override
+  List<Object?> get props => [triviaId];
+}
+
+class CreateOrUpdateAdvancedLoreEvent extends AdminEvent {
+  final Map<String, dynamic> lore;
+  final bool isEdit;
+
+  const CreateOrUpdateAdvancedLoreEvent(this.lore, {this.isEdit = false});
+
+  @override
+  List<Object?> get props => [lore, isEdit];
+}
+
+class DeleteAdvancedLoreEvent extends AdminEvent {
+  final String loreId;
+
+  const DeleteAdvancedLoreEvent(this.loreId);
+
+  @override
+  List<Object?> get props => [loreId];
+}
+
+class CreateOrUpdateBehindScenesEvent extends AdminEvent {
+  final Map<String, dynamic> scene;
+  final bool isEdit;
+
+  const CreateOrUpdateBehindScenesEvent(this.scene, {this.isEdit = false});
+
+  @override
+  List<Object?> get props => [scene, isEdit];
+}
+
+class DeleteBehindScenesEvent extends AdminEvent {
+  final String sceneId;
+
+  const DeleteBehindScenesEvent(this.sceneId);
+
+  @override
+  List<Object?> get props => [sceneId];
+}
+
+class CreateOrUpdateInterviewEvent extends AdminEvent {
+  final Map<String, dynamic> interview;
+  final bool isEdit;
+
+  const CreateOrUpdateInterviewEvent(this.interview, {this.isEdit = false});
+
+  @override
+  List<Object?> get props => [interview, isEdit];
+}
+
+class DeleteInterviewEvent extends AdminEvent {
+  final String interviewId;
+
+  const DeleteInterviewEvent(this.interviewId);
+
+  @override
+  List<Object?> get props => [interviewId];
 }

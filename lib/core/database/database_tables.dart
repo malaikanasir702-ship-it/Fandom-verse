@@ -294,6 +294,19 @@ class DatabaseTables {
     );
   ''';
 
+  static const String createDeepDiveTriviaTable =
+      '''
+    CREATE TABLE IF NOT EXISTS ${DbConstants.tableDeepDiveTrivia} (
+      trivia_id            TEXT PRIMARY KEY,
+      fandom_category      TEXT NOT NULL,
+      question             TEXT NOT NULL,
+      options_json         TEXT NOT NULL,
+      correct_answer_index INTEGER NOT NULL,
+      explanation          TEXT,
+      created_at           INTEGER NOT NULL
+    );
+  ''';
+
   static const List<String> allCreateStatements = [
     createUsersTable,
     createCategoriesTable,
@@ -314,5 +327,6 @@ class DatabaseTables {
     createInterviewsTable,
     createTicketsTable,
     createNotificationsTable,
+    createDeepDiveTriviaTable,
   ];
 }

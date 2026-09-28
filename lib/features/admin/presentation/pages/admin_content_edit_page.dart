@@ -181,7 +181,7 @@ class _AdminContentEditPageState extends State<AdminContentEditPage> {
                     title: const Text('Deep Dive Trivia & Easter Eggs', style: TextStyle(color: AppColors.adminLightTextPrimary, fontSize: 13, fontWeight: FontWeight.w600)),
                     subtitle: const Text('Categorizes under Deep Dive Lore section', style: TextStyle(color: AppColors.adminLightTextSecondary, fontSize: 11)),
                     value: _isDeepDive,
-                    activeThumbColor: const Color(0xFFF59E0B),
+                    activeThumbColor: AppColors.comicRed,
                     onChanged: (val) => setState(() => _isDeepDive = val),
                   ),
                 ],

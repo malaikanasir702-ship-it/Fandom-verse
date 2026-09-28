@@ -5,6 +5,7 @@ import '../../features/fandom_hub/domain/entities/behind_scenes_entity.dart';
 import '../../features/fandom_hub/domain/entities/fandom_post.dart';
 import '../../features/fandom_hub/domain/entities/glossary_term.dart';
 import '../../features/fandom_hub/domain/entities/interview_entity.dart';
+import '../../features/fandom_hub/presentation/widgets/trivia_question_card.dart';
 import 'i_fandom_hub_repository.dart';
 
 class FandomHubRepositoryImpl implements IFandomHubRepository {
@@ -130,5 +131,21 @@ class FandomHubRepositoryImpl implements IFandomHubRepository {
             orderBy: 'interview_date DESC',
           );
     return rows.map((m) => InterviewEntity.fromDbMap(m)).toList();
+  }
+
+  @override
+  Future<List<TriviaQuestion>> getTriviaQuestions({String? categoryFilter}) async {
+    final rows = categoryFilter != null && categoryFilter != 'All'
+        ? await _dbHelper.query(
+            DbConstants.tableDeepDiveTrivia,
+            where: 'fandom_category = ?',
+            whereArgs: [categoryFilter],
+            orderBy: 'created_at ASC',
+          )
+        : await _dbHelper.query(
+            DbConstants.tableDeepDiveTrivia,
+            orderBy: 'created_at ASC',
+          );
+    return rows.map((m) => TriviaQuestion.fromDbMap(m)).toList();
   }
 }

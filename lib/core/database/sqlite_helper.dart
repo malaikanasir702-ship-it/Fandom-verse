@@ -8,6 +8,7 @@ import 'database_tables.dart';
 import 'seed_data.dart';
 import 'seed_data_extended.dart';
 import 'seed_hero_stories.dart';
+import 'seed_deep_dive.dart';
 import '../../features/events/domain/entities/ticket_entity.dart';
 import '../../features/profile/domain/entities/app_notification_entity.dart';
 
@@ -52,12 +53,17 @@ class SqliteHelper {
       onUpgrade: _onUpgrade,
     );
 
-    // Ensure hero_stories, event_tickets, and notifications tables exist (supports non-reinstalled/upgraded dev databases)
+    // Ensure hero_stories, event_tickets, notifications, and deep dive tables exist (supports non-reinstalled/upgraded dev databases)
     await _db!.execute(DatabaseTables.createHeroStoriesTable);
     await _db!.execute(DatabaseTables.createTicketsTable);
     await _db!.execute(DatabaseTables.createNotificationsTable);
+    await _db!.execute(DatabaseTables.createAdvancedLoreTable);
+    await _db!.execute(DatabaseTables.createBehindScenesTable);
+    await _db!.execute(DatabaseTables.createInterviewsTable);
+    await _db!.execute(DatabaseTables.createDeepDiveTriviaTable);
     await _seedHeroStoriesIfEmpty(_db!);
     await _seedNotificationsIfEmpty(_db!);
+    await _seedDeepDiveIfEmpty(_db!);
 
     debugPrint('✅ [SqliteHelper] Database ready at: $fullPath');
   }
@@ -896,6 +902,68 @@ class SqliteHelper {
       where: 'story_id = ?',
       whereArgs: [storyId],
     );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // DEEP DIVE SEED (Trivia, Advanced Lore, Behind The Scenes, Interviews)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  Future<void> _seedDeepDiveIfEmpty(Database db) async {
+    try {
+      final triviaCount = Sqflite.firstIntValue(
+            await db.rawQuery('SELECT COUNT(*) FROM ${DbConstants.tableDeepDiveTrivia}'),
+          ) ??
+          0;
+      if (triviaCount == 0) {
+        final batch = db.batch();
+        for (final t in SeedDeepDive.defaultTrivia) {
+          batch.insert(DbConstants.tableDeepDiveTrivia, t, conflictAlgorithm: ConflictAlgorithm.replace);
+        }
+        await batch.commit(noResult: true);
+        debugPrint('💡 [SqliteHelper] Seeded ${SeedDeepDive.defaultTrivia.length} trivia questions.');
+      }
+
+      final loreCount = Sqflite.firstIntValue(
+            await db.rawQuery('SELECT COUNT(*) FROM ${DbConstants.tableAdvancedLore}'),
+          ) ??
+          0;
+      if (loreCount == 0) {
+        final batch = db.batch();
+        for (final l in SeedDeepDive.defaultAdvancedLore) {
+          batch.insert(DbConstants.tableAdvancedLore, l, conflictAlgorithm: ConflictAlgorithm.replace);
+        }
+        await batch.commit(noResult: true);
+        debugPrint('📜 [SqliteHelper] Seeded ${SeedDeepDive.defaultAdvancedLore.length} advanced lore entries.');
+      }
+
+      final btsCount = Sqflite.firstIntValue(
+            await db.rawQuery('SELECT COUNT(*) FROM ${DbConstants.tableBehindScenes}'),
+          ) ??
+          0;
+      if (btsCount == 0) {
+        final batch = db.batch();
+        for (final s in SeedDeepDive.defaultBehindScenes) {
+          batch.insert(DbConstants.tableBehindScenes, s, conflictAlgorithm: ConflictAlgorithm.replace);
+        }
+        await batch.commit(noResult: true);
+        debugPrint('🎬 [SqliteHelper] Seeded ${SeedDeepDive.defaultBehindScenes.length} behind the scenes entries.');
+      }
+
+      final interviewCount = Sqflite.firstIntValue(
+            await db.rawQuery('SELECT COUNT(*) FROM ${DbConstants.tableInterviews}'),
+          ) ??
+          0;
+      if (interviewCount == 0) {
+        final batch = db.batch();
+        for (final i in SeedDeepDive.defaultInterviews) {
+          batch.insert(DbConstants.tableInterviews, i, conflictAlgorithm: ConflictAlgorithm.replace);
+        }
+        await batch.commit(noResult: true);
+        debugPrint('🎙️ [SqliteHelper] Seeded ${SeedDeepDive.defaultInterviews.length} exclusive interviews.');
+      }
+    } catch (e) {
+      debugPrint('[SqliteHelper] Error seeding deep dive data: $e');
+    }
   }
 
   // ─────────────────────────────────────────────────────────────────────────

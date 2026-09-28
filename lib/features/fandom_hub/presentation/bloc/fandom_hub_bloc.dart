@@ -24,12 +24,14 @@ class FandomHubBloc extends Bloc<FandomHubEvent, FandomHubState> {
     on<LoadAdvancedLoreEvent>(_onLoadAdvancedLore);
     on<LoadBehindScenesEvent>(_onLoadBehindScenes);
     on<LoadInterviewsEvent>(_onLoadInterviews);
+    on<LoadTriviaQuestionsEvent>(_onLoadTriviaQuestions);
   }
 
   Future<void> _onLoadContent(
     LoadFandomHubContentEvent event,
     Emitter<FandomHubState> emit,
   ) async {
+    final prevLoaded = state is FandomHubLoaded ? state as FandomHubLoaded : null;
     emit(const FandomHubLoading());
     try {
       final trending = await _repository.getTrendingPosts(
@@ -45,15 +47,23 @@ class FandomHubBloc extends Bloc<FandomHubEvent, FandomHubState> {
           trendingPosts: trending,
           latestNews: latest,
           glossary: glossary,
+          advancedLore: prevLoaded?.advancedLore ?? const [],
+          behindScenes: prevLoaded?.behindScenes ?? const [],
+          interviews: prevLoaded?.interviews ?? const [],
+          triviaQuestions: prevLoaded?.triviaQuestions ?? const [],
         ),
       );
     } catch (_) {
       // Fallback
       emit(
-        const FandomHubLoaded(
-          trendingPosts: [],
-          latestNews: [],
-          glossary: [],
+        FandomHubLoaded(
+          trendingPosts: const [],
+          latestNews: const [],
+          glossary: const [],
+          advancedLore: prevLoaded?.advancedLore ?? const [],
+          behindScenes: prevLoaded?.behindScenes ?? const [],
+          interviews: prevLoaded?.interviews ?? const [],
+          triviaQuestions: prevLoaded?.triviaQuestions ?? const [],
         ),
       );
     }
@@ -139,6 +149,13 @@ class FandomHubBloc extends Bloc<FandomHubEvent, FandomHubState> {
       if (state is FandomHubLoaded) {
         final current = state as FandomHubLoaded;
         emit(current.copyWith(advancedLore: lore));
+      } else {
+        emit(FandomHubLoaded(
+          trendingPosts: const [],
+          latestNews: const [],
+          glossary: const [],
+          advancedLore: lore,
+        ));
       }
     } catch (_) {
       // Maintain current state on error
@@ -154,6 +171,13 @@ class FandomHubBloc extends Bloc<FandomHubEvent, FandomHubState> {
       if (state is FandomHubLoaded) {
         final current = state as FandomHubLoaded;
         emit(current.copyWith(behindScenes: scenes));
+      } else {
+        emit(FandomHubLoaded(
+          trendingPosts: const [],
+          latestNews: const [],
+          glossary: const [],
+          behindScenes: scenes,
+        ));
       }
     } catch (_) {
       // Maintain current state on error
@@ -169,6 +193,35 @@ class FandomHubBloc extends Bloc<FandomHubEvent, FandomHubState> {
       if (state is FandomHubLoaded) {
         final current = state as FandomHubLoaded;
         emit(current.copyWith(interviews: interviews));
+      } else {
+        emit(FandomHubLoaded(
+          trendingPosts: const [],
+          latestNews: const [],
+          glossary: const [],
+          interviews: interviews,
+        ));
+      }
+    } catch (_) {
+      // Maintain current state on error
+    }
+  }
+
+  Future<void> _onLoadTriviaQuestions(
+    LoadTriviaQuestionsEvent event,
+    Emitter<FandomHubState> emit,
+  ) async {
+    try {
+      final trivia = await _repository.getTriviaQuestions(categoryFilter: event.categoryFilter);
+      if (state is FandomHubLoaded) {
+        final current = state as FandomHubLoaded;
+        emit(current.copyWith(triviaQuestions: trivia));
+      } else {
+        emit(FandomHubLoaded(
+          trendingPosts: const [],
+          latestNews: const [],
+          glossary: const [],
+          triviaQuestions: trivia,
+        ));
       }
     } catch (_) {
       // Maintain current state on error

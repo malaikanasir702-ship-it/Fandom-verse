@@ -62,8 +62,8 @@ dependencies:
   flutter_stripe: ^14.1.0
   geolocator: ^13.0.4
   file_picker: ^11.0.3
-  audioplayers: ^6.8.1
-  video_player: ^2.14.0
+  audioplayers: ^6.7.1
+  video_player: ^2.9.2
 
 dev_dependencies:
   flutter_test:

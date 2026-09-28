@@ -6,10 +6,19 @@ import 'package:crypto/crypto.dart';
 
 /// Cloudinary CDN Service for Fandom Verse Pocket Edition
 /// Cloud: hpihaiub
+/// Uses UNSIGNED uploads (no API secret needed for uploads).
+/// Requires an "unsigned" upload preset in Cloudinary dashboard:
+///   Settings → Upload → Upload Presets → Add upload preset → Signing Mode: Unsigned
+///   Preset name: fandom_verse_unsigned
 class CloudinaryService {
   static const String _cloudName = 'hpihaiub';
   static const String _apiKey = '637556628869215';
   static const String _apiSecret = 'leKpBv-BJWrIvbTAjB8sfHEL6aAye';
+
+  // ── Unsigned upload preset (create this in Cloudinary dashboard) ──────────
+  // Dashboard → Settings → Upload → Upload Presets → Add → Signing Mode: Unsigned
+  static const String _unsignedPreset = 'fandom_verse_unsigned';
+
   static const String _uploadBaseUrl =
       'https://api.cloudinary.com/v1_1/$_cloudName';
 
@@ -27,11 +36,41 @@ class CloudinaryService {
   CloudinaryService._();
   static CloudinaryService get instance => _instance;
 
-  // ── Upload Image from File ────────────────────────────────────────────────
+  // ── Upload Image from File (UNSIGNED) ────────────────────────────────────
+  /// Uses unsigned upload preset — no signature needed.
+  /// Folder is embedded in the preset or set via the public_id prefix.
   Future<String> uploadImage(File imageFile, {String folder = folderPosts}) async {
-    final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('$_uploadBaseUrl/image/upload'),
+    );
 
-    // All params that will be sent (excluding file & api_key, sorted alpha)
+    request.fields['upload_preset'] = _unsignedPreset;
+    request.fields['folder'] = folder;
+
+    request.files.add(
+      await http.MultipartFile.fromPath('file', imageFile.path),
+    );
+
+    debugPrint('[Cloudinary] Uploading image (unsigned) → $folder');
+    final response = await request.send().timeout(const Duration(seconds: 30));
+    final body = await response.stream.bytesToString();
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(body) as Map<String, dynamic>;
+      final url = data['secure_url'] as String;
+      debugPrint('[Cloudinary] ✅ Image uploaded: $url');
+      return url;
+    } else {
+      debugPrint('[Cloudinary] ❌ Upload failed (${response.statusCode}): $body');
+      // Fallback: try signed upload
+      return _uploadImageSigned(imageFile, folder: folder);
+    }
+  }
+
+  // ── Signed upload fallback ────────────────────────────────────────────────
+  Future<String> _uploadImageSigned(File imageFile, {String folder = folderPosts}) async {
+    final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     final params = <String, String>{
       'folder': folder,
       'timestamp': timestamp.toString(),
@@ -52,43 +91,33 @@ class CloudinaryService {
       await http.MultipartFile.fromPath('file', imageFile.path),
     );
 
-    debugPrint('[Cloudinary] Uploading image → $folder');
+    debugPrint('[Cloudinary] Uploading image (signed fallback) → $folder');
     final response = await request.send().timeout(const Duration(seconds: 30));
     final body = await response.stream.bytesToString();
 
     if (response.statusCode == 200) {
       final data = jsonDecode(body) as Map<String, dynamic>;
       final url = data['secure_url'] as String;
-      debugPrint('[Cloudinary] ✅ Image uploaded: $url');
+      debugPrint('[Cloudinary] ✅ Image uploaded (signed): $url');
       return url;
     } else {
-      debugPrint('[Cloudinary] ❌ Upload failed (${response.statusCode}): $body');
       throw Exception('Cloudinary upload failed (${response.statusCode}): $body');
     }
   }
 
-  // ── Upload Image from Bytes ───────────────────────────────────────────────
+  // ── Upload Image from Bytes (UNSIGNED) ───────────────────────────────────
   Future<String> uploadImageBytes(
     Uint8List bytes,
     String filename, {
     String folder = folderPosts,
   }) async {
-    final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    final params = <String, String>{
-      'folder': folder,
-      'timestamp': timestamp.toString(),
-    };
-    final signature = _sign(params);
-
     final request = http.MultipartRequest(
       'POST',
       Uri.parse('$_uploadBaseUrl/image/upload'),
     );
 
-    request.fields['api_key'] = _apiKey;
-    request.fields['timestamp'] = timestamp.toString();
+    request.fields['upload_preset'] = _unsignedPreset;
     request.fields['folder'] = folder;
-    request.fields['signature'] = signature;
 
     request.files.add(
       http.MultipartFile.fromBytes('file', bytes, filename: filename),
@@ -101,36 +130,26 @@ class CloudinaryService {
       final data = jsonDecode(body) as Map<String, dynamic>;
       return data['secure_url'] as String;
     } else {
-      throw Exception('Cloudinary image bytes upload failed (${response.statusCode}): $body');
+      throw Exception(
+          'Cloudinary image bytes upload failed (${response.statusCode}): $body');
     }
   }
 
-  // ── Upload Video from File ────────────────────────────────────────────────
+  // ── Upload Video from File (UNSIGNED) ────────────────────────────────────
   Future<String> uploadVideo(File videoFile, {String folder = folderVideos}) async {
-    final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    final params = <String, String>{
-      'folder': folder,
-      'resource_type': 'video',
-      'timestamp': timestamp.toString(),
-    };
-    final signature = _sign(params);
-
     final request = http.MultipartRequest(
       'POST',
       Uri.parse('$_uploadBaseUrl/video/upload'),
     );
 
-    request.fields['api_key'] = _apiKey;
-    request.fields['timestamp'] = timestamp.toString();
+    request.fields['upload_preset'] = _unsignedPreset;
     request.fields['folder'] = folder;
-    request.fields['resource_type'] = 'video';
-    request.fields['signature'] = signature;
 
     request.files.add(
       await http.MultipartFile.fromPath('file', videoFile.path),
     );
 
-    debugPrint('[Cloudinary] Uploading video → $folder');
+    debugPrint('[Cloudinary] Uploading video (unsigned) → $folder');
     final response = await request.send().timeout(const Duration(seconds: 120));
     final body = await response.stream.bytesToString();
 
@@ -140,37 +159,27 @@ class CloudinaryService {
       debugPrint('[Cloudinary] ✅ Video uploaded: $url');
       return url;
     } else {
-      throw Exception('Cloudinary video upload failed (${response.statusCode}): $body');
+      throw Exception(
+          'Cloudinary video upload failed (${response.statusCode}): $body');
     }
   }
 
-  // ── Upload Audio from File ────────────────────────────────────────────────
+  // ── Upload Audio from File (UNSIGNED) ────────────────────────────────────
   Future<String> uploadAudio(File audioFile, {String folder = folderPodcasts}) async {
-    final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    final params = <String, String>{
-      'folder': folder,
-      'resource_type': 'video',
-      'timestamp': timestamp.toString(),
-    };
-    final signature = _sign(params);
-
     // Cloudinary treats audio as 'video' resource type
     final request = http.MultipartRequest(
       'POST',
       Uri.parse('$_uploadBaseUrl/video/upload'),
     );
 
-    request.fields['api_key'] = _apiKey;
-    request.fields['timestamp'] = timestamp.toString();
+    request.fields['upload_preset'] = _unsignedPreset;
     request.fields['folder'] = folder;
-    request.fields['resource_type'] = 'video';
-    request.fields['signature'] = signature;
 
     request.files.add(
       await http.MultipartFile.fromPath('file', audioFile.path),
     );
 
-    debugPrint('[Cloudinary] Uploading audio → $folder');
+    debugPrint('[Cloudinary] Uploading audio (unsigned) → $folder');
     final response = await request.send().timeout(const Duration(seconds: 120));
     final body = await response.stream.bytesToString();
 
@@ -180,27 +189,19 @@ class CloudinaryService {
       debugPrint('[Cloudinary] ✅ Audio uploaded: $url');
       return url;
     } else {
-      throw Exception('Cloudinary audio upload failed (${response.statusCode}): $body');
+      throw Exception(
+          'Cloudinary audio upload failed (${response.statusCode}): $body');
     }
   }
 
-  // ── Upload via URL ────────────────────────────────────────────────────────
+  // ── Upload via URL (UNSIGNED) ─────────────────────────────────────────────
   Future<String> uploadFromUrl(String sourceUrl, {String folder = folderPosts}) async {
-    final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    final params = <String, String>{
-      'folder': folder,
-      'timestamp': timestamp.toString(),
-    };
-    final signature = _sign(params);
-
     final response = await http.post(
       Uri.parse('$_uploadBaseUrl/image/upload'),
       body: {
         'file': sourceUrl,
-        'api_key': _apiKey,
-        'timestamp': timestamp.toString(),
+        'upload_preset': _unsignedPreset,
         'folder': folder,
-        'signature': signature,
       },
     ).timeout(const Duration(seconds: 30));
 
@@ -208,12 +209,13 @@ class CloudinaryService {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       return data['secure_url'] as String;
     } else {
-      debugPrint('[Cloudinary] uploadFromUrl failed (${response.statusCode}): ${response.body}');
-      return sourceUrl; // fallback — return original URL
+      debugPrint(
+          '[Cloudinary] uploadFromUrl failed (${response.statusCode}): ${response.body}');
+      return sourceUrl; // fallback
     }
   }
 
-  // ── Delete Asset ─────────────────────────────────────────────────────────
+  // ── Delete Asset (SIGNED — requires API key & secret) ────────────────────
   Future<bool> deleteAsset(String publicId) async {
     final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     final params = <String, String>{
@@ -258,21 +260,15 @@ class CloudinaryService {
   static String avatar(String url) =>
       optimizeUrl(url, width: 200, height: 200, crop: 'fill');
 
-  static String banner(String url) =>
-      optimizeUrl(url, width: 800);
+  static String banner(String url) => optimizeUrl(url, width: 800);
 
   static bool isCloudinaryUrl(String url) =>
       url.contains('res.cloudinary.com') && url.contains(_cloudName);
 
-  // ── HMAC-SHA1 Signature (Cloudinary spec) ────────────────────────────────
-  /// Cloudinary signed upload signature:
-  ///   SHA1( "param1=val1&param2=val2" + apiSecret )
-  /// where params are all non-file, non-api_key fields, sorted alphabetically.
+  // ── HMAC-SHA1 Signature (used only for delete) ────────────────────────────
   String _sign(Map<String, String> params) {
-    // Sort keys alphabetically
     final sortedKeys = params.keys.toList()..sort();
-    final paramString =
-        sortedKeys.map((k) => '$k=${params[k]}').join('&');
+    final paramString = sortedKeys.map((k) => '$k=${params[k]}').join('&');
     final toSign = '$paramString$_apiSecret';
     return sha1.convert(utf8.encode(toSign)).toString();
   }

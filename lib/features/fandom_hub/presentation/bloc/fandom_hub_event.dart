@@ -41,3 +41,8 @@ class LoadInterviewsEvent extends FandomHubEvent {
   final String? categoryFilter;
   const LoadInterviewsEvent({this.categoryFilter});
 }
+
+class LoadTriviaQuestionsEvent extends FandomHubEvent {
+  final String? categoryFilter;
+  const LoadTriviaQuestionsEvent({this.categoryFilter});
+}

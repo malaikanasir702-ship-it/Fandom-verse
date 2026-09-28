@@ -167,12 +167,12 @@ class _AdminEventEditPageState extends State<AdminEventEditPage> {
             const SizedBox(height: 24),
 
             SkewedButton(
-              text: isEdit ? 'Update Convention' : 'Publish to Global Event Radar',
+              text: isEdit ? 'Update Convention' : 'Publish Convention to Radar',
               icon: Iconsax.radar,
               height: 52,
               fontSize: 13,
-              backgroundColor: const Color(0xFFF59E0B),
-              textColor: Colors.black,
+              backgroundColor: AppColors.comicRed,
+              textColor: Colors.white,
               onPressed: () {
                 final title = _titleController.text.trim();
                 final city = _cityController.text.trim();

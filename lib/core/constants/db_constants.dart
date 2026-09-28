@@ -25,7 +25,8 @@ class DbConstants {
   static const String tableInterviews = 'interviews';
   static const String tableTickets = 'event_tickets';
   static const String tableNotifications = 'notifications';
-
+  static const String tableDeepDiveTrivia = 'deep_dive_trivia';
+  
   // Default Pre-configured Coupons
   static const Map<String, double> validCoupons = {
     'FANDOM10': 0.10, // 10% off

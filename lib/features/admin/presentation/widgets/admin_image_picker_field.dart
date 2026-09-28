@@ -168,13 +168,13 @@ class _AdminImagePickerFieldState extends State<AdminImagePickerField> {
                   leading: Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF2563EB).withValues(alpha: 0.1),
+                      color: AppColors.comicRed.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Iconsax.camera, color: Color(0xFF2563EB), size: 22),
+                    child: const Icon(Iconsax.camera, color: AppColors.comicRed, size: 22),
                   ),
                   title: const Text('Take a Photo', style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF0F172A))),
-                  subtitle: const Text('Capture with camera → upload to Cloudinary', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                  subtitle: const Text('Capture with device camera', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
                   onTap: () { Navigator.of(ctx).pop(); _pickAndUpload(ImageSource.camera); },
                 ),
                 const Divider(height: 1, color: Color(0xFFE2E8F0)),
@@ -182,13 +182,13 @@ class _AdminImagePickerFieldState extends State<AdminImagePickerField> {
                   leading: Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF59E0B).withValues(alpha: 0.1),
+                      color: AppColors.comicRed.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Iconsax.link, color: Color(0xFFF59E0B), size: 22),
+                    child: const Icon(Iconsax.link, color: AppColors.comicRed, size: 22),
                   ),
                   title: const Text('Enter Web Image URL', style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF0F172A))),
-                  subtitle: const Text('Paste a direct URL (stored as-is)', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                  subtitle: const Text('Paste a direct image web link', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
                   onTap: () { Navigator.of(ctx).pop(); setState(() { _showUrlInput = true; }); },
                 ),
               ],
@@ -269,7 +269,7 @@ class _AdminImagePickerFieldState extends State<AdminImagePickerField> {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: isCloudinary
-                    ? const Color(0xFF3448C5).withValues(alpha: 0.9) // Cloudinary blue
+                    ? AppColors.comicRed.withValues(alpha: 0.9)
                     : Colors.black.withValues(alpha: 0.7),
                 borderRadius: BorderRadius.circular(20),
               ),

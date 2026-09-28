@@ -3,6 +3,7 @@ import '../../features/fandom_hub/domain/entities/behind_scenes_entity.dart';
 import '../../features/fandom_hub/domain/entities/fandom_post.dart';
 import '../../features/fandom_hub/domain/entities/glossary_term.dart';
 import '../../features/fandom_hub/domain/entities/interview_entity.dart';
+import '../../features/fandom_hub/presentation/widgets/trivia_question_card.dart';
 
 abstract class IFandomHubRepository {
   Future<List<FandomPost>> getTrendingPosts({List<String>? selectedFandoms});
@@ -13,4 +14,5 @@ abstract class IFandomHubRepository {
   Future<List<AdvancedLoreEntity>> getAdvancedLore({String? categoryFilter});
   Future<List<BehindScenesEntity>> getBehindScenes({String? categoryFilter});
   Future<List<InterviewEntity>> getInterviews({String? categoryFilter});
+  Future<List<TriviaQuestion>> getTriviaQuestions({String? categoryFilter});
 }

@@ -13,6 +13,9 @@ import '../bloc/admin_bloc.dart';
 import '../bloc/admin_event.dart';
 import '../bloc/admin_state.dart';
 import '../widgets/admin_modals.dart';
+import 'admin_content_page.dart';
+import 'admin_users_categories_page.dart';
+import 'admin_products_page.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -35,166 +38,180 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).padding.bottom;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      extendBody: true,
+    return PopScope(
+      canPop: _activeNavIndex == 0,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_activeNavIndex != 0) {
+          setState(() => _activeNavIndex = 0);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8F9FA),
+        extendBody: true,
+        appBar: _activeNavIndex == 0 ? _buildAdminDashboardAppBar(context) : null,
+        bottomNavigationBar: Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            bottom: 14 + bottomInset,
+          ),
+          child: _buildSolidBottomAppBar(context),
+        ),
+        body: IndexedStack(
+          index: _activeNavIndex,
+          children: [
+            _buildOverviewTab(context),
+            const AdminContentPage(isEmbedded: true),
+            const AdminUsersCategoriesPage(isEmbedded: true),
+            const AdminProductsPage(isEmbedded: true),
+          ],
+        ),
+      ),
+    );
+  }
 
-      // ─── Solid Red & White Clean App Bar (Zero Glow) ────────────────────────
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
-        scrolledUnderElevation: 1,
-        surfaceTintColor: Colors.transparent,
-        automaticallyImplyLeading: false,
-        titleSpacing: 16,
-        title: BlocBuilder<AuthBloc, AuthState>(
-          builder: (context, authState) {
-            final adminName = authState is AdminAuthenticated
-                ? authState.admin.name
-                : 'Fandom Commander';
-            final adminEmail = authState is AdminAuthenticated
-                ? authState.admin.email
-                : 'admin@fandomverse.com';
+  PreferredSizeWidget _buildAdminDashboardAppBar(BuildContext context) {
+    return AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0.5,
+      scrolledUnderElevation: 1,
+      surfaceTintColor: Colors.transparent,
+      automaticallyImplyLeading: false,
+      titleSpacing: 16,
+      title: BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, authState) {
+          final adminName = authState is AdminAuthenticated
+              ? authState.admin.name
+              : 'Fandom Commander';
+          final adminEmail = authState is AdminAuthenticated
+              ? authState.admin.email
+              : 'admin@fandomverse.com';
 
-            return Row(
-              children: [
-                // Solid Red Avatar Ring (Zero Glow)
-                Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.comicRed, width: 2),
-                  ),
-                  child: const CircleAvatar(
-                    radius: 17,
-                    backgroundColor: Colors.white,
-                    child: Icon(Iconsax.shield_tick, size: 20, color: AppColors.comicRed),
-                  ),
+          return Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.comicRed, width: 2),
                 ),
-                const SizedBox(width: 12),
-
-                // Name & Solid Super Admin Tag
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              adminName,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: Color(0xFF111216),
-                                fontSize: 15,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 0.2,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppColors.comicRed,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text(
-                              'SUPER ADMIN',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 8.5,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 0.6,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Row(
-                        children: [
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: const BoxDecoration(
-                              color: AppColors.comicRed,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 5),
-                          Flexible(
-                            child: Text(
-                              adminEmail,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: Color(0xFF6B7280),
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                child: const CircleAvatar(
+                  radius: 17,
+                  backgroundColor: Colors.white,
+                  child: Icon(Iconsax.shield_tick, size: 20, color: AppColors.comicRed),
                 ),
-              ],
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            adminName,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Color(0xFF111216),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.comicRed,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'SUPER ADMIN',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.6,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: const BoxDecoration(
+                            color: AppColors.comicRed,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Flexible(
+                          child: Text(
+                            adminEmail,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Color(0xFF6B7280),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Iconsax.refresh, color: Color(0xFF111216), size: 20),
+          tooltip: 'Refresh Metrics',
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            context.read<AdminBloc>().add(const LoadAdminDashboardStatsEvent());
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('⚡ Syncing platform metrics...'),
+                duration: Duration(milliseconds: 900),
+                backgroundColor: AppColors.comicRed,
+              ),
             );
           },
         ),
-        actions: [
-          // Refresh Button
-          IconButton(
-            icon: const Icon(Iconsax.refresh, color: Color(0xFF111216), size: 20),
-            tooltip: 'Refresh Metrics',
-            onPressed: () {
-              HapticFeedback.lightImpact();
-              context.read<AdminBloc>().add(const LoadAdminDashboardStatsEvent());
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('⚡ Syncing platform metrics...'),
-                  duration: Duration(milliseconds: 900),
-                  backgroundColor: AppColors.comicRed,
-                ),
-              );
-            },
-          ),
-
-          // Logout Button
-          IconButton(
-            icon: const Icon(Iconsax.logout, color: AppColors.comicRed, size: 20),
-            tooltip: 'Sign Out',
-            onPressed: () => _confirmLogout(context),
-          ),
-          const SizedBox(width: 8),
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(color: const Color(0xFFE5E7EB), height: 1),
+        IconButton(
+          icon: const Icon(Iconsax.logout, color: AppColors.comicRed, size: 20),
+          tooltip: 'Sign Out',
+          onPressed: () => _confirmLogout(context),
         ),
+        const SizedBox(width: 8),
+      ],
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(1),
+        child: Container(color: const Color(0xFFE5E7EB), height: 1),
       ),
+    );
+  }
 
-      // ─── Solid Red & White Floating Bottom App Bar (Zero Glow) ───────────────
-      bottomNavigationBar: Padding(
-        padding: EdgeInsets.only(
-          left: 16,
-          right: 16,
-          bottom: 14 + bottomInset,
-        ),
-        child: _buildSolidBottomAppBar(context),
-      ),
-
-      // ─── Dashboard Body ─────────────────────────────────────────────────────
-      body: BlocConsumer<AdminBloc, AdminState>(
-        listener: (context, state) {
-          if (state is AdminStatsLoaded && state.successMessage != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.successMessage!), backgroundColor: AppColors.comicRed),
-            );
-          }
-        },
+  Widget _buildOverviewTab(BuildContext context) {
+    return BlocConsumer<AdminBloc, AdminState>(
+      listener: (context, state) {
+        if (state is AdminStatsLoaded && state.successMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.successMessage!), backgroundColor: AppColors.comicRed),
+          );
+        }
+      },
         builder: (context, state) {
           if (state is AdminLoading) {
             return const SkeletonAdminDashboardPage();
@@ -232,7 +249,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         count: '${metrics['totalFans']}',
                         badge: '+48 this week',
                         icon: Iconsax.people,
-                        onTap: () => Navigator.of(context).pushNamed('/admin/users-categories'),
+                        onTap: () => setState(() => _activeNavIndex = 2),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -242,7 +259,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         count: '${metrics['publishedArticles']}',
                         badge: '6 Fandoms',
                         icon: Iconsax.book_1,
-                        onTap: () => Navigator.of(context).pushNamed('/admin/content'),
+                        onTap: () => setState(() => _activeNavIndex = 1),
                       ),
                     ),
                   ],
@@ -266,7 +283,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         count: '${metrics['storeProducts']}',
                         badge: 'Store Catalog',
                         icon: Iconsax.shop,
-                        onTap: () => Navigator.of(context).pushNamed('/admin/products'),
+                        onTap: () => setState(() => _activeNavIndex = 3),
                       ),
                     ),
                   ],
@@ -283,7 +300,17 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   title: 'Content & Lore Moderation',
                   subtitle: 'Publish, edit, or delete articles, guides & glossary terms',
                   tag: 'Lore Hub',
-                  onTap: () => Navigator.of(context).pushNamed('/admin/content'),
+                  onTap: () => setState(() => _activeNavIndex = 1),
+                ),
+
+                // Deep Dive & Lore Vault (Trivia, Advanced Lore, BTS, Interviews)
+                _buildSolidModuleCard(
+                  icon: Iconsax.lamp_charge,
+                  title: 'Deep Dive & Trivia Vault',
+                  subtitle: 'Manage trivia questions, advanced lore guides, behind-the-scenes & interviews',
+                  tag: 'Deep Dive',
+                  isHighlighted: true,
+                  onTap: () => Navigator.of(context).pushNamed('/admin/deep-dive'),
                 ),
 
                 // Multimedia Hub (Full CRUD with Cloudinary)
@@ -311,7 +338,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   title: 'Official Merch Management',
                   subtitle: 'Update product prices, stock inventory, discount tags & deals',
                   tag: 'Merchandise',
-                  onTap: () => Navigator.of(context).pushNamed('/admin/products'),
+                  onTap: () => setState(() => _activeNavIndex = 3),
                 ),
 
                 // User Moderation & Categories
@@ -320,7 +347,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   title: 'User Moderation & Categories',
                   subtitle: 'Inspect fan profiles, manage permissions & configure categories',
                   tag: 'Access',
-                  onTap: () => Navigator.of(context).pushNamed('/admin/users-categories'),
+                  onTap: () {
+                    context.read<AdminBloc>().add(const LoadAdminDashboardStatsEvent());
+                    setState(() => _activeNavIndex = 2);
+                  },
                 ),
 
                 // Hero Stories & Backstories
@@ -372,8 +402,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             ),
           );
         },
-      ),
-    );
+      );
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -417,7 +446,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             onTap: () {
               HapticFeedback.selectionClick();
               setState(() => _activeNavIndex = 1);
-              Navigator.of(context).pushNamed('/admin/content');
             },
           ),
 
@@ -448,15 +476,15 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             ),
           ),
 
-          // 4. Media Tab
+          // 4. Users Tab
           _buildBottomNavItem(
-            icon: Iconsax.video_play,
-            label: 'Media',
-            isSelected: _activeNavIndex == 3,
+            icon: Iconsax.people,
+            label: 'Users',
+            isSelected: _activeNavIndex == 2,
             onTap: () {
               HapticFeedback.selectionClick();
-              setState(() => _activeNavIndex = 3);
-              Navigator.of(context).pushNamed('/admin/multimedia');
+              context.read<AdminBloc>().add(const LoadAdminDashboardStatsEvent());
+              setState(() => _activeNavIndex = 2);
             },
           ),
 
@@ -464,11 +492,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           _buildBottomNavItem(
             icon: Iconsax.shop,
             label: 'Store',
-            isSelected: _activeNavIndex == 4,
+            isSelected: _activeNavIndex == 3,
             onTap: () {
               HapticFeedback.selectionClick();
-              setState(() => _activeNavIndex = 4);
-              Navigator.of(context).pushNamed('/admin/products');
+              setState(() => _activeNavIndex = 3);
             },
           ),
         ],
@@ -617,7 +644,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   Expanded(
                     child: _buildModalActionTile(
                       label: 'New Media',
-                      subtitle: 'Cloudinary CDN asset',
+                      subtitle: 'Upload fan art or photos',
                       icon: Iconsax.video_play,
                       onTap: () {
                         Navigator.of(sheetCtx).pop();
@@ -633,7 +660,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   Expanded(
                     child: _buildModalActionTile(
                       label: 'New Event',
-                      subtitle: 'Convention & GPS',
+                      subtitle: 'Schedule convention',
                       icon: Iconsax.location_add,
                       onTap: () {
                         Navigator.of(sheetCtx).pop();
@@ -645,7 +672,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   Expanded(
                     child: _buildModalActionTile(
                       label: 'New Product',
-                      subtitle: 'Merchandise item',
+                      subtitle: 'Add store merchandise',
                       icon: Iconsax.add_square,
                       onTap: () {
                         Navigator.of(sheetCtx).pop();
@@ -660,8 +687,36 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 children: [
                   Expanded(
                     child: _buildModalActionTile(
+                      label: 'Manage Users',
+                      subtitle: 'View and edit fans',
+                      icon: Iconsax.people,
+                      onTap: () {
+                        Navigator.of(sheetCtx).pop();
+                        setState(() => _activeNavIndex = 2);
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildModalActionTile(
+                      label: 'Deep Dive Hub',
+                      subtitle: 'Trivia & bonus content',
+                      icon: Iconsax.lamp_charge,
+                      onTap: () {
+                        Navigator.of(sheetCtx).pop();
+                        Navigator.of(ctx).pushNamed('/admin/deep-dive');
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildModalActionTile(
                       label: 'Hero Story',
-                      subtitle: 'Character origin lore',
+                      subtitle: 'Origin story & slides',
                       icon: Iconsax.story,
                       onTap: () {
                         Navigator.of(sheetCtx).pop();
@@ -673,7 +728,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   Expanded(
                     child: _buildModalActionTile(
                       label: 'Push Alert',
-                      subtitle: 'Broadcast to all fans',
+                      subtitle: 'Message all fans',
                       icon: Iconsax.notification_bing,
                       onTap: () {
                         Navigator.of(sheetCtx).pop();

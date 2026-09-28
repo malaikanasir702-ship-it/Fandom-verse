@@ -24,6 +24,10 @@ class AdminStatsLoaded extends AdminState {
   final List<Map<String, dynamic>> users;
   final List<Map<String, dynamic>> categories;
   final List<Map<String, dynamic>> heroStories;
+  final List<Map<String, dynamic>> triviaList;
+  final List<Map<String, dynamic>> advancedLoreList;
+  final List<Map<String, dynamic>> behindScenesList;
+  final List<Map<String, dynamic>> interviewsList;
   final String? successMessage;
 
   const AdminStatsLoaded({
@@ -35,6 +39,10 @@ class AdminStatsLoaded extends AdminState {
     required this.users,
     required this.categories,
     this.heroStories = const [],
+    this.triviaList = const [],
+    this.advancedLoreList = const [],
+    this.behindScenesList = const [],
+    this.interviewsList = const [],
     this.successMessage,
   });
 
@@ -48,6 +56,10 @@ class AdminStatsLoaded extends AdminState {
         users,
         categories,
         heroStories,
+        triviaList,
+        advancedLoreList,
+        behindScenesList,
+        interviewsList,
         successMessage,
       ];
 }

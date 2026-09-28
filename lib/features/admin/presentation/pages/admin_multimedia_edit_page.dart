@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/multimedia_service.dart';
 import '../../../../core/services/cloudinary_service.dart';
@@ -22,6 +24,12 @@ class _AdminMultimediaEditPageState extends State<AdminMultimediaEditPage> {
   late String _fandom;
   String? _mediaImageUrl;
   bool _isSaving = false;
+
+  // ── Media file upload state (podcast audio / video) ─────────────────
+  bool _isUploadingAudio = false;
+  bool _isUploadingVideo = false;
+  String _audioUploadStatus = '';
+  String _videoUploadStatus = '';
 
   // Controllers
   late TextEditingController _titleController;
@@ -211,6 +219,71 @@ class _AdminMultimediaEditPageState extends State<AdminMultimediaEditPage> {
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  Future<void> _pickAndUploadPodcastAudio() async {
+    final result = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['mp3', 'aac', 'm4a', 'wav', 'ogg', 'flac'],
+    );
+    if (result == null || result.files.single.path == null) return;
+
+    final file = File(result.files.single.path!);
+    final name = result.files.single.name;
+
+    setState(() {
+      _isUploadingAudio = true;
+      _audioUploadStatus = '⬆️ Uploading "$name" to Cloudinary...';
+    });
+
+    try {
+      final url = await CloudinaryService.instance.uploadAudio(
+        file,
+        folder: CloudinaryService.folderPodcasts,
+      );
+      setState(() {
+        _mediaUrlController.text = url;
+        _audioUploadStatus = '✅ Uploaded: $name';
+      });
+    } catch (e) {
+      setState(() {
+        _audioUploadStatus = '❌ Upload failed: $e';
+      });
+    } finally {
+      setState(() => _isUploadingAudio = false);
+    }
+  }
+
+  Future<void> _pickAndUploadVideo() async {
+    final result = await FilePicker.pickFiles(
+      type: FileType.video,
+    );
+    if (result == null || result.files.single.path == null) return;
+
+    final file = File(result.files.single.path!);
+    final name = result.files.single.name;
+
+    setState(() {
+      _isUploadingVideo = true;
+      _videoUploadStatus = '⬆️ Uploading "$name" to Cloudinary...';
+    });
+
+    try {
+      final url = await CloudinaryService.instance.uploadVideo(
+        file,
+        folder: CloudinaryService.folderVideos,
+      );
+      setState(() {
+        _mediaUrlController.text = url;
+        _videoUploadStatus = '✅ Uploaded: $name';
+      });
+    } catch (e) {
+      setState(() {
+        _videoUploadStatus = '❌ Upload failed: $e';
+      });
+    } finally {
+      setState(() => _isUploadingVideo = false);
     }
   }
 
@@ -493,8 +566,9 @@ class _AdminMultimediaEditPageState extends State<AdminMultimediaEditPage> {
                   ],
                 ),
                 const SizedBox(height: 20),
+                // VIDEO UPLOAD
                 const Text(
-                  'VIDEO URL / STREAM LINK *',
+                  'VIDEO FILE (CLOUDINARY UPLOAD)',
                   style: TextStyle(
                     color: Color(0xFF6B7280),
                     fontSize: 11,
@@ -503,14 +577,17 @@ class _AdminMultimediaEditPageState extends State<AdminMultimediaEditPage> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                _buildSolidTextField(
-                  controller: _mediaUrlController,
-                  hintText: 'https://www.youtube.com/watch?... or Cloudinary Video URL',
-                  validator: (val) => val == null || val.trim().isEmpty ? 'Video URL is required' : null,
+                _buildMediaUploadSection(
+                  isUploading: _isUploadingVideo,
+                  statusMessage: _videoUploadStatus,
+                  onPickFile: _pickAndUploadVideo,
+                  pickButtonLabel: 'Pick Video from Device',
+                  pickButtonIcon: Iconsax.video_add,
+                  urlController: _mediaUrlController,
+                  urlHint: 'Or paste Cloudinary / YouTube URL',
                 ),
                 const SizedBox(height: 20),
               ],
-
               if (_type == 'podcast') ...[
                 Row(
                   children: [
@@ -560,8 +637,9 @@ class _AdminMultimediaEditPageState extends State<AdminMultimediaEditPage> {
                   ],
                 ),
                 const SizedBox(height: 20),
+                // PODCAST AUDIO UPLOAD
                 const Text(
-                  'PODCAST AUDIO / STREAM LINK (SPOTIFY OR CLOUDINARY) *',
+                  'PODCAST AUDIO FILE (CLOUDINARY UPLOAD)',
                   style: TextStyle(
                     color: Color(0xFF6B7280),
                     fontSize: 11,
@@ -570,10 +648,14 @@ class _AdminMultimediaEditPageState extends State<AdminMultimediaEditPage> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                _buildSolidTextField(
-                  controller: _mediaUrlController,
-                  hintText: 'https://open.spotify.com/show/... or Cloudinary Audio URL',
-                  validator: (val) => val == null || val.trim().isEmpty ? 'Podcast audio URL is required' : null,
+                _buildMediaUploadSection(
+                  isUploading: _isUploadingAudio,
+                  statusMessage: _audioUploadStatus,
+                  onPickFile: _pickAndUploadPodcastAudio,
+                  pickButtonLabel: 'Pick Audio from Device',
+                  pickButtonIcon: Iconsax.microphone_2,
+                  urlController: _mediaUrlController,
+                  urlHint: 'Or paste Cloudinary Audio URL',
                 ),
                 const SizedBox(height: 20),
                 const Text(
@@ -695,6 +777,173 @@ class _AdminMultimediaEditPageState extends State<AdminMultimediaEditPage> {
       default:
         return 'Media Image';
     }
+  }
+
+  /// Shared media file upload widget used for both podcast audio and video.
+  Widget _buildMediaUploadSection({
+    required bool isUploading,
+    required String statusMessage,
+    required VoidCallback onPickFile,
+    required String pickButtonLabel,
+    required IconData pickButtonIcon,
+    required TextEditingController urlController,
+    required String urlHint,
+    String? Function(String?)? urlValidator,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Upload button row
+        Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: isUploading ? null : onPickFile,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                  decoration: BoxDecoration(
+                    color: isUploading
+                        ? const Color(0xFFF3F4F6)
+                        : AppColors.comicRed.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isUploading
+                          ? const Color(0xFFE5E7EB)
+                          : AppColors.comicRed.withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (isUploading)
+                        const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.comicRed,
+                          ),
+                        )
+                      else
+                        Icon(pickButtonIcon, size: 18, color: AppColors.comicRed),
+                      const SizedBox(width: 8),
+                      Text(
+                        isUploading ? 'Uploading...' : pickButtonLabel,
+                        style: TextStyle(
+                          color: isUploading
+                              ? const Color(0xFF9CA3AF)
+                              : AppColors.comicRed,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        // Upload status message
+        if (statusMessage.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: statusMessage.startsWith('✅')
+                  ? const Color(0xFFD1FAE5)
+                  : statusMessage.startsWith('❌')
+                      ? const Color(0xFFFEE2E2)
+                      : const Color(0xFFFFF7ED),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: statusMessage.startsWith('✅')
+                    ? const Color(0xFF6EE7B7)
+                    : statusMessage.startsWith('❌')
+                        ? const Color(0xFFFCA5A5)
+                        : const Color(0xFFFDE68A),
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    statusMessage,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: statusMessage.startsWith('✅')
+                          ? const Color(0xFF065F46)
+                          : statusMessage.startsWith('❌')
+                              ? const Color(0xFF991B1B)
+                              : const Color(0xFF92400E),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+
+        const SizedBox(height: 10),
+
+        // Divider label
+        Row(
+          children: [
+            const Expanded(child: Divider(color: Color(0xFFE5E7EB))),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: const Text(
+                'OR PASTE URL MANUALLY',
+                style: TextStyle(
+                  color: Color(0xFF9CA3AF),
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.6,
+                ),
+              ),
+            ),
+            const Expanded(child: Divider(color: Color(0xFFE5E7EB))),
+          ],
+        ),
+        const SizedBox(height: 8),
+
+        // URL text field
+        TextFormField(
+          controller: urlController,
+          validator: urlValidator,
+          style: const TextStyle(
+            color: Color(0xFF111216),
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+          decoration: InputDecoration(
+            hintText: urlHint,
+            hintStyle: const TextStyle(
+              color: Color(0xFF9CA3AF),
+              fontSize: 12,
+              fontWeight: FontWeight.normal,
+            ),
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: AppColors.comicRed, width: 1.8),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildSolidTextField({

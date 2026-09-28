@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../../../../core/services/multimedia_service.dart';
+import '../widgets/in_app_audio_player_sheet.dart';
+import '../widgets/in_app_video_player_modal.dart';
 
 class MultimediaGalleryPage extends StatefulWidget {
   const MultimediaGalleryPage({super.key});
@@ -552,7 +553,19 @@ class _MultimediaGalleryPageState extends State<MultimediaGalleryPage>
         final isBookmarked = v['isBookmarked'] as bool;
 
         return GestureDetector(
-          onTap: () => _launchUrl(v['videoUrl'] as String),
+          onTap: () {
+            final videoUrl = (v['videoUrl'] as String? ?? '').trim();
+            if (videoUrl.isEmpty) return;
+            InAppVideoPlayerModal.show(
+              context,
+              videoUrl: videoUrl,
+              title: v['title'] as String? ?? 'Video',
+              channel: v['channel'] as String? ?? '',
+              views: v['views'] as String?,
+              fandom: v['fandom'] as String?,
+              thumbnailUrl: v['thumbnailUrl'] as String?,
+            );
+          },
           child: Container(
             decoration: BoxDecoration(
               color: isDark ? AppColors.darkSurface : Colors.white,
@@ -897,15 +910,27 @@ class _MultimediaGalleryPageState extends State<MultimediaGalleryPage>
                   // Play / Listen button
                   GestureDetector(
                     onTap: () {
+                      final audioUrl = (p['podcastUrl'] as String? ?? '').trim();
+                      if (audioUrl.isEmpty) return;
                       setState(() {
-                        // Pause all other episodes, toggle this one
                         for (final ep in _podcasts) {
                           ep['isPlaying'] = false;
                         }
                         p['isPlaying'] = !isPlaying;
                       });
                       if (!isPlaying) {
-                        _launchUrl(p['podcastUrl'] as String);
+                        InAppAudioPlayerSheet.show(
+                          context,
+                          audioUrl: audioUrl,
+                          title: p['title'] as String? ?? 'Podcast',
+                          host: p['host'] as String? ?? '',
+                          coverUrl: p['coverUrl'] as String? ?? '',
+                          episode: p['episode'] as String?,
+                          fandom: p['fandom'] as String?,
+                          durationText: p['duration'] as String?,
+                        );
+                      } else {
+                        PodcastAudioManager.instance.togglePlayPause();
                       }
                     },
                     child: Container(
@@ -966,10 +991,4 @@ class _MultimediaGalleryPageState extends State<MultimediaGalleryPage>
     );
   }
 
-  Future<void> _launchUrl(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
-  }
 }

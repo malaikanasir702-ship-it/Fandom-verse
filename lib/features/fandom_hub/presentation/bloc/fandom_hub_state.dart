@@ -3,6 +3,7 @@ import '../../domain/entities/behind_scenes_entity.dart';
 import '../../domain/entities/fandom_post.dart';
 import '../../domain/entities/glossary_term.dart';
 import '../../domain/entities/interview_entity.dart';
+import '../widgets/trivia_question_card.dart';
 
 abstract class FandomHubState {
   const FandomHubState();
@@ -25,6 +26,7 @@ class FandomHubLoaded extends FandomHubState {
   final List<AdvancedLoreEntity> advancedLore;
   final List<BehindScenesEntity> behindScenes;
   final List<InterviewEntity> interviews;
+  final List<TriviaQuestion> triviaQuestions;
 
   const FandomHubLoaded({
     required this.trendingPosts,
@@ -35,6 +37,7 @@ class FandomHubLoaded extends FandomHubState {
     this.advancedLore = const [],
     this.behindScenes = const [],
     this.interviews = const [],
+    this.triviaQuestions = const [],
   });
 
   List<FandomPost> get filteredNews {
@@ -64,6 +67,7 @@ class FandomHubLoaded extends FandomHubState {
     List<AdvancedLoreEntity>? advancedLore,
     List<BehindScenesEntity>? behindScenes,
     List<InterviewEntity>? interviews,
+    List<TriviaQuestion>? triviaQuestions,
   }) {
     return FandomHubLoaded(
       trendingPosts: trendingPosts ?? this.trendingPosts,
@@ -74,6 +78,7 @@ class FandomHubLoaded extends FandomHubState {
       advancedLore: advancedLore ?? this.advancedLore,
       behindScenes: behindScenes ?? this.behindScenes,
       interviews: interviews ?? this.interviews,
+      triviaQuestions: triviaQuestions ?? this.triviaQuestions,
     );
   }
 }

@@ -11,7 +11,8 @@ import '../widgets/admin_modals.dart';
 import 'admin_product_edit_page.dart';
 
 class AdminProductsPage extends StatefulWidget {
-  const AdminProductsPage({super.key});
+  final bool isEmbedded;
+  const AdminProductsPage({super.key, this.isEmbedded = false});
 
   @override
   State<AdminProductsPage> createState() => _AdminProductsPageState();
@@ -48,10 +49,12 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
         backgroundColor: Colors.white,
         elevation: 0.5,
         scrolledUnderElevation: 1,
-        leading: IconButton(
-          icon: const Icon(Iconsax.arrow_left, color: AppColors.adminLightTextPrimary, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        leading: widget.isEmbedded
+            ? null
+            : IconButton(
+                icon: const Icon(Iconsax.arrow_left, color: AppColors.adminLightTextPrimary, size: 20),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.success,
@@ -244,7 +247,7 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
                 const SizedBox(height: 2),
                 Text(
                   '\$${((product['price'] as num?)?.toDouble() ?? 0.0).toStringAsFixed(2)}',
-                  style: const TextStyle(color: Color(0xFFD97706), fontSize: 13, fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: AppColors.comicRed, fontSize: 13, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -252,7 +255,7 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
           Column(
             children: [
               IconButton(
-                icon: const Icon(Iconsax.edit_2, color: Color(0xFF2563EB), size: 18),
+                icon: const Icon(Iconsax.edit_2, color: AppColors.comicRed, size: 18),
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(

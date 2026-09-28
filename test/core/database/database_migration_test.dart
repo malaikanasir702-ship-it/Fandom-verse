@@ -6,7 +6,7 @@ void main() {
   group('Database Migration Tests', () {
     test('should have correct database version', () {
       // Assert
-      expect(DbConstants.databaseVersion, 3);
+      expect(DbConstants.databaseVersion, 4);
     });
 
     test('should include all new table constants', () {
@@ -14,11 +14,12 @@ void main() {
       expect(DbConstants.tableAdvancedLore, 'advanced_lore');
       expect(DbConstants.tableBehindScenes, 'behind_scenes');
       expect(DbConstants.tableInterviews, 'interviews');
+      expect(DbConstants.tableDeepDiveTrivia, 'deep_dive_trivia');
     });
 
     test('should have create statements for all new tables', () {
       // Assert
-      expect(DatabaseTables.allCreateStatements.length, 17);
+      expect(DatabaseTables.allCreateStatements.length, 20);
       expect(
         DatabaseTables.allCreateStatements,
         contains(DatabaseTables.createAdvancedLoreTable),
@@ -30,6 +31,10 @@ void main() {
       expect(
         DatabaseTables.allCreateStatements,
         contains(DatabaseTables.createInterviewsTable),
+      );
+      expect(
+        DatabaseTables.allCreateStatements,
+        contains(DatabaseTables.createDeepDiveTriviaTable),
       );
     });
 

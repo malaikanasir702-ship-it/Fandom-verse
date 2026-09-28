@@ -132,10 +132,10 @@ class AdminModals {
               const SizedBox(height: 16),
               const Row(
                 children: [
-                  Icon(Iconsax.clock, color: Color(0xFF2563EB), size: 22),
+                  Icon(Iconsax.clock, color: AppColors.comicRed, size: 22),
                   SizedBox(width: 8),
                   Text(
-                    'Operations Audit Trail',
+                    'Activity Log',
                     style: TextStyle(color: AppColors.adminLightTextPrimary, fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -164,10 +164,10 @@ class AdminModals {
                             leading: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF2563EB).withValues(alpha: 0.1),
+                                color: AppColors.comicRed.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: const Icon(Iconsax.flash_1, color: Color(0xFF2563EB), size: 20),
+                              child: const Icon(Iconsax.flash_1, color: AppColors.comicRed, size: 20),
                             ),
                             title: Text(
                               log['description'] ?? 'Admin action',
@@ -180,12 +180,12 @@ class AdminModals {
                             trailing: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF1F5F9),
+                                color: AppColors.comicRed.withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
                                 log['action_type'] ?? 'OP',
-                                style: const TextStyle(color: AppColors.adminLightTextPrimary, fontSize: 9, fontWeight: FontWeight.bold),
+                                style: const TextStyle(color: AppColors.comicRed, fontSize: 9, fontWeight: FontWeight.bold),
                               ),
                             ),
                           );

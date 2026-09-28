@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/services/firestore_seeder.dart';
 import '../../../../core/widgets/skewed_button.dart';
 import '../../../../core/widgets/skeleton_loader.dart';
+import '../../../../core/services/multimedia_service.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
@@ -21,88 +22,176 @@ class AdminDashboardPage extends StatefulWidget {
 }
 
 class _AdminDashboardPageState extends State<AdminDashboardPage> {
+  int _activeNavIndex = 0;
+
   @override
   void initState() {
     super.initState();
     context.read<AdminBloc>().add(const LoadAdminDashboardStatsEvent());
+    MultimediaService.instance.ensureInitialized();
   }
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).padding.bottom;
+
     return Scaffold(
-      backgroundColor: AppColors.adminLightBackground,
+      backgroundColor: const Color(0xFFF8F9FA),
+      extendBody: true,
+
+      // ─── Solid Red & White Clean App Bar (Zero Glow) ────────────────────────
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0.5,
         scrolledUnderElevation: 1,
-        leading: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.comicRed.withValues(alpha: 0.1),
-              border: Border.all(color: AppColors.comicRed.withValues(alpha: 0.3)),
-            ),
-            child: const Center(
-              child: Icon(Iconsax.shield_tick, size: 16, color: AppColors.comicRed),
-            ),
-          ),
-        ),
+        surfaceTintColor: Colors.transparent,
+        automaticallyImplyLeading: false,
+        titleSpacing: 16,
         title: BlocBuilder<AuthBloc, AuthState>(
           builder: (context, authState) {
             final adminName = authState is AdminAuthenticated
                 ? authState.admin.name
-                : 'Administrator';
+                : 'Fandom Commander';
             final adminEmail = authState is AdminAuthenticated
                 ? authState.admin.email
                 : 'admin@fandomverse.com';
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+
+            return Row(
               children: [
-                const Text(
-                  'Command Console',
-                  style: TextStyle(
-                    color: AppColors.adminLightTextPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                // Solid Red Avatar Ring (Zero Glow)
+                Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.comicRed, width: 2),
+                  ),
+                  child: const CircleAvatar(
+                    radius: 17,
+                    backgroundColor: Colors.white,
+                    child: Icon(Iconsax.shield_tick, size: 20, color: AppColors.comicRed),
                   ),
                 ),
-                Text(
-                  '$adminEmail • $adminName',
-                  style: const TextStyle(color: AppColors.adminLightTextSecondary, fontSize: 10),
+                const SizedBox(width: 12),
+
+                // Name & Solid Super Admin Tag
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              adminName,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Color(0xFF111216),
+                                fontSize: 15,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.comicRed,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              'SUPER ADMIN',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 8.5,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.6,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                              color: AppColors.comicRed,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 5),
+                          Flexible(
+                            child: Text(
+                              adminEmail,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Color(0xFF6B7280),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ],
             );
           },
         ),
         actions: [
+          // Refresh Button
           IconButton(
-            icon: const Icon(Iconsax.refresh, color: AppColors.adminLightTextSecondary, size: 20),
+            icon: const Icon(Iconsax.refresh, color: Color(0xFF111216), size: 20),
             tooltip: 'Refresh Metrics',
-            onPressed: () => context.read<AdminBloc>().add(const LoadAdminDashboardStatsEvent()),
-          ),
-          // ── Seed Firestore Button ──
-          IconButton(
-            icon: const Icon(Iconsax.cloud_connection, color: Color(0xFF2563EB), size: 20),
-            tooltip: 'Seed Firestore Database',
-            onPressed: () => _showSeedDialog(context),
-          ),
-          IconButton(
-            icon: const Icon(Iconsax.logout, color: AppColors.error, size: 20),
-            tooltip: 'Exit Console',
             onPressed: () {
-              context.read<AuthBloc>().add(const LogoutEvent());
-              Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+              HapticFeedback.lightImpact();
+              context.read<AdminBloc>().add(const LoadAdminDashboardStatsEvent());
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('⚡ Syncing platform metrics...'),
+                  duration: Duration(milliseconds: 900),
+                  backgroundColor: AppColors.comicRed,
+                ),
+              );
             },
+          ),
+
+          // Logout Button
+          IconButton(
+            icon: const Icon(Iconsax.logout, color: AppColors.comicRed, size: 20),
+            tooltip: 'Sign Out',
+            onPressed: () => _confirmLogout(context),
           ),
           const SizedBox(width: 8),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(color: const Color(0xFFE5E7EB), height: 1),
+        ),
       ),
+
+      // ─── Solid Red & White Floating Bottom App Bar (Zero Glow) ───────────────
+      bottomNavigationBar: Padding(
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          bottom: 14 + bottomInset,
+        ),
+        child: _buildSolidBottomAppBar(context),
+      ),
+
+      // ─── Dashboard Body ─────────────────────────────────────────────────────
       body: BlocConsumer<AdminBloc, AdminState>(
         listener: (context, state) {
           if (state is AdminStatsLoaded && state.successMessage != null) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.successMessage!), backgroundColor: AppColors.success),
+              SnackBar(content: Text(state.successMessage!), backgroundColor: AppColors.comicRed),
             );
           }
         },
@@ -123,147 +212,162 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           final logs = state is AdminStatsLoaded ? state.recentLogs : <Map<String, dynamic>>[];
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Quick Broadcast & Action Hub Banner
-                _buildQuickActionBanner(context),
+                // 1. Solid Red & White System Spotlight Banner (Overflow Fixed & Skewed Buttons)
+                _buildSolidSpotlightBanner(context),
                 const SizedBox(height: 20),
 
-                // Real-time KPI Metric Grid (4 Cards)
-                const Text(
-                  'REAL-TIME PLATFORM METRICS',
-                  style: TextStyle(
-                    color: AppColors.adminLightTextSecondary,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.0,
-                  ),
-                ),
-                const SizedBox(height: 10),
+                // 2. KPI Metrics Grid
+                _buildSectionHeader('PLATFORM OVERVIEW', 'LIVE'),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
-                      child: _buildMetricCard(
+                      child: _buildSolidKpiCard(
                         title: 'Total Fans',
                         count: '${metrics['totalFans']}',
-                        subtext: '+48 this week',
+                        badge: '+48 this week',
                         icon: Iconsax.people,
-                        color: const Color(0xFF2563EB),
+                        onTap: () => Navigator.of(context).pushNamed('/admin/users-categories'),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 12),
                     Expanded(
-                      child: _buildMetricCard(
+                      child: _buildSolidKpiCard(
                         title: 'Published Lore',
                         count: '${metrics['publishedArticles']}',
-                        subtext: 'Across 6 fandoms',
+                        badge: '6 Fandoms',
                         icon: Iconsax.book_1,
-                        color: AppColors.comicRed,
+                        onTap: () => Navigator.of(context).pushNamed('/admin/content'),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
-                      child: _buildMetricCard(
-                        title: 'Upcoming Events',
+                      child: _buildSolidKpiCard(
+                        title: 'Conventions',
                         count: '${metrics['upcomingEvents']}',
-                        subtext: 'Tokyo, SDCC, Seoul',
+                        badge: 'Radar Live',
                         icon: Iconsax.radar,
-                        color: const Color(0xFFD97706),
+                        onTap: () => Navigator.of(context).pushNamed('/admin/events'),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 12),
                     Expanded(
-                      child: _buildMetricCard(
-                        title: 'Store Inventory',
+                      child: _buildSolidKpiCard(
+                        title: 'Merch Inventory',
                         count: '${metrics['storeProducts']}',
-                        subtext: '4 Low Stock items',
+                        badge: 'Store Catalog',
                         icon: Iconsax.shop,
-                        color: AppColors.success,
+                        onTap: () => Navigator.of(context).pushNamed('/admin/products'),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 24),
 
-                // Operations Navigation Grid
-                const Text(
-                  'MANAGEMENT MODULES',
-                  style: TextStyle(
-                    color: AppColors.adminLightTextSecondary,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.0,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                _buildModuleTile(
+                // 3. Management Modules Grid
+                _buildSectionHeader('MANAGE', 'OPERATIONS'),
+                const SizedBox(height: 12),
+
+                // Content & Lore Moderation
+                _buildSolidModuleCard(
                   icon: Iconsax.document_text,
                   title: 'Content & Lore Moderation',
-                  subtitle: 'Add, edit, or delete articles, guides & glossary terms',
-                  route: '/admin/content',
-                  accentColor: AppColors.comicRed,
+                  subtitle: 'Publish, edit, or delete articles, guides & glossary terms',
+                  tag: 'Lore Hub',
+                  onTap: () => Navigator.of(context).pushNamed('/admin/content'),
                 ),
-                _buildModuleTile(
+
+                // Multimedia Hub (Full CRUD with Cloudinary)
+                _buildSolidModuleCard(
+                  icon: Iconsax.video_play,
+                  title: 'Fan Media Manager',
+                  subtitle: 'Upload & manage fan art, cosplay, videos & podcasts',
+                  tag: 'Media',
+                  isHighlighted: true,
+                  onTap: () => Navigator.of(context).pushNamed('/admin/multimedia'),
+                ),
+
+                // Convention & Event Radar
+                _buildSolidModuleCard(
                   icon: Iconsax.calendar_2,
                   title: 'Convention & Event Radar',
-                  subtitle: 'Manage convention schedules, venues, GPS & ticketing',
-                  route: '/admin/events',
-                  accentColor: const Color(0xFFD97706),
+                  subtitle: 'Manage schedules, venue GPS coordinates, ticketing & passes',
+                  tag: 'Events',
+                  onTap: () => Navigator.of(context).pushNamed('/admin/events'),
                 ),
-                _buildModuleTile(
+
+                // Official Merch Store
+                _buildSolidModuleCard(
                   icon: Iconsax.box,
                   title: 'Official Merch Management',
-                  subtitle: 'Update product prices, stock counters & catalog deals',
-                  route: '/admin/products',
-                  accentColor: AppColors.success,
+                  subtitle: 'Update product prices, stock inventory, discount tags & deals',
+                  tag: 'Merchandise',
+                  onTap: () => Navigator.of(context).pushNamed('/admin/products'),
                 ),
-                _buildModuleTile(
+
+                // User Moderation & Categories
+                _buildSolidModuleCard(
                   icon: Iconsax.profile_2user,
                   title: 'User Moderation & Categories',
-                  subtitle: 'Inspect fan profiles, ban users & configure categories',
-                  route: '/admin/users-categories',
-                  accentColor: const Color(0xFF2563EB),
+                  subtitle: 'Inspect fan profiles, manage permissions & configure categories',
+                  tag: 'Access',
+                  onTap: () => Navigator.of(context).pushNamed('/admin/users-categories'),
                 ),
-                _buildModuleTile(
+
+                // Hero Stories & Backstories
+                _buildSolidModuleCard(
                   icon: Iconsax.story,
                   title: 'Hero Stories & Backstories',
-                  subtitle: 'Publish hero origins, life history & powers visible in fan stories',
-                  route: '/admin/stories',
-                  accentColor: const Color(0xFF8B5CF6),
+                  subtitle: 'Publish hero origins, history & powers for user story rings',
+                  tag: 'Canon Lore',
+                  onTap: () => Navigator.of(context).pushNamed('/admin/stories'),
                 ),
+
                 const SizedBox(height: 24),
 
-                // Recent Operations Audit Log Strip
+                // 4. Recent Operations Log
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'RECENT AUDIT ACTIVITY',
-                      style: TextStyle(
-                        color: AppColors.adminLightTextSecondary,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.0,
-                      ),
-                    ),
+                    _buildSectionHeader('RECENT ACTIVITY', 'LOG'),
                     TextButton(
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
                       onPressed: () => AdminModals.showAuditLogsSheet(
                         context: context,
                         logs: logs,
                       ),
-                      child: const Text('View All', style: TextStyle(color: Color(0xFF2563EB), fontSize: 12, fontWeight: FontWeight.bold)),
+                      child: const Row(
+                        children: [
+                          Text(
+                            'View All',
+                            style: TextStyle(
+                              color: AppColors.comicRed,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(width: 4),
+                          Icon(Iconsax.arrow_right_3, size: 12, color: AppColors.comicRed),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
-                _buildAuditSummary(logs),
-                const SizedBox(height: 30),
+                const SizedBox(height: 10),
+                _buildSolidAuditFeed(logs),
               ],
             ),
           );
@@ -272,72 +376,501 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     );
   }
 
-  Widget _buildQuickActionBanner(BuildContext context) {
+  // ─────────────────────────────────────────────────────────────────────────
+  // SOLID RED & WHITE BOTTOM APP BAR (Zero Glow, Pure White & Red)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  Widget _buildSolidBottomAppBar(BuildContext context) {
+    return Container(
+      height: 64,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          // 1. Overview Tab
+          _buildBottomNavItem(
+            icon: Iconsax.element_4,
+            label: 'Overview',
+            isSelected: _activeNavIndex == 0,
+            onTap: () {
+              HapticFeedback.selectionClick();
+              setState(() => _activeNavIndex = 0);
+            },
+          ),
+
+          // 2. Lore Tab
+          _buildBottomNavItem(
+            icon: Iconsax.document_text,
+            label: 'Lore',
+            isSelected: _activeNavIndex == 1,
+            onTap: () {
+              HapticFeedback.selectionClick();
+              setState(() => _activeNavIndex = 1);
+              Navigator.of(context).pushNamed('/admin/content');
+            },
+          ),
+
+          // 3. CENTER SOLID RED FAB (Zero Glow)
+          GestureDetector(
+            onTap: () {
+              HapticFeedback.mediumImpact();
+              _showQuickOperationsModal(context);
+            },
+            child: Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: AppColors.comicRed,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: const Center(
+                child: Icon(Iconsax.add, color: Colors.white, size: 28),
+              ),
+            ),
+          ),
+
+          // 4. Media Tab
+          _buildBottomNavItem(
+            icon: Iconsax.video_play,
+            label: 'Media',
+            isSelected: _activeNavIndex == 3,
+            onTap: () {
+              HapticFeedback.selectionClick();
+              setState(() => _activeNavIndex = 3);
+              Navigator.of(context).pushNamed('/admin/multimedia');
+            },
+          ),
+
+          // 5. Store Tab
+          _buildBottomNavItem(
+            icon: Iconsax.shop,
+            label: 'Store',
+            isSelected: _activeNavIndex == 4,
+            onTap: () {
+              HapticFeedback.selectionClick();
+              setState(() => _activeNavIndex = 4);
+              Navigator.of(context).pushNamed('/admin/products');
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomNavItem({
+    required IconData icon,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: isSelected ? AppColors.comicRed.withValues(alpha: 0.1) : Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(
+                icon,
+                size: 20,
+                color: isSelected ? AppColors.comicRed : const Color(0xFF6B7280),
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                color: isSelected ? AppColors.comicRed : const Color(0xFF6B7280),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // QUICK OPERATIONS MODAL SHEET (Solid Red & White)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  void _showQuickOperationsModal(BuildContext ctx) {
+    showModalBottomSheet(
+      context: ctx,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetCtx) {
+        return Container(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 20,
+                offset: Offset(0, -4),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Drag handle
+              Center(
+                child: Container(
+                  width: 38,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE5E7EB),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Title Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Iconsax.flash_1, color: AppColors.comicRed, size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        'Quick Operations Hub',
+                        style: TextStyle(
+                          color: Color(0xFF111216),
+                          fontSize: 17,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppColors.comicRed,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      'SHORTCUTS',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Create new lore articles, media uploads, events or push a broadcast',
+                style: TextStyle(color: Color(0xFF6B7280), fontSize: 12),
+              ),
+              const SizedBox(height: 20),
+
+              // Quick Actions Grid (Solid Red & White Tiles)
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildModalActionTile(
+                      label: 'New Article',
+                      subtitle: 'Lore & news posts',
+                      icon: Iconsax.document_text,
+                      onTap: () {
+                        Navigator.of(sheetCtx).pop();
+                        Navigator.of(ctx).pushNamed('/admin/content-edit');
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildModalActionTile(
+                      label: 'New Media',
+                      subtitle: 'Cloudinary CDN asset',
+                      icon: Iconsax.video_play,
+                      onTap: () {
+                        Navigator.of(sheetCtx).pop();
+                        Navigator.of(ctx).pushNamed('/admin/multimedia-edit');
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildModalActionTile(
+                      label: 'New Event',
+                      subtitle: 'Convention & GPS',
+                      icon: Iconsax.location_add,
+                      onTap: () {
+                        Navigator.of(sheetCtx).pop();
+                        Navigator.of(ctx).pushNamed('/admin/event-edit');
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildModalActionTile(
+                      label: 'New Product',
+                      subtitle: 'Merchandise item',
+                      icon: Iconsax.add_square,
+                      onTap: () {
+                        Navigator.of(sheetCtx).pop();
+                        Navigator.of(ctx).pushNamed('/admin/product-edit');
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildModalActionTile(
+                      label: 'Hero Story',
+                      subtitle: 'Character origin lore',
+                      icon: Iconsax.story,
+                      onTap: () {
+                        Navigator.of(sheetCtx).pop();
+                        Navigator.of(ctx).pushNamed('/admin/story-edit');
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildModalActionTile(
+                      label: 'Push Alert',
+                      subtitle: 'Broadcast to all fans',
+                      icon: Iconsax.notification_bing,
+                      onTap: () {
+                        Navigator.of(sheetCtx).pop();
+                        AdminModals.showBroadcastModal(
+                          context: ctx,
+                          onBroadcastSent: (title, msg, audience) {
+                            ctx.read<AdminBloc>().add(
+                                  BroadcastNotificationEvent(
+                                    title: title,
+                                    message: msg,
+                                    audience: audience,
+                                  ),
+                                );
+                            ScaffoldMessenger.of(ctx).showSnackBar(
+                              SnackBar(
+                                content: Text('Dispatched broadcast "$title" to $audience!'),
+                                backgroundColor: AppColors.comicRed,
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildModalActionTile({
+    required String label,
+    required String subtitle,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE5E7EB)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.comicRed.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Iconsax.flash_1, color: AppColors.comicRed, size: 18),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      color: Color(0xFF111216),
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: Color(0xFF6B7280),
+                      fontSize: 9.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // SOLID RED & WHITE SYSTEM SPOTLIGHT BANNER (Zero Glow, Skewed Buttons)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  Widget _buildSolidSpotlightBanner(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.adminLightBorder),
+        border: Border.all(color: const Color(0xFFE5E7EB), width: 1.2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
-            offset: const Offset(0, 4),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(Iconsax.flash_1, color: Color(0xFFD97706), size: 20),
-              SizedBox(width: 8),
-              Text(
-                'Quick Operations Hub',
-                style: TextStyle(color: AppColors.adminLightTextPrimary, fontSize: 14, fontWeight: FontWeight.bold),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.comicRed.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Iconsax.cloud, color: AppColors.comicRed, size: 20),
+                  ),
+                  const SizedBox(width: 10),
+                  const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Media Storage',
+                        style: TextStyle(
+                          color: Color(0xFF111216),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      Text(
+                        'Auto-compressed uploads · Always on',
+                        style: TextStyle(color: Color(0xFF6B7280), fontSize: 10),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.comicRed,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  'ONLINE ⚡',
+                  style: TextStyle(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.w900),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                _buildQuickChip(
-                  label: '+ New Article',
-                  icon: Iconsax.document_text,
-                  color: AppColors.comicRed,
-                  onTap: () => Navigator.of(context).pushNamed('/admin/content-edit'),
+          const SizedBox(height: 14),
+          const Divider(height: 1, color: Color(0xFFE5E7EB)),
+          const SizedBox(height: 14),
+
+          // Action SkewedButtons
+          Row(
+            children: [
+              Expanded(
+                child: SkewedButton(
+                  text: 'Media',
+                  icon: Iconsax.video_add,
+                  height: 42,
+                  fontSize: 10,
+                  backgroundColor: AppColors.comicRed,
+                  textColor: Colors.white,
+                  onPressed: () => Navigator.of(context).pushNamed('/admin/multimedia-edit'),
                 ),
-                const SizedBox(width: 8),
-                _buildQuickChip(
-                  label: '+ New Event',
-                  icon: Iconsax.location_add,
-                  color: const Color(0xFFD97706),
-                  onTap: () => Navigator.of(context).pushNamed('/admin/event-edit'),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: SkewedButton(
+                  text: 'Lore',
+                  icon: Iconsax.document_upload,
+                  height: 42,
+                  fontSize: 10,
+                  backgroundColor: AppColors.comicRed,
+                  textColor: Colors.white,
+                  onPressed: () => Navigator.of(context).pushNamed('/admin/content-edit'),
                 ),
-                const SizedBox(width: 8),
-                _buildQuickChip(
-                  label: '+ New Product',
-                  icon: Iconsax.add_square,
-                  color: AppColors.success,
-                  onTap: () => Navigator.of(context).pushNamed('/admin/product-edit'),
-                ),
-                const SizedBox(width: 8),
-                _buildQuickChip(
-                  label: '+ Hero Story',
-                  icon: Iconsax.story,
-                  color: const Color(0xFF8B5CF6),
-                  onTap: () => Navigator.of(context).pushNamed('/admin/story-edit'),
-                ),
-                const SizedBox(width: 8),
-                _buildQuickChip(
-                  label: 'Push Alert',
-                  icon: Iconsax.notification_bing,
-                  color: const Color(0xFF2563EB),
-                  onTap: () {
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: SkewedButton(
+                  text: 'Alert',
+                  icon: Iconsax.notification_status,
+                  height: 42,
+                  fontSize: 10,
+                  backgroundColor: AppColors.comicRed,
+                  textColor: Colors.white,
+                  onPressed: () {
                     AdminModals.showBroadcastModal(
                       context: context,
                       onBroadcastSent: (title, msg, audience) {
@@ -351,120 +884,135 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('Dispatched broadcast "$title" to $audience!'),
-                            backgroundColor: AppColors.success,
+                            backgroundColor: AppColors.comicRed,
                           ),
                         );
                       },
                     );
                   },
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildQuickChip({
-    required String label,
+  // ─────────────────────────────────────────────────────────────────────────
+  // SOLID RED & WHITE KPI CARDS (Zero Mix Color, Zero Glow)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  Widget _buildSolidKpiCard({
+    required String title,
+    required String count,
+    required String badge,
     required IconData icon,
-    required Color color,
     required VoidCallback onTap,
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(14),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFE5E7EB)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: color, size: 16),
-            const SizedBox(width: 6),
-            Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Color(0xFF6B7280),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: AppColors.comicRed.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, color: AppColors.comicRed, size: 16),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              count,
+              style: const TextStyle(
+                color: Color(0xFF111216),
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.comicRed.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                badge,
+                style: const TextStyle(
+                  color: AppColors.comicRed,
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildMetricCard({
-    required String title,
-    required String count,
-    required String subtext,
-    required IconData icon,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.adminLightBorder),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(title, style: const TextStyle(color: AppColors.adminLightTextSecondary, fontSize: 12, fontWeight: FontWeight.w500)),
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, color: color, size: 16),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            count,
-            style: const TextStyle(color: AppColors.adminLightTextPrimary, fontSize: 22, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 2),
-          Text(subtext, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w600)),
-        ],
-      ),
-    );
-  }
+  // ─────────────────────────────────────────────────────────────────────────
+  // SOLID RED & WHITE MODULE CARD (Zero Mix Color, Zero Glow)
+  // ─────────────────────────────────────────────────────────────────────────
 
-  Widget _buildModuleTile({
+  Widget _buildSolidModuleCard({
     required IconData icon,
     required String title,
     required String subtitle,
-    required String route,
-    required Color accentColor,
+    required String tag,
+    required VoidCallback onTap,
+    bool isHighlighted = false,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       child: InkWell(
-        onTap: () => Navigator.of(context).pushNamed(route),
+        onTap: onTap,
         borderRadius: BorderRadius.circular(14),
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.adminLightBorder),
+            border: Border.all(
+              color: isHighlighted ? AppColors.comicRed : const Color(0xFFE5E7EB),
+              width: isHighlighted ? 1.5 : 1.0,
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.02),
-                blurRadius: 4,
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 6,
                 offset: const Offset(0, 2),
               ),
             ],
@@ -474,23 +1022,66 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: accentColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: isHighlighted ? AppColors.comicRed : AppColors.comicRed.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(icon, color: accentColor, size: 20),
+                child: Icon(
+                  icon,
+                  color: isHighlighted ? Colors.white : AppColors.comicRed,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: const TextStyle(color: AppColors.adminLightTextPrimary, fontSize: 13, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 2),
-                    Text(subtitle, style: const TextStyle(color: AppColors.adminLightTextSecondary, fontSize: 11)),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            title,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Color(0xFF111216),
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                          decoration: BoxDecoration(
+                            color: isHighlighted ? AppColors.comicRed : const Color(0xFFF3F4F6),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            tag,
+                            style: TextStyle(
+                              color: isHighlighted ? Colors.white : AppColors.comicRed,
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFF6B7280),
+                        fontSize: 11,
+                      ),
+                    ),
                   ],
                 ),
               ),
-              const Icon(Iconsax.arrow_right_1, color: AppColors.adminLightTextMuted, size: 14),
+              const SizedBox(width: 8),
+              const Icon(Iconsax.arrow_right_3, color: Color(0xFF9CA3AF), size: 14),
             ],
           ),
         ),
@@ -498,17 +1089,24 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     );
   }
 
-  Widget _buildAuditSummary(List<Map<String, dynamic>> logs) {
+  // ─────────────────────────────────────────────────────────────────────────
+  // SOLID AUDIT FEED (Red & White, Zero Glow)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  Widget _buildSolidAuditFeed(List<Map<String, dynamic>> logs) {
     if (logs.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.adminLightBorder),
+          border: Border.all(color: const Color(0xFFE5E7EB)),
         ),
         child: const Center(
-          child: Text('No recent operations logged.', style: TextStyle(color: AppColors.adminLightTextSecondary, fontSize: 12)),
+          child: Text(
+            'No recent operations logged.',
+            style: TextStyle(color: Color(0xFF6B7280), fontSize: 12),
+          ),
         ),
       );
     }
@@ -518,26 +1116,106 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.adminLightBorder),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
       ),
       child: Column(
         children: top3.map((l) {
-          return ListTile(
-            dense: true,
-            leading: const Icon(Iconsax.activity, color: Color(0xFF2563EB), size: 16),
-            title: Text(l['description'] ?? '', style: const TextStyle(color: AppColors.adminLightTextPrimary, fontSize: 12, fontWeight: FontWeight.w600)),
-            subtitle: Text(l['admin_email'] ?? '', style: const TextStyle(color: AppColors.adminLightTextSecondary, fontSize: 10)),
+          final isDelete = (l['action_type'] ?? '').toString().toUpperCase() == 'DELETE';
+          final actionColor = isDelete ? AppColors.comicRed : const Color(0xFF111216);
+
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+            decoration: const BoxDecoration(
+              border: Border(bottom: BorderSide(color: Color(0xFFF3F4F6), width: 1)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: actionColor,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l['description'] ?? 'System operation performed',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFF111216),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        l['admin_email'] ?? 'admin@fandomverse.com',
+                        style: const TextStyle(
+                          color: Color(0xFF6B7280),
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.comicRed.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    l['action_type'] ?? 'INFO',
+                    style: const TextStyle(color: AppColors.comicRed, fontSize: 9, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
           );
         }).toList(),
       ),
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // FIRESTORE SEED DIALOG (Light Theme)
-  // ─────────────────────────────────────────────────────────────────────────
+  Widget _buildSectionHeader(String title, String badge) {
+    return Row(
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            color: Color(0xFF111216),
+            fontSize: 11.5,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 0.8,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+          decoration: BoxDecoration(
+            color: AppColors.comicRed,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(
+            badge,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 8.5,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
-  void _showSeedDialog(BuildContext ctx) {
+  void _confirmLogout(BuildContext ctx) {
     showDialog(
       context: ctx,
       builder: (dialogCtx) => AlertDialog(
@@ -545,126 +1223,34 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Row(
           children: [
-            Icon(Iconsax.cloud_notif, color: Color(0xFF2563EB)),
-            SizedBox(width: 10),
-            Text('Seed Firestore Database',
-                style: TextStyle(color: AppColors.adminLightTextPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
+            Icon(Iconsax.logout, color: AppColors.comicRed, size: 20),
+            SizedBox(width: 8),
+            Text('Exit Console', style: TextStyle(color: Color(0xFF111216), fontSize: 16, fontWeight: FontWeight.bold)),
           ],
         ),
         content: const Text(
-          'This will populate all Firestore collections with:\n\n'
-          '• 6 Fandom Categories\n'
-          '• 2 User Accounts (Admin + Fan)\n'
-          '• 8 Lore Posts & News Articles\n'
-          '• 8 Glossary Terms\n'
-          '• 3 Convention Events\n'
-          '• 8 Store Products\n'
-          '• 5 Community Discussions\n'
-          '• 6 Star Profiles\n'
-          '• 2 Demo Orders\n'
-          '• 3 Audit Logs\n\n'
-          'Firebase Auth accounts will also be created.\n'
-          'Existing documents will be merged (safe).',
-          style: TextStyle(color: AppColors.adminLightTextSecondary, fontSize: 12, height: 1.5),
+          'Are you sure you want to end your administrator session?',
+          style: TextStyle(color: Color(0xFF6B7280), fontSize: 13),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogCtx).pop(),
-            child: const Text('Cancel', style: TextStyle(color: AppColors.adminLightTextSecondary)),
+            child: const Text('Cancel', style: TextStyle(color: Color(0xFF6B7280))),
           ),
           SkewedButton(
-            text: 'Seed Now',
-            icon: Iconsax.send_2,
-            height: 44,
+            text: 'Sign Out',
+            height: 40,
             fontSize: 12,
-            backgroundColor: const Color(0xFF2563EB),
+            backgroundColor: AppColors.comicRed,
             textColor: Colors.white,
-            onPressed: () async {
+            onPressed: () {
               Navigator.of(dialogCtx).pop();
-              await _runSeeding(ctx);
+              ctx.read<AuthBloc>().add(const LogoutEvent());
+              Navigator.of(ctx).pushNamedAndRemoveUntil('/login', (route) => false);
             },
           ),
         ],
       ),
     );
-  }
-
-  Future<void> _runSeeding(BuildContext ctx) async {
-    // Show loading overlay
-    showDialog(
-      context: ctx,
-      barrierDismissible: false,
-      builder: (_) => const PopScope(
-        canPop: false,
-        child: Center(
-          child: Card(
-            color: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(16)),
-            ),
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 40, vertical: 32),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircularProgressIndicator(color: Color(0xFF2563EB)),
-                  SizedBox(height: 20),
-                  Text(
-                    'Seeding Firestore...',
-                    style: TextStyle(color: AppColors.adminLightTextPrimary, fontWeight: FontWeight.w600),
-                  ),
-                  SizedBox(height: 6),
-                  Text(
-                    'Creating collections & Auth accounts',
-                    style: TextStyle(color: AppColors.adminLightTextSecondary, fontSize: 11),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    final result = await FirestoreSeeder.seedAll();
-
-    // Close loading dialog
-    if (ctx.mounted) Navigator.of(ctx, rootNavigator: true).pop();
-
-    if (!ctx.mounted) return;
-
-    final success = result['success'] as bool? ?? false;
-    final message = result['message'] as String? ?? 'Done';
-    final count = result['count'] as int? ?? 0;
-
-    ScaffoldMessenger.of(ctx).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(
-              success ? Iconsax.tick_circle : Iconsax.close_circle,
-              color: Colors.white,
-              size: 18,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                success ? '✅ $count documents seeded! Refresh Firestore Console.' : '❌ $message',
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: success ? AppColors.success : AppColors.error,
-        duration: const Duration(seconds: 5),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-
-    if (success) {
-      if (ctx.mounted) {
-        ctx.read<AdminBloc>().add(const LoadAdminDashboardStatsEvent());
-      }
-    }
   }
 }

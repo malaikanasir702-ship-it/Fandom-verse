@@ -54,7 +54,7 @@ class _AdminEventsPageState extends State<AdminEventsPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: const Color(0xFFD97706),
+        backgroundColor: AppColors.comicRed,
         icon: const Icon(Iconsax.location_add, color: Colors.white),
         label: const Text('New Event', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         onPressed: () {
@@ -182,12 +182,12 @@ class _AdminEventsPageState extends State<AdminEventsPage> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFD97706).withValues(alpha: 0.12),
+                        color: AppColors.comicRed.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
                         event['city_name'] ?? 'GLOBAL',
-                        style: const TextStyle(color: Color(0xFFD97706), fontSize: 9, fontWeight: FontWeight.bold),
+                        style: const TextStyle(color: AppColors.comicRed, fontSize: 9, fontWeight: FontWeight.bold),
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -229,7 +229,7 @@ class _AdminEventsPageState extends State<AdminEventsPage> {
           Column(
             children: [
               IconButton(
-                icon: const Icon(Iconsax.edit_2, color: Color(0xFF2563EB), size: 18),
+                icon: const Icon(Iconsax.edit_2, color: AppColors.comicRed, size: 18),
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
@@ -239,7 +239,7 @@ class _AdminEventsPageState extends State<AdminEventsPage> {
                 },
               ),
               IconButton(
-                icon: const Icon(Iconsax.trash, color: AppColors.error, size: 18),
+                icon: const Icon(Iconsax.trash, color: AppColors.comicRed, size: 18),
                 onPressed: () {
                   AdminModals.showDeleteBarrierDialog(
                     context: context,

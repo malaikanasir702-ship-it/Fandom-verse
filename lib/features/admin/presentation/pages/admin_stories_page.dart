@@ -65,7 +65,7 @@ class _AdminStoriesPageState extends State<AdminStoriesPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: const Color(0xFF8B5CF6),
+        backgroundColor: AppColors.comicRed,
         icon: const Icon(Iconsax.add_circle, color: Colors.white),
         label: const Text('Add Hero Story', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         onPressed: () {
@@ -140,15 +140,15 @@ class _AdminStoriesPageState extends State<AdminStoriesPage> {
                             child: ChoiceChip(
                               label: Text(cat),
                               selected: isSelected,
-                              selectedColor: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
+                              selectedColor: AppColors.comicRed.withValues(alpha: 0.12),
                               backgroundColor: AppColors.adminLightBackground,
                               labelStyle: TextStyle(
-                                color: isSelected ? const Color(0xFF8B5CF6) : AppColors.adminLightTextSecondary,
+                                color: isSelected ? AppColors.comicRed : AppColors.adminLightTextSecondary,
                                 fontSize: 12,
                                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                               ),
                               side: BorderSide(
-                                color: isSelected ? const Color(0xFF8B5CF6) : AppColors.adminLightBorder,
+                                color: isSelected ? AppColors.comicRed : AppColors.adminLightBorder,
                               ),
                               onSelected: (_) => setState(() => _selectedCategory = cat),
                             ),
@@ -373,8 +373,8 @@ class _AdminStoriesPageState extends State<AdminStoriesPage> {
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
                                       TextButton.icon(
-                                        icon: const Icon(Iconsax.edit, size: 16, color: Color(0xFF2563EB)),
-                                        label: const Text('Edit Story & Lore', style: TextStyle(color: Color(0xFF2563EB), fontSize: 13)),
+                                        icon: const Icon(Iconsax.edit, size: 16, color: AppColors.comicRed),
+                                        label: const Text('Edit Story & Lore', style: TextStyle(color: AppColors.comicRed, fontSize: 13)),
                                         onPressed: () {
                                           Navigator.of(context).push(
                                             MaterialPageRoute(
@@ -385,7 +385,7 @@ class _AdminStoriesPageState extends State<AdminStoriesPage> {
                                       ),
                                       const SizedBox(width: 8),
                                       IconButton(
-                                        icon: const Icon(Iconsax.trash, size: 18, color: AppColors.error),
+                                        icon: const Icon(Iconsax.trash, size: 18, color: AppColors.comicRed),
                                         tooltip: 'Delete Story',
                                         onPressed: () => _confirmDelete(context, story),
                                       ),

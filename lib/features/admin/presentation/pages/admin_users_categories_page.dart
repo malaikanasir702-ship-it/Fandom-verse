@@ -271,7 +271,7 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
                     const SizedBox(height: 2),
                     Text(
                       'Role: ${(u['role'] ?? 'fan').toUpperCase()}',
-                      style: const TextStyle(color: Color(0xFF2563EB), fontSize: 10, fontWeight: FontWeight.w600),
+                      style: const TextStyle(color: AppColors.comicRed, fontSize: 10, fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
@@ -382,7 +382,7 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> wit
                     ),
                     // Edit button
                     IconButton(
-                      icon: const Icon(Iconsax.edit_2, color: Color(0xFF2563EB), size: 18),
+                      icon: const Icon(Iconsax.edit_2, color: AppColors.comicRed, size: 18),
                       tooltip: 'Edit Category',
                       onPressed: () => _showCategoryDialog(existingCategory: cat),
                     ),

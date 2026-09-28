@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
+import '../../../../core/services/multimedia_service.dart';
 
 class MultimediaGalleryPage extends StatefulWidget {
   const MultimediaGalleryPage({super.key});
@@ -224,14 +226,56 @@ class _MultimediaGalleryPageState extends State<MultimediaGalleryPage>
     },
   ];
 
+  StreamSubscription? _multimediaSubscription;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    MultimediaService.instance.ensureInitialized();
+    _multimediaSubscription =
+        MultimediaService.instance.streamItems().listen((items) {
+      if (items.isNotEmpty && mounted) {
+        setState(() {
+          final arts = items.where((i) => i['type'] == 'fan_art').toList();
+          final cos = items.where((i) => i['type'] == 'cosplay').toList();
+          final vids = items.where((i) => i['type'] == 'video').toList();
+          final pods = items.where((i) => i['type'] == 'podcast').toList();
+
+          if (arts.isNotEmpty) {
+            _artworks.clear();
+            _artworks.addAll(arts.map((a) => {
+                  ...a,
+                  'isLiked': a['isLiked'] ?? false,
+                  'likes': a['likes'] is int ? a['likes'] : int.tryParse('${a['likes']}') ?? 0,
+                }));
+          }
+          if (cos.isNotEmpty) {
+            _cosplays.clear();
+            _cosplays.addAll(cos);
+          }
+          if (vids.isNotEmpty) {
+            _videoClips.clear();
+            _videoClips.addAll(vids.map((v) => {
+                  ...v,
+                  'isBookmarked': v['isBookmarked'] ?? false,
+                }));
+          }
+          if (pods.isNotEmpty) {
+            _podcasts.clear();
+            _podcasts.addAll(pods.map((p) => {
+                  ...p,
+                  'isPlaying': false,
+                }));
+          }
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
+    _multimediaSubscription?.cancel();
     _tabController.dispose();
     super.dispose();
   }

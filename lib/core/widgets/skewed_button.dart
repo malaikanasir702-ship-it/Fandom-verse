@@ -125,9 +125,9 @@ class _SkewedButtonState extends State<SkewedButton>
                       splashColor: Colors.white.withValues(alpha: 0.15),
                       highlightColor: Colors.white.withValues(alpha: 0.08),
                       onTap: null, // handled by GestureDetector
-                      child: Center(
+                        child: Center(
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
                           child: widget.isLoading
                               ? SizedBox(
                                   width: widget.height * 0.44,
@@ -145,11 +145,11 @@ class _SkewedButtonState extends State<SkewedButton>
                                     // Custom leading widget (e.g. Google logo)
                                     if (widget.leadingWidget != null) ...[
                                       widget.leadingWidget!,
-                                      const SizedBox(width: 10),
+                                      const SizedBox(width: 8),
                                     ] else if (widget.icon != null) ...[
                                       Icon(widget.icon,
-                                          size: 15, color: widget.textColor),
-                                      const SizedBox(width: 6),
+                                          size: 14, color: widget.textColor),
+                                      const SizedBox(width: 5),
                                     ],
                                     Text(
                                       widget.text.toUpperCase(),
@@ -158,7 +158,7 @@ class _SkewedButtonState extends State<SkewedButton>
                                         fontSize: widget.fontSize,
                                         fontWeight: FontWeight.w900,
                                         fontStyle: FontStyle.italic,
-                                        letterSpacing: 1.2,
+                                        letterSpacing: 0.6,
                                       ),
                                     ),
                                   ],

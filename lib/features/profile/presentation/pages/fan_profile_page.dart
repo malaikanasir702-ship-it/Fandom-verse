@@ -600,13 +600,17 @@ class _PremiumBadge extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 // Badge title
-                Text(
-                  badgeTitle.toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.1,
-                    color: isDark ? Colors.white : AppColors.comicBlack,
+                Flexible(
+                  child: Text(
+                    badgeTitle.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.1,
+                      color: isDark ? Colors.white : AppColors.comicBlack,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ),
                 const SizedBox(width: 6),

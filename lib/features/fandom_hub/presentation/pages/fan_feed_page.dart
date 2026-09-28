@@ -581,20 +581,22 @@ class _FanFeedContentState extends State<_FanFeedContent> {
             title: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Row(
-                  children: [
-                    Icon(Iconsax.cup, color: AppColors.comicYellow, size: 22),
-                    SizedBox(width: 8),
-                    Text(
-                      'TRIVIA CHALLENGE',
-                      style: TextStyle(
-                        fontStyle: FontStyle.italic,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 16,
-                        color: AppColors.comicRed,
+                Expanded(
+                  child: Row(
+                    children: [
+                      const Icon(Iconsax.cup, color: AppColors.comicYellow, size: 22),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'TRIVIA CHALLENGE',
+                        style: TextStyle(
+                          fontStyle: FontStyle.italic,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 16,
+                          color: AppColors.comicRed,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

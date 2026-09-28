@@ -1,34 +1,3 @@
-import 'dart:io';
-import 'package:flutter/foundation.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart' as p;
-import '../constants/db_constants.dart';
-import '../utils/password_hasher.dart';
-import 'database_tables.dart';
-import 'seed_data.dart';
-import 'seed_data_extended.dart';
-import 'seed_hero_stories.dart';
-import 'seed_deep_dive.dart';
-import '../../features/events/domain/entities/ticket_entity.dart';
-import '../../features/profile/domain/entities/app_notification_entity.dart';
-
-class SqliteHelper {
-  static final SqliteHelper instance = SqliteHelper._internal();
-  SqliteHelper._internal();
-
-  Database? _db;
-
-  Database get _database {
-    if (_db == null) {
-      throw StateError('Database not initialized. Call initDatabase() first.');
-    }
-    return _db!;
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // INIT & CREATE
-  // ─────────────────────────────────────────────────────────────────────────
-
   Future<void> initDatabase() async {
     if (_db != null) return;
 
@@ -39,14 +8,14 @@ class SqliteHelper {
       fullPath,
       version: DbConstants.databaseVersion,
       onConfigure: (db) async {
-        // ── Performance: WAL mode = concurrent reads + writes, ~3x faster ──
+        // -- Performance: WAL mode = concurrent reads + writes, ~3x faster --
         await db.rawQuery('PRAGMA journal_mode = WAL');
         await db.execute('PRAGMA foreign_keys = ON');
-        // ── Performance: Keep 4MB in memory page cache ──
+        // -- Performance: Keep 4MB in memory page cache --
         await db.execute('PRAGMA cache_size = -4000');
-        // ── Performance: Sync only at critical moments (safe on mobile) ──
+        // -- Performance: Sync only at critical moments (safe on mobile) --
         await db.execute('PRAGMA synchronous = NORMAL');
-        // ── Performance: Store temp tables in memory ──
+        // -- Performance: Store temp tables in memory --
         await db.execute('PRAGMA temp_store = MEMORY');
       },
       onCreate: _onCreate,
@@ -82,4 +51,3 @@ class SqliteHelper {
       }
     });
   }
-

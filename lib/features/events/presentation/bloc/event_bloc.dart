@@ -13,6 +13,7 @@ class EventCalendarBloc extends Bloc<EventCalendarEvent, EventCalendarState> {
     on<LoadAllEventsEvent>(_onLoadEvents);
     on<FilterEventsByCityEvent>(_onFilterByCity);
     on<FilterEventsByRadiusEvent>(_onFilterByRadius);
+    on<UpdateUserLocationEvent>(_onUpdateUserLocation);
     on<ToggleEventBookmarkEvent>(_onToggleBookmark);
     on<ToggleEventRsvpEvent>(_onToggleRsvp);
   }
@@ -47,6 +48,23 @@ class EventCalendarBloc extends Bloc<EventCalendarEvent, EventCalendarState> {
     if (state is EventLoaded) {
       final current = state as EventLoaded;
       emit(current.copyWith(selectedRadiusKm: event.radiusKm));
+    }
+  }
+
+  /// Stores the user's GPS coordinates in state. Once set, [EventLoaded.filteredEvents]
+  /// automatically applies the haversine radius filter when 'All Cities' is selected.
+  void _onUpdateUserLocation(
+    UpdateUserLocationEvent event,
+    Emitter<EventCalendarState> emit,
+  ) {
+    if (state is EventLoaded) {
+      final current = state as EventLoaded;
+      emit(current.copyWith(
+        userLatitude: event.latitude,
+        userLongitude: event.longitude,
+        // Switch to 'All Cities' so radius filter takes effect immediately
+        selectedCity: 'All Cities',
+      ));
     }
   }
 
@@ -85,7 +103,9 @@ class EventCalendarBloc extends Bloc<EventCalendarEvent, EventCalendarState> {
       final updatedList = current.allEvents.map((item) {
         if (item.id == event.eventId) {
           newRsvp = !item.isRsvped;
-          newAttendeesCount = newRsvp ? item.attendeesCount + 1 : (item.attendeesCount > 0 ? item.attendeesCount - 1 : 0);
+          newAttendeesCount = newRsvp
+              ? item.attendeesCount + 1
+              : (item.attendeesCount > 0 ? item.attendeesCount - 1 : 0);
           return item.copyWith(
             isRsvped: newRsvp,
             attendeesCount: newAttendeesCount,

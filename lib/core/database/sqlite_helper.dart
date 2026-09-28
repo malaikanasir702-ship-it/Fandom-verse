@@ -9,6 +9,7 @@ import 'seed_data.dart';
 import 'seed_data_extended.dart';
 import 'seed_hero_stories.dart';
 import '../../features/events/domain/entities/ticket_entity.dart';
+import '../../features/profile/domain/entities/app_notification_entity.dart';
 
 class SqliteHelper {
   static final SqliteHelper instance = SqliteHelper._internal();
@@ -51,10 +52,12 @@ class SqliteHelper {
       onUpgrade: _onUpgrade,
     );
 
-    // Ensure hero_stories and event_tickets tables exist (supports non-reinstalled/upgraded dev databases)
+    // Ensure hero_stories, event_tickets, and notifications tables exist (supports non-reinstalled/upgraded dev databases)
     await _db!.execute(DatabaseTables.createHeroStoriesTable);
     await _db!.execute(DatabaseTables.createTicketsTable);
+    await _db!.execute(DatabaseTables.createNotificationsTable);
     await _seedHeroStoriesIfEmpty(_db!);
+    await _seedNotificationsIfEmpty(_db!);
 
     debugPrint('✅ [SqliteHelper] Database ready at: $fullPath');
   }
@@ -968,5 +971,146 @@ class SqliteHelper {
     );
     if (maps.isEmpty) return null;
     return TicketEntity.fromMap(maps.first);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // NOTIFICATIONS CRUD & SEED
+  // ─────────────────────────────────────────────────────────────────────────
+
+  Future<void> _seedNotificationsIfEmpty(Database db) async {
+    try {
+      final count = Sqflite.firstIntValue(
+            await db.rawQuery('SELECT COUNT(*) FROM ${DbConstants.tableNotifications}'),
+          ) ??
+          0;
+      if (count == 0) {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        final sampleNotifications = [
+          AppNotificationEntity(
+            id: 'notif-1',
+            title: '🎟️ VIP Pass Confirmed!',
+            body: 'Your ticket for Comic-Con Multiverse 2025 has been confirmed. View QR code & badge details.',
+            type: 'ticket',
+            targetRoute: '/ticket-history',
+            iconName: 'ticket',
+            colorHex: '#E53935',
+            isRead: false,
+            createdAt: now - (15 * 60 * 1000), // 15 mins ago
+          ),
+          AppNotificationEntity(
+            id: 'notif-2',
+            title: '⚡ Upcoming Event Alert',
+            body: 'Anime Expo 2025 starts this weekend! Explore schedule, stage lineups, and guests.',
+            type: 'event',
+            targetRoute: '/events-calendar',
+            iconName: 'event',
+            colorHex: '#FFB300',
+            isRead: false,
+            createdAt: now - (2 * 60 * 60 * 1000), // 2 hours ago
+          ),
+          AppNotificationEntity(
+            id: 'notif-3',
+            title: '🦸 Discover Favourite Heroes',
+            body: 'Explore legendary origins, backstories, and powers of Spider-Man, Batman, and anime icons.',
+            type: 'hero',
+            targetRoute: '/favourite-heroes',
+            iconName: 'hero',
+            colorHex: '#00E676',
+            isRead: false,
+            createdAt: now - (6 * 60 * 60 * 1000), // 6 hours ago
+          ),
+          AppNotificationEntity(
+            id: 'notif-4',
+            title: '💬 New Reply in Community',
+            body: 'Fans replied to your theory on "Multiverse Secret Wars Canon". Join the discussion!',
+            type: 'community',
+            targetRoute: '/discussions',
+            iconName: 'community',
+            colorHex: '#29B6F6',
+            isRead: true,
+            createdAt: now - (20 * 60 * 60 * 1000), // 20 hours ago
+          ),
+          AppNotificationEntity(
+            id: 'notif-5',
+            title: '🏆 Achievement Unlocked: Lore Master',
+            body: 'You reached Level 5 Lore Reader! Check your newly unlocked badge on your profile.',
+            type: 'badge',
+            targetRoute: '/badges',
+            iconName: 'badge',
+            colorHex: '#FFD700',
+            isRead: true,
+            createdAt: now - (48 * 60 * 60 * 1000), // 2 days ago
+          ),
+        ];
+
+        final batch = db.batch();
+        for (final notif in sampleNotifications) {
+          batch.insert(
+            DbConstants.tableNotifications,
+            notif.toMap(),
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        }
+        await batch.commit(noResult: true);
+        debugPrint('🔔 [SqliteHelper] Seeded ${sampleNotifications.length} dynamic notifications.');
+      }
+    } catch (e) {
+      debugPrint('[SqliteHelper] Error seeding notifications: $e');
+    }
+  }
+
+  Future<List<AppNotificationEntity>> getNotifications() async {
+    await initDatabase();
+    final maps = await _database.query(
+      DbConstants.tableNotifications,
+      orderBy: 'created_at DESC',
+    );
+    return maps.map((m) => AppNotificationEntity.fromMap(m)).toList();
+  }
+
+  Future<void> saveNotification(AppNotificationEntity notification) async {
+    await initDatabase();
+    await _database.insert(
+      DbConstants.tableNotifications,
+      notification.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> markNotificationAsRead(String notificationId) async {
+    await initDatabase();
+    await _database.update(
+      DbConstants.tableNotifications,
+      {'is_read': 1},
+      where: 'notification_id = ?',
+      whereArgs: [notificationId],
+    );
+  }
+
+  Future<void> markAllNotificationsAsRead() async {
+    await initDatabase();
+    await _database.update(
+      DbConstants.tableNotifications,
+      {'is_read': 1},
+    );
+  }
+
+  Future<void> deleteNotification(String notificationId) async {
+    await initDatabase();
+    await _database.delete(
+      DbConstants.tableNotifications,
+      where: 'notification_id = ?',
+      whereArgs: [notificationId],
+    );
+  }
+
+  Future<int> getUnreadNotificationsCount() async {
+    await initDatabase();
+    final count = Sqflite.firstIntValue(
+      await _database.rawQuery(
+        'SELECT COUNT(*) FROM ${DbConstants.tableNotifications} WHERE is_read = 0',
+      ),
+    );
+    return count ?? 0;
   }
 }

@@ -278,6 +278,22 @@ class DatabaseTables {
     );
   ''';
 
+  static const String createNotificationsTable =
+      '''
+    CREATE TABLE IF NOT EXISTS ${DbConstants.tableNotifications} (
+      notification_id TEXT PRIMARY KEY,
+      title           TEXT NOT NULL,
+      body            TEXT NOT NULL,
+      type            TEXT NOT NULL,
+      target_route    TEXT,
+      target_id       TEXT,
+      icon_name       TEXT,
+      color_hex       TEXT,
+      is_read         INTEGER DEFAULT 0,
+      created_at      INTEGER NOT NULL
+    );
+  ''';
+
   static const List<String> allCreateStatements = [
     createUsersTable,
     createCategoriesTable,
@@ -297,5 +313,6 @@ class DatabaseTables {
     createBehindScenesTable,
     createInterviewsTable,
     createTicketsTable,
+    createNotificationsTable,
   ];
 }

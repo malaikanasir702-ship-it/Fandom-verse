@@ -4,12 +4,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../../../../core/widgets/skewed_button.dart';
 import '../../domain/entities/event_entity.dart';
 import '../../presentation/bloc/event_bloc.dart';
+import '../../presentation/bloc/event_event.dart';
 import '../../presentation/bloc/event_state.dart';
 
 class EventsMapPage extends StatefulWidget {
@@ -31,7 +34,7 @@ class _EventsMapPageState extends State<EventsMapPage> {
   bool _locationEnabled = false;
   bool _locationLoading = false;
 
-  List<EventEntity> _filteredEvents(List<EventEntity> events) {
+  List<EventEntity> _filteredByType(List<EventEntity> events) {
     if (_selectedType == 'All') return events;
     return events
         .where((e) =>
@@ -121,47 +124,104 @@ class _EventsMapPageState extends State<EventsMapPage> {
     );
   }
 
-  /// Request user's GPS location via MapLibre's location tracking.
-  /// Falls back gracefully if permission denied.
+  /// Request device GPS coordinates using geolocator, then dispatch
+  /// [UpdateUserLocationEvent] to the bloc so radius filter becomes active.
   Future<void> _requestUserLocation() async {
     if (_locationLoading) return;
     setState(() => _locationLoading = true);
 
     try {
-      final ctrl = _mapController;
-      if (ctrl == null) {
-        _showLocationError('Map is not ready yet. Please try again.');
+      // 1. Check if location services are enabled
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        _showLocationError(
+          'Location services are disabled. Enable GPS in device Settings.',
+        );
         return;
       }
 
-      // Enable my-location layer on the map
-      await ctrl.updateMyLocationTrackingMode(
-        MyLocationTrackingMode.trackingGps,
+      // 2. Check / request permission
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          _showLocationError(
+            'Location permission denied. Allow it in Settings → App → Permissions.',
+          );
+          return;
+        }
+      }
+      if (permission == LocationPermission.deniedForever) {
+        _showLocationError(
+          'Location permission permanently denied. Enable it in App Settings.',
+        );
+        return;
+      }
+
+      // 3. Get current position
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+          timeLimit: Duration(seconds: 10),
+        ),
       );
 
+      // 4. Update bloc with real coordinates → triggers radius filter
+      if (mounted) {
+        context.read<EventCalendarBloc>().add(
+              UpdateUserLocationEvent(
+                latitude: position.latitude,
+                longitude: position.longitude,
+              ),
+            );
+        // Also dispatch current radius to bloc
+        context.read<EventCalendarBloc>().add(
+              FilterEventsByRadiusEvent(_radarRadiusKm),
+            );
+      }
+
+      // 5. Enable the blue-dot on the MapLibre map
+      final ctrl = _mapController;
+      if (ctrl != null) {
+        await ctrl.updateMyLocationTrackingMode(
+          MyLocationTrackingMode.trackingGps,
+        );
+        // Fly map to user position
+        ctrl.animateCamera(
+          CameraUpdate.newCameraPosition(
+            CameraPosition(
+              target: LatLng(position.latitude, position.longitude),
+              zoom: 5,
+            ),
+          ),
+        );
+      }
+
+      if (!mounted) return;
       setState(() {
         _locationEnabled = true;
         _locationLoading = false;
       });
 
-      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('📍 Showing your location on the map!'),
+        SnackBar(
+          content: Text(
+            '📍 Location found! Showing events within ${_radarRadiusKm.toInt()} km.',
+          ),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 2),
+          duration: const Duration(seconds: 3),
         ),
       );
     } on PlatformException catch (e) {
       _showLocationError(
         e.code == 'PERMISSION_DENIED'
-            ? 'Location permission denied. Enable it in device Settings → App → Permissions.'
-            : 'Could not get GPS location: ${e.message}',
+            ? 'Location permission denied. Enable it in Settings.'
+            : 'Could not get GPS: ${e.message}',
       );
-    } catch (_) {
+    } catch (e) {
       _showLocationError(
-        'Location unavailable. Make sure GPS is enabled on your device.',
+        'Location unavailable. Make sure GPS is on.',
       );
     }
   }
@@ -185,15 +245,15 @@ class _EventsMapPageState extends State<EventsMapPage> {
   }
 
   void _onStyleLoaded(List<EventEntity> events) async {
-    final filtered = _filteredEvents(events);
+    final filtered = _filteredByType(events);
     await _addMarkers(filtered);
     _fitBounds(filtered);
   }
 
   void _onSymbolTapped(Symbol symbol) {
-    final state = context.read<EventCalendarBloc>().state;
-    if (state is! EventLoaded) return;
-    final filtered = _filteredEvents(state.allEvents);
+    final s = context.read<EventCalendarBloc>().state;
+    if (s is! EventLoaded) return;
+    final filtered = _filteredByType(s.filteredEvents);
     final idx = _symbols.indexOf(symbol);
     if (idx >= 0 && idx < filtered.length) {
       final event = filtered[idx];
@@ -209,12 +269,18 @@ class _EventsMapPageState extends State<EventsMapPage> {
 
     return BlocBuilder<EventCalendarBloc, EventCalendarState>(
       builder: (context, state) {
-        final allEvents =
-            state is EventLoaded ? state.allEvents : <EventEntity>[];
-        final filtered = _filteredEvents(allEvents);
+        final loaded = state is EventLoaded ? state : null;
+        final allEvents = loaded?.allEvents ?? <EventEntity>[];
+        // Use bloc's filteredEvents (has radius + city logic)
+        final filtered = _filteredByType(loaded?.filteredEvents ?? allEvents);
 
         if (_selectedEvent == null && filtered.isNotEmpty) {
           _selectedEvent = filtered.first;
+        }
+        // If selected event got filtered out, clear it
+        if (_selectedEvent != null &&
+            !filtered.any((e) => e.id == _selectedEvent!.id)) {
+          _selectedEvent = filtered.isNotEmpty ? filtered.first : null;
         }
 
         return Scaffold(
@@ -222,11 +288,9 @@ class _EventsMapPageState extends State<EventsMapPage> {
             title: const Text('Event Radar Map',
                 style: TextStyle(fontWeight: FontWeight.w800)),
             actions: [
-              // GPS "Near Me" button
+              // GPS Near Me button
               IconButton(
-                tooltip: _locationEnabled
-                    ? 'Location Active'
-                    : 'Show My Location',
+                tooltip: _locationEnabled ? 'Location Active' : 'Show My Location',
                 icon: _locationLoading
                     ? const SizedBox(
                         width: 20,
@@ -240,9 +304,7 @@ class _EventsMapPageState extends State<EventsMapPage> {
                         _locationEnabled
                             ? Iconsax.location_tick
                             : Iconsax.location,
-                        color: _locationEnabled
-                            ? AppColors.darkSecondary
-                            : null,
+                        color: _locationEnabled ? AppColors.darkSecondary : null,
                       ),
                 onPressed: _locationLoading ? null : _requestUserLocation,
               ),
@@ -255,7 +317,7 @@ class _EventsMapPageState extends State<EventsMapPage> {
           ),
           body: Stack(
             children: [
-              // ── MapLibre GL Map ─────────────────────────────────────────
+              // ── MapLibre GL Map ──────────────────────────────────────────
               MapLibreMap(
                 onMapCreated: _onMapCreated,
                 onStyleLoadedCallback: () => _onStyleLoaded(allEvents),
@@ -269,7 +331,6 @@ class _EventsMapPageState extends State<EventsMapPage> {
                 tiltGesturesEnabled: true,
                 scrollGesturesEnabled: true,
                 zoomGesturesEnabled: true,
-                // GPS location layer enabled
                 myLocationEnabled: true,
                 myLocationTrackingMode: _locationEnabled
                     ? MyLocationTrackingMode.trackingGps
@@ -278,7 +339,7 @@ class _EventsMapPageState extends State<EventsMapPage> {
                 trackCameraPosition: false,
               ),
 
-              // ── Top Controls ────────────────────────────────────────────
+              // ── Top Controls ─────────────────────────────────────────────
               Positioned(
                 top: 12,
                 left: 12,
@@ -296,8 +357,7 @@ class _EventsMapPageState extends State<EventsMapPage> {
                               const Text(
                                 '📡 Radius: ',
                                 style: TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 13),
+                                    fontWeight: FontWeight.w700, fontSize: 13),
                               ),
                               Text(
                                 '${_radarRadiusKm.toInt()} km',
@@ -307,11 +367,32 @@ class _EventsMapPageState extends State<EventsMapPage> {
                                   color: AppColors.darkSecondary,
                                 ),
                               ),
+                              // Show radius-filter active badge
+                              if (_locationEnabled) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.success
+                                        .withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Text(
+                                    'GPS Active',
+                                    style: TextStyle(
+                                      color: AppColors.success,
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                           Row(
                             children: [
-                              // GPS Near Me mini-chip
+                              // GPS Near Me chip
                               GestureDetector(
                                 onTap: _locationLoading
                                     ? null
@@ -347,9 +428,7 @@ class _EventsMapPageState extends State<EventsMapPage> {
                                       ),
                                       const SizedBox(width: 3),
                                       Text(
-                                        _locationEnabled
-                                            ? 'GPS On'
-                                            : 'Near Me',
+                                        _locationEnabled ? 'GPS On' : 'Near Me',
                                         style: TextStyle(
                                           fontSize: 10,
                                           fontWeight: FontWeight.w700,
@@ -383,25 +462,46 @@ class _EventsMapPageState extends State<EventsMapPage> {
                           ),
                         ],
                       ),
+
+                      // ── Radius Slider — now functional ──────────────────
                       SliderTheme(
                         data: SliderThemeData(
                           activeTrackColor: AppColors.darkSecondary,
                           thumbColor: AppColors.darkSecondary,
-                          inactiveTrackColor: AppColors.darkSecondary
-                              .withValues(alpha: 0.25),
-                          overlayColor: AppColors.darkSecondary
-                              .withValues(alpha: 0.15),
+                          inactiveTrackColor:
+                              AppColors.darkSecondary.withValues(alpha: 0.25),
+                          overlayColor:
+                              AppColors.darkSecondary.withValues(alpha: 0.15),
                           trackHeight: 3,
                         ),
                         child: Slider(
                           value: _radarRadiusKm,
                           min: 10,
-                          max: 500,
-                          divisions: 49,
-                          onChanged: (val) =>
-                              setState(() => _radarRadiusKm = val),
+                          max: 10000,
+                          divisions: 99,
+                          onChanged: (val) {
+                            setState(() => _radarRadiusKm = val);
+                          },
+                          onChangeEnd: (val) {
+                            // Dispatch to bloc when user releases slider
+                            context.read<EventCalendarBloc>().add(
+                                  FilterEventsByRadiusEvent(val),
+                                );
+                            // Re-draw markers with new filter
+                            final s =
+                                context.read<EventCalendarBloc>().state;
+                            if (s is EventLoaded) {
+                              final newFiltered = _filteredByType(
+                                s.filteredEvents,
+                              );
+                              _addMarkers(newFiltered);
+                              _fitBounds(newFiltered);
+                            }
+                          },
                         ),
                       ),
+
+                      // ── Category Filter Chips ───────────────────────────
                       SizedBox(
                         height: 34,
                         child: ListView.separated(
@@ -428,10 +528,14 @@ class _EventsMapPageState extends State<EventsMapPage> {
                               ),
                               onSelected: (_) async {
                                 setState(() => _selectedType = type);
-                                final newFiltered =
-                                    _filteredEvents(allEvents);
-                                await _addMarkers(newFiltered);
-                                _fitBounds(newFiltered);
+                                final s =
+                                    context.read<EventCalendarBloc>().state;
+                                if (s is EventLoaded) {
+                                  final newFiltered = _filteredByType(
+                                      s.filteredEvents);
+                                  await _addMarkers(newFiltered);
+                                  _fitBounds(newFiltered);
+                                }
                               },
                             );
                           },
@@ -442,7 +546,7 @@ class _EventsMapPageState extends State<EventsMapPage> {
                 ),
               ),
 
-              // ── Bottom Selected Event Card ───────────────────────────────
+              // ── Bottom Selected Event Card ─────────────────────────────
               if (_selectedEvent != null)
                 Positioned(
                   bottom: 20,
@@ -454,12 +558,18 @@ class _EventsMapPageState extends State<EventsMapPage> {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(12),
-                          child: Image.network(
-                            _selectedEvent!.bannerUrl,
+                          child: CachedNetworkImage(
+                            imageUrl: _selectedEvent!.bannerUrl,
                             width: 72,
                             height: 72,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
+                            placeholder: (_, __) => Container(
+                              width: 72,
+                              height: 72,
+                              color: AppColors.darkSurfaceElevated,
+                              child: const Icon(Iconsax.calendar_2),
+                            ),
+                            errorWidget: (_, __, ___) => Container(
                               width: 72,
                               height: 72,
                               color: AppColors.darkSurfaceElevated,
@@ -507,26 +617,50 @@ class _EventsMapPageState extends State<EventsMapPage> {
                                     .copyWith(fontWeight: FontWeight.w700),
                               ),
                               const SizedBox(height: 3),
-                              Row(
-                                children: [
-                                  const Icon(Iconsax.location,
-                                      size: 11,
-                                      color: AppColors.darkSecondary),
-                                  const SizedBox(width: 3),
-                                  Expanded(
-                                    child: Text(
-                                      _selectedEvent!.venueName,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                          fontSize: 11,
-                                          color: isDark
-                                              ? AppColors.darkTextSecondary
-                                              : AppColors.lightTextSecondary),
+                              // Show distance if GPS active
+                              if (_locationEnabled && loaded != null)
+                                Builder(builder: (_) {
+                                  final dist =
+                                      loaded.distanceTo(_selectedEvent!);
+                                  if (dist == null) return const SizedBox.shrink();
+                                  return Row(
+                                    children: [
+                                      const Icon(Iconsax.location,
+                                          size: 11,
+                                          color: AppColors.darkSecondary),
+                                      const SizedBox(width: 3),
+                                      Text(
+                                        '${dist.toStringAsFixed(0)} km away',
+                                        style: const TextStyle(
+                                            fontSize: 11,
+                                            color: AppColors.darkSecondary,
+                                            fontWeight: FontWeight.w700),
+                                      ),
+                                    ],
+                                  );
+                                })
+                              else
+                                Row(
+                                  children: [
+                                    const Icon(Iconsax.location,
+                                        size: 11,
+                                        color: AppColors.darkSecondary),
+                                    const SizedBox(width: 3),
+                                    Expanded(
+                                      child: Text(
+                                        _selectedEvent!.venueName,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                            fontSize: 11,
+                                            color: isDark
+                                                ? AppColors.darkTextSecondary
+                                                : AppColors
+                                                    .lightTextSecondary),
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
+                                  ],
+                                ),
                             ],
                           ),
                         ),
@@ -545,7 +679,7 @@ class _EventsMapPageState extends State<EventsMapPage> {
                   ),
                 ),
 
-              // ── Floating event count badge ───────────────────────────────
+              // ── Floating event count badge ──────────────────────────────
               Positioned(
                 bottom: _selectedEvent != null ? 114 : 20,
                 right: 14,
@@ -557,7 +691,8 @@ class _EventsMapPageState extends State<EventsMapPage> {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.darkSecondary.withValues(alpha: 0.4),
+                        color:
+                            AppColors.darkSecondary.withValues(alpha: 0.4),
                         blurRadius: 8,
                         offset: const Offset(0, 3),
                       ),

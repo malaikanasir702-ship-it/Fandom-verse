@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
+import 'core/config/stripe_config.dart';
 import 'core/di/service_locator.dart';
 import 'core/routes/app_router.dart';
 import 'core/services/notification_service.dart';
@@ -21,10 +23,9 @@ import 'features/admin/presentation/bloc/admin_bloc.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Prevent red/grey screen of death in release mode
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
-    debugPrint('?? [FlutterError] ${details.exceptionAsString()}');
+    debugPrint('[FlutterError] ${details.exceptionAsString()}');
   };
 
   await SystemChrome.setPreferredOrientations([
@@ -41,13 +42,18 @@ void main() async {
     ),
   );
 
-  // -- Critical path: Firebase + SQLite + SharedPrefs --
   await initDependencies();
 
-  // -- Non-critical background inits Ч do NOT await --
+  // Stripe SDK - safely initialized before runApp with non-blocking error handling
+  try {
+    Stripe.publishableKey = StripeConfig.publishableKey;
+    await Stripe.instance.applySettings();
+  } catch (e) {
+    debugPrint('тЪая╕П [main] Stripe SDK init warning: $e');
+  }
+
   NotificationService.initialize().catchError((_) {});
 
-  // FCM must initialize AFTER app is running Ч requestPermission() can block
   WidgetsBinding.instance.addPostFrameCallback((_) {
     FCMService.initialize().catchError((_) {});
   });

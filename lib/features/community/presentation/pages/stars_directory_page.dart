@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../../../../core/widgets/skeleton_loader.dart';
@@ -111,10 +112,21 @@ class _StarsDirectoryPageState extends State<StarsDirectoryPage> {
                 children: [
                   ClipRRect(
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                    child: Image.network(
-                      star.avatarUrl,
+                    child: CachedNetworkImage(
+                      imageUrl: star.avatarUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
+                      width: double.infinity,
+                      height: double.infinity,
+                      placeholder: (_, __) => Container(
+                        color: AppColors.darkSurfaceElevated,
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.comicRed,
+                            strokeWidth: 2,
+                          ),
+                        ),
+                      ),
+                      errorWidget: (_, __, ___) => Container(
                         color: AppColors.darkSurfaceElevated,
                         child: const Icon(Iconsax.profile_circle, size: 48),
                       ),

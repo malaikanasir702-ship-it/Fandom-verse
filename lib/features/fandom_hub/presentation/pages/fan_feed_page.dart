@@ -19,6 +19,8 @@ import '../../../community/presentation/widgets/filter_badge_chip.dart';
 import '../bloc/fandom_hub_event.dart';
 import '../widgets/hero_story_ring.dart';
 import 'hero_story_viewer_page.dart';
+import '../../../../core/widgets/app_user_avatar.dart';
+import '../../../../core/services/notification_service.dart';
 
 class FanFeedPage extends StatelessWidget {
   const FanFeedPage({super.key});
@@ -74,6 +76,7 @@ class _FanFeedContentState extends State<_FanFeedContent> {
     super.initState();
     _loadHeroStories();
     _startBannerTimer();
+    NotificationService.refreshUnreadCount();
   }
 
   void _startBannerTimer() {
@@ -205,9 +208,11 @@ class _FanFeedContentState extends State<_FanFeedContent> {
                           ),
                         ),
                         const SizedBox(width: 10),
-                        // Notification Bell with unread badge
+                        // Notification Bell with unread badge (Live SQLite synced)
                         GestureDetector(
-                          onTap: () => Navigator.of(context).pushNamed('/notifications'),
+                          onTap: () => Navigator.of(context).pushNamed('/notifications').then((_) {
+                            NotificationService.refreshUnreadCount();
+                          }),
                           child: Stack(
                             clipBehavior: Clip.none,
                             children: [
@@ -228,63 +233,49 @@ class _FanFeedContentState extends State<_FanFeedContent> {
                                   color: isDark ? Colors.white : AppColors.comicBlack,
                                 ),
                               ),
-                              // Unread badge — shows 2 unread by default
-                              Positioned(
-                                top: -2,
-                                right: -2,
-                                child: Container(
-                                  width: 16,
-                                  height: 16,
-                                  decoration: const BoxDecoration(
-                                    color: AppColors.comicRed,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Center(
-                                    child: Text(
-                                      '2',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.w900,
+                              ValueListenableBuilder<int>(
+                                valueListenable: NotificationService.unreadCountNotifier,
+                                builder: (context, unreadCount, _) {
+                                  if (unreadCount <= 0) return const SizedBox.shrink();
+                                  return Positioned(
+                                    top: -2,
+                                    right: -2,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                                      decoration: const BoxDecoration(
+                                        color: AppColors.comicRed,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          unreadCount > 99 ? '99+' : '$unreadCount',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.w900,
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ),
+                                  );
+                                },
                               ),
                             ],
                           ),
                         ),
                         const SizedBox(width: 10),
-                        // Profile Avatar
-                        GestureDetector(
-                          onTap: () => Navigator.of(context).pushNamed('/profile'),
-                          child: Container(
-                            width: 38,
-                            height: 38,
-                            decoration: BoxDecoration(
-                              color: AppColors.comicRed,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: AppColors.comicYellow,
-                                width: 1.5,
-                              ),
-                            ),
-                            child: ClipOval(
-                              child: hasAvatar
-                                  ? Image.network(
-                                      currentUser.avatarUrl!,
-                                      fit: BoxFit.cover,
-                                      width: 38,
-                                      height: 38,
-                                      errorBuilder: (_, __, ___) => const Center(
-                                        child: Icon(Iconsax.user, color: Colors.white, size: 18),
-                                      ),
-                                    )
-                                  : const Center(
-                                      child: Icon(Iconsax.user, color: Colors.white, size: 18),
-                                    ),
-                            ),
-                          ),
+                        // Profile Avatar (Instant update anywhere across app)
+                        AppUserAvatar(
+                          avatarUrl: currentUser?.avatarUrl,
+                          displayName: currentUser?.name ?? 'Fan',
+                          size: 38,
+                          showBorder: true,
+                          borderWidth: 1.5,
+                          borderColor: AppColors.comicYellow,
+                          onTap: () => Navigator.of(context).pushNamed('/profile').then((_) {
+                            NotificationService.refreshUnreadCount();
+                          }),
                         ),
                       ],
                     ),
@@ -316,7 +307,7 @@ class _FanFeedContentState extends State<_FanFeedContent> {
               ComicSectionHeader(
                 title: 'YOUR FAVOURITE HEROES',
                 actionColor: AppColors.comicYellow,
-                onActionTap: () => Navigator.of(context).pushNamed('/community'),
+                onActionTap: () => Navigator.of(context).pushNamed('/favourite-heroes'),
               ),
               const SizedBox(height: 8),
               SizedBox(

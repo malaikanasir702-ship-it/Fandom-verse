@@ -11,6 +11,8 @@ import '../../../auth/presentation/bloc/auth_event.dart';
 import '../bloc/profile_bloc.dart';
 import '../bloc/profile_event.dart';
 import '../bloc/profile_state.dart';
+import '../../../../core/widgets/app_user_avatar.dart';
+import '../widgets/profile_picture_sheet.dart';
 
 class FanProfilePage extends StatefulWidget {
   const FanProfilePage({super.key});
@@ -150,50 +152,37 @@ class _FanProfilePageState extends State<FanProfilePage> {
                 Center(
                   child: Column(
                     children: [
-                      Stack(
-                        children: [
-                          Container(
-                            width: 96,
-                            height: 96,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColors.comicRed,
-                              border: Border.all(
-                                  color: isDark
-                                      ? AppColors.darkBorder
-                                      : Colors.white,
-                                  width: 3),
-                            ),
-                            child: Center(
-                              child: Text(
-                                displayName.isNotEmpty
-                                    ? displayName[0].toUpperCase()
-                                    : 'U',
-                                style: const TextStyle(
-                                    fontSize: 42,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.white),
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: GestureDetector(
-                              onTap: () =>
-                                  Navigator.of(context).pushNamed('/edit-profile'),
-                              child: Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: const BoxDecoration(
-                                  color: AppColors.comicYellow,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(Iconsax.edit,
-                                    size: 16, color: AppColors.comicBlack),
-                              ),
-                            ),
-                          ),
-                        ],
+                      AppUserAvatar(
+                        avatarUrl: authUser?.avatarUrl,
+                        displayName: displayName,
+                        size: 96,
+                        showBorder: true,
+                        borderWidth: 3,
+                        borderColor: isDark ? AppColors.comicYellow : AppColors.comicRed,
+                        showEditBadge: true,
+                        editBadgeIcon: Iconsax.camera,
+                        onTap: () {
+                          ProfilePictureSheet.show(
+                            context: context,
+                            currentAvatarUrl: authUser?.avatarUrl,
+                            onSelectedUrl: (url) {
+                              context.read<AuthBloc>().add(UpdateUserProfileEvent(avatarUrl: url));
+                              if (authUser != null) {
+                                context.read<ProfileBloc>().add(
+                                      UpdateAvatarEvent(userId: authUser.id, imagePath: url),
+                                    );
+                              }
+                            },
+                            onRemoveAvatar: () {
+                              context.read<AuthBloc>().add(const UpdateUserProfileEvent(removeAvatar: true));
+                              if (authUser != null) {
+                                context.read<ProfileBloc>().add(
+                                      UpdateAvatarEvent(userId: authUser.id, imagePath: ''),
+                                    );
+                              }
+                            },
+                          );
+                        },
                       ),
                       const SizedBox(height: 12),
                       Text(displayName,

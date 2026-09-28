@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/services/stripe_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/skewed_button.dart';
@@ -24,6 +25,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
   late TabController _tabController;
   int _selectedVariantIndex = 0;
   int _quantity = 1;
+  bool _isProcessingStripe = false;
 
   @override
   void initState() {
@@ -401,69 +403,138 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
               ],
             ),
             child: SafeArea(
-              child: Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Quantity Stepper
-                  Container(
-                    decoration: BoxDecoration(
-                      color: isDark ? AppColors.darkSurfaceElevated : AppColors.lightSurfaceElevated,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                  Row(
+                    children: [
+                      // Quantity Stepper
+                      Container(
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppColors.darkSurfaceElevated
+                              : AppColors.lightSurfaceElevated,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isDark
+                                ? AppColors.darkBorder
+                                : AppColors.lightBorder,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Iconsax.minus, size: 16),
+                              onPressed: _quantity > 1
+                                  ? () => setState(() => _quantity--)
+                                  : null,
+                            ),
+                            Text(
+                              '$_quantity',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
+                            IconButton(
+                              icon: const Icon(Iconsax.add, size: 16),
+                              onPressed: _quantity < product.stockCount
+                                  ? () => setState(() => _quantity++)
+                                  : null,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    child: Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Iconsax.minus, size: 16),
-                          onPressed: _quantity > 1
-                              ? () => setState(() => _quantity--)
-                              : null,
-                        ),
-                        Text(
-                          '$_quantity',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                        ),
-                        IconButton(
-                          icon: const Icon(Iconsax.add, size: 16),
-                          onPressed: _quantity < product.stockCount
-                              ? () => setState(() => _quantity++)
-                              : null,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-
-                  // Add to Cart Button
-                  Expanded(
-                    child: SkewedButton(
-                      text: 'Add to Cart • \$${(product.price * _quantity).toStringAsFixed(2)}',
-                      icon: Iconsax.shopping_cart,
-                      height: 52,
-                      fontSize: 12,
-                      onPressed: () {
-                        context.read<CartBloc>().add(
-                              AddToCartEvent(
-                                product: product,
-                                quantity: _quantity,
-                                variant: selectedVariant,
+                      const SizedBox(width: 12),
+                      // Add to Cart Button
+                      Expanded(
+                        child: SkewedButton(
+                          text:
+                              'Add to Cart • \$${(product.price * _quantity).toStringAsFixed(2)}',
+                          icon: Iconsax.shopping_cart,
+                          height: 48,
+                          fontSize: 12,
+                          onPressed: () {
+                            context.read<CartBloc>().add(
+                                  AddToCartEvent(
+                                    product: product,
+                                    quantity: _quantity,
+                                    variant: selectedVariant,
+                                  ),
+                                );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                    'Added $_quantity x ${product.name} to cart!'),
+                                backgroundColor: AppColors.success,
+                                action: SnackBarAction(
+                                  label: 'View Cart',
+                                  textColor: Colors.white,
+                                  onPressed: () =>
+                                      Navigator.of(context).pushNamed('/cart'),
+                                ),
                               ),
                             );
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Added $_quantity × ${product.name} ($selectedVariant) to cart!'),
-                            backgroundColor: AppColors.success,
-                            action: SnackBarAction(
-                              label: 'View Cart',
-                              textColor: Colors.white,
-                              onPressed: () => Navigator.of(context).pushNamed('/cart'),
-                            ),
-                          ),
-                        );
-                      },
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  // Buy Now via Stripe Payment Sheet
+                  SizedBox(
+                    width: double.infinity,
+                    child: SkewedButton(
+                      text: _isProcessingStripe
+                          ? 'OPENING STRIPE...'
+                          : 'BUY NOW VIA STRIPE  \$${(product.price * _quantity).toStringAsFixed(2)}',
+                      icon: _isProcessingStripe ? null : Iconsax.lock,
+                      height: 52,
+                      fontSize: 12,
+                      backgroundColor: const Color(0xFF635BFF), // Stripe purple
+                      onPressed: _isProcessingStripe
+                          ? null
+                          : () async {
+                              setState(() => _isProcessingStripe = true);
+                              final result =
+                                  await StripeService.processMerchPayment(
+                                amount: product.price * _quantity,
+                                productName: product.name,
+                                quantity: _quantity,
+                              );
+                              if (!mounted) return;
+                              setState(() => _isProcessingStripe = false);
+                              if (result.success) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content:
+                                        Text('Order placed! Payment confirmed via Stripe.'),
+                                    backgroundColor: AppColors.success,
+                                  ),
+                                );
+                              } else if (result.errorMessage != null &&
+                                  !result.errorMessage!.contains('cancelled')) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(result.errorMessage ??
+                                        'Payment failed.'),
+                                    backgroundColor: AppColors.error,
+                                  ),
+                                );
+                              }
+                            },
                     ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Iconsax.lock, size: 12, color: AppColors.success),
+                      SizedBox(width: 4),
+                      Text(
+                        'Powered by Stripe • PCI-DSS Compliant',
+                        style: TextStyle(
+                            fontSize: 10, color: AppColors.comicGray),
+                      ),
+                    ],
                   ),
                 ],
               ),

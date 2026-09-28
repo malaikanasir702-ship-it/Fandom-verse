@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/app_user_avatar.dart';
 
 class ProfilePicturePicker extends StatefulWidget {
   final String? currentAvatarUrl;
@@ -146,44 +147,15 @@ class _ProfilePicturePickerState extends State<ProfilePicturePicker> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: _showImageSourceSheet,
-      child: Stack(
-        children: [
-          CircleAvatar(
-            radius: 46,
-            backgroundColor: AppColors.comicRed,
-            backgroundImage: _localImagePath != null
-                ? FileImage(File(_localImagePath!))
-                : (widget.currentAvatarUrl != null &&
-                        widget.currentAvatarUrl!.isNotEmpty
-                    ? NetworkImage(widget.currentAvatarUrl!) as ImageProvider
-                    : null),
-            child: (_localImagePath == null &&
-                    (widget.currentAvatarUrl == null ||
-                        widget.currentAvatarUrl!.isEmpty))
-                ? Text(
-                    _initial,
-                    style: const TextStyle(
-                      fontSize: 40,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                    ),
-                  )
-                : null,
-          ),
-          Positioned(
-            bottom: 0,
-            right: 0,
-            child: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: const BoxDecoration(
-                color: AppColors.comicYellow,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.camera_alt_rounded,
-                  size: 16, color: Colors.black),
-            ),
-          ),
-        ],
+      child: AppUserAvatar(
+        avatarUrl: _localImagePath ?? widget.currentAvatarUrl,
+        displayName: widget.displayName,
+        size: 92,
+        showBorder: true,
+        borderWidth: 2.5,
+        borderColor: AppColors.comicYellow,
+        showEditBadge: true,
+        editBadgeIcon: Icons.camera_alt_rounded,
       ),
     );
   }

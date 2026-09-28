@@ -19,6 +19,7 @@ import '../../features/fandom_hub/presentation/pages/news_detail_page.dart';
 import '../../features/fandom_hub/presentation/pages/search_explore_page.dart';
 import '../../features/fandom_hub/presentation/pages/beginner_hub_detail_page.dart';
 import '../../features/fandom_hub/presentation/pages/multimedia_gallery_page.dart';
+import '../../features/fandom_hub/presentation/pages/favourite_heroes_page.dart';
 import '../../features/fandom_hub/domain/entities/fandom_post.dart';
 
 // Events Pages
@@ -37,6 +38,7 @@ import '../../features/community/presentation/pages/thread_detail_page.dart';
 import '../../features/community/presentation/pages/create_thread_page.dart';
 import '../../features/community/presentation/pages/stars_directory_page.dart';
 import '../../features/community/presentation/pages/star_detail_page.dart';
+import '../../features/community/presentation/pages/star_profile_bookmarks_page.dart';
 import '../../features/community/domain/entities/discussion_thread.dart';
 import '../../features/community/domain/entities/star_profile.dart';
 
@@ -140,6 +142,10 @@ class FanRoutes {
       case '/ai-assistant':
         return MaterialPageRoute(builder: (_) => const AIAssistantPage());
 
+      case '/favourite-heroes':
+        return MaterialPageRoute(builder: (_) => const FavouriteHeroesPage());
+
+      case '/community':
       case '/discussions':
         return MaterialPageRoute(builder: (_) => const DiscussionsPage());
 
@@ -156,6 +162,10 @@ class FanRoutes {
       case '/star-detail':
         final star = settings.arguments as StarProfile;
         return MaterialPageRoute(builder: (_) => StarDetailPage(star: star));
+
+      case '/star-bookmarks':
+        return MaterialPageRoute(
+            builder: (_) => const StarProfileBookmarksPage());
 
       case '/profile':
         return MaterialPageRoute(builder: (_) => const FanProfilePage());

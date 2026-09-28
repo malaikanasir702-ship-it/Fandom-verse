@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/skewed_button.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_event.dart';
 import '../bloc/profile_bloc.dart';
 import '../bloc/profile_event.dart';
 import '../widgets/profile_picture_picker.dart';
@@ -40,7 +41,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Future<void> _saveProfile() async {
     setState(() => _isSaving = true);
 
-    // Dispatch avatar update if a new image was selected
+    final finalAvatar = _pendingAvatarPath ?? context.read<AuthBloc>().currentUser?.avatarUrl;
+    final finalName = _nameController.text.trim();
+    final finalBio = _bioController.text.trim();
+
+    // 1. Dispatch to AuthBloc (instantly updates _currentUser and emits FanAuthenticated so whole app reflects new avatar)
+    context.read<AuthBloc>().add(
+          UpdateUserProfileEvent(
+            name: finalName,
+            bio: finalBio,
+            avatarUrl: finalAvatar,
+          ),
+        );
+
+    // 2. Dispatch avatar update if a new image was selected to ProfileBloc
     if (_pendingAvatarPath != null) {
       context.read<ProfileBloc>().add(
             UpdateAvatarEvent(
@@ -53,9 +67,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
     context.read<ProfileBloc>().add(
           UpdateProfileDetailsEvent(
             userId: _userId,
-            name: _nameController.text.trim(),
-            bio: _bioController.text.trim(),
-            avatarUrl: _pendingAvatarPath ?? context.read<AuthBloc>().currentUser?.avatarUrl ?? '',
+            name: finalName,
+            bio: finalBio,
+            avatarUrl: finalAvatar ?? '',
             selectedFandoms:
                 context.read<AuthBloc>().currentUser?.selectedFandoms ?? [],
           ),

@@ -361,20 +361,6 @@ class _LoginPageState extends State<LoginPage> {
 
                   const SizedBox(height: 12),
 
-                  // Apple Sign-In — Skewed Button
-                  SkewedButton(
-                    text: 'Continue with Apple',
-                    height: 52,
-                    fontSize: 13,
-                    backgroundColor: isDark ? const Color(0xFF1C1C1E) : Colors.black,
-                    textColor: Colors.white,
-                    skewAngle: 0.12,
-                    leadingWidget: const Icon(Icons.apple, color: Colors.white, size: 20),
-                    onPressed: isLoading ? null : _showAppleSignInUnavailable,
-                  ),
-
-                  const SizedBox(height: 12),
-
                   // Guest Mode — Skewed Button (outlined style)
                   SkewedButton(
                     text: 'Continue as Guest',

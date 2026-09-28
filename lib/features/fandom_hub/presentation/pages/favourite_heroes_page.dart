@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../../../../core/widgets/comic_ui_widgets.dart';
+import '../../../../core/widgets/skewed_button.dart';
 import '../../../../core/database/sqlite_helper.dart';
 import '../../domain/entities/hero_story.dart';
 import 'hero_story_viewer_page.dart';
@@ -274,23 +275,13 @@ class _FavouriteHeroesPageState extends State<FavouriteHeroesPage> {
                       const SizedBox(height: 20),
 
                       // Action Button to View Stories
-                      ElevatedButton.icon(
-                        icon: const Icon(Iconsax.play_circle, color: Colors.black, size: 20),
-                        label: const Text(
-                          'WATCH HERO STORIES',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.8,
-                            fontSize: 12,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: hero.ringColor,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                          elevation: 4,
-                        ),
+                      SkewedButton(
+                        text: 'WATCH HERO STORIES',
+                        icon: Iconsax.play_circle,
+                        height: 50,
+                        fontSize: 12,
+                        backgroundColor: hero.ringColor,
+                        textColor: Colors.black,
                         onPressed: () {
                           Navigator.of(ctx).pop();
                           _openStoryForHero(hero);
@@ -618,7 +609,13 @@ class _FavouriteHeroesPageState extends State<FavouriteHeroesPage> {
                               ),
                             ),
                             const SizedBox(height: 16),
-                            ElevatedButton(
+                            SkewedButton(
+                              text: 'Reset Filters',
+                              icon: Iconsax.refresh,
+                              height: 44,
+                              fontSize: 13,
+                              backgroundColor: AppColors.comicYellow,
+                              textColor: Colors.black,
                               onPressed: () {
                                 _searchController.clear();
                                 setState(() {
@@ -627,12 +624,6 @@ class _FavouriteHeroesPageState extends State<FavouriteHeroesPage> {
                                   _favoritesOnly = false;
                                 });
                               },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.comicYellow,
-                                foregroundColor: Colors.black,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                              ),
-                              child: const Text('Reset Filters', style: TextStyle(fontWeight: FontWeight.w800)),
                             ),
                           ],
                         ),
@@ -647,7 +638,7 @@ class _FavouriteHeroesPageState extends State<FavouriteHeroesPage> {
                         crossAxisCount: 2,
                         mainAxisSpacing: 14,
                         crossAxisSpacing: 14,
-                        childAspectRatio: 0.65,
+                        childAspectRatio: 0.62,
                       ),
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
@@ -675,140 +666,168 @@ class _FavouriteHeroesPageState extends State<FavouriteHeroesPage> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // Hero Image with Category Badge & Favorite Button
-                                  Stack(
-                                    children: [
-                                      ClipRRect(
-                                        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                                        child: SizedBox(
-                                          height: 140,
-                                          width: double.infinity,
-                                          child: CachedNetworkImage(
+                                  // ── Hero Image (fixed height) ──────────
+                                  ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(
+                                        top: Radius.circular(16)),
+                                    child: SizedBox(
+                                      height: 130,
+                                      width: double.infinity,
+                                      child: Stack(
+                                        fit: StackFit.expand,
+                                        children: [
+                                          CachedNetworkImage(
                                             imageUrl: hero.avatarUrl,
                                             fit: BoxFit.cover,
                                             placeholder: (_, __) => Container(
-                                              color: hero.ringColor.withValues(alpha: 0.2),
+                                              color: hero.ringColor
+                                                  .withValues(alpha: 0.2),
                                               child: const Center(
-                                                child: CircularProgressIndicator(
+                                                child:
+                                                    CircularProgressIndicator(
                                                   strokeWidth: 2,
-                                                  color: AppColors.comicYellow,
+                                                  color:
+                                                      AppColors.comicYellow,
                                                 ),
                                               ),
                                             ),
-                                            errorWidget: (_, __, ___) => Container(
-                                              color: hero.ringColor.withValues(alpha: 0.3),
+                                            errorWidget: (_, __, ___) =>
+                                                Container(
+                                              color: hero.ringColor
+                                                  .withValues(alpha: 0.3),
                                               child: Center(
-                                                child: Icon(Iconsax.star_1, color: hero.ringColor, size: 40),
+                                                child: Icon(Iconsax.star_1,
+                                                    color: hero.ringColor,
+                                                    size: 40),
                                               ),
                                             ),
                                           ),
-                                        ),
-                                      ),
-                                      // Category Pill
-                                      Positioned(
-                                        top: 8,
-                                        left: 8,
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                          decoration: BoxDecoration(
-                                            color: Colors.black.withValues(alpha: 0.75),
-                                            borderRadius: BorderRadius.circular(8),
-                                            border: Border.all(color: hero.ringColor, width: 1),
-                                          ),
-                                          child: Text(
-                                            hero.category.split(' ').first.toUpperCase(),
-                                            style: TextStyle(
-                                              color: hero.ringColor,
-                                              fontSize: 9,
-                                              fontWeight: FontWeight.w900,
+                                          // Category Pill
+                                          Positioned(
+                                            top: 8,
+                                            left: 8,
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 3),
+                                              decoration: BoxDecoration(
+                                                color: Colors.black
+                                                    .withValues(alpha: 0.75),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                border: Border.all(
+                                                    color: hero.ringColor,
+                                                    width: 1),
+                                              ),
+                                              child: Text(
+                                                hero.category
+                                                    .split(' ')
+                                                    .first
+                                                    .toUpperCase(),
+                                                style: TextStyle(
+                                                  color: hero.ringColor,
+                                                  fontSize: 9,
+                                                  fontWeight: FontWeight.w900,
+                                                ),
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                      ),
-                                      // Favorite Button
-                                      Positioned(
-                                        top: 4,
-                                        right: 4,
-                                        child: GestureDetector(
-                                          onTap: () => _toggleFavorite(hero.id),
-                                          child: Container(
-                                            padding: const EdgeInsets.all(6),
-                                            decoration: BoxDecoration(
-                                              color: Colors.black.withValues(alpha: 0.65),
-                                              shape: BoxShape.circle,
-                                            ),
-                                            child: Icon(
-                                              isFav ? Icons.favorite : Icons.favorite_border,
-                                              color: isFav ? AppColors.comicRed : Colors.white,
-                                              size: 18,
+                                          // Favourite Button
+                                          Positioned(
+                                            top: 4,
+                                            right: 4,
+                                            child: GestureDetector(
+                                              onTap: () =>
+                                                  _toggleFavorite(hero.id),
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.all(6),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.black
+                                                      .withValues(alpha: 0.65),
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: Icon(
+                                                  isFav
+                                                      ? Icons.favorite
+                                                      : Icons.favorite_border,
+                                                  color: isFav
+                                                      ? AppColors.comicRed
+                                                      : Colors.white,
+                                                  size: 18,
+                                                ),
+                                              ),
                                             ),
                                           ),
-                                        ),
+                                        ],
                                       ),
-                                    ],
+                                    ),
                                   ),
 
-                                  // Hero Info
-                                  Padding(
-                                    padding: const EdgeInsets.all(10),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          hero.heroName,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w900,
-                                            fontSize: 15,
-                                            letterSpacing: 0.3,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          hero.tagline.isNotEmpty ? hero.tagline : hero.category,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            height: 1.3,
-                                            fontStyle: FontStyle.italic,
-                                            color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-
-                                        // Story Button
-                                        InkWell(
-                                          onTap: () => _openStoryForHero(hero),
-                                          borderRadius: BorderRadius.circular(8),
-                                          child: Container(
-                                            width: double.infinity,
-                                            padding: const EdgeInsets.symmetric(vertical: 6),
-                                            decoration: BoxDecoration(
-                                              color: hero.ringColor.withValues(alpha: 0.15),
-                                              borderRadius: BorderRadius.circular(8),
-                                              border: Border.all(color: hero.ringColor.withValues(alpha: 0.4)),
-                                            ),
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              children: [
-                                                Icon(Iconsax.play, size: 12, color: hero.ringColor),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  'VIEW STORY',
-                                                  style: TextStyle(
-                                                    color: hero.ringColor,
-                                                    fontSize: 10,
-                                                    fontWeight: FontWeight.w900,
-                                                    letterSpacing: 0.5,
-                                                  ),
+                                  // ── Hero Info (Expanded fills remaining height) ──
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.fromLTRB(
+                                          10, 8, 10, 8),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          // Name + tagline
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                hero.heroName,
+                                                maxLines: 1,
+                                                overflow:
+                                                    TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w900,
+                                                  fontSize: 14,
+                                                  letterSpacing: 0.3,
                                                 ),
-                                              ],
-                                            ),
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                hero.tagline.isNotEmpty
+                                                    ? hero.tagline
+                                                    : hero.category,
+                                                maxLines: 1,
+                                                overflow:
+                                                    TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  height: 1.3,
+                                                  fontStyle: FontStyle.italic,
+                                                  color: isDark
+                                                      ? AppColors
+                                                          .darkTextSecondary
+                                                      : AppColors
+                                                          .lightTextSecondary,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ),
-                                      ],
+
+                                          // View Story button
+                                          SkewedButton(
+                                            text: 'VIEW STORY',
+                                            icon: Iconsax.play,
+                                            height: 34,
+                                            fontSize: 10,
+                                            backgroundColor: hero.ringColor,
+                                            textColor: Colors.white,
+                                            skewAngle: 0.10,
+                                            onPressed: () =>
+                                                _openStoryForHero(hero),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ],

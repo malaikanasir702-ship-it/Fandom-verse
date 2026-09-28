@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:http/http.dart' as http;
@@ -22,7 +21,6 @@ class StripeService {
 
   /// Creates a PaymentIntent on Stripe's server using the secret key,
   /// then presents Stripe's native Payment Sheet UI.
-  /// No card details are handled in-app — they go directly to Stripe.
   static Future<StripePaymentResult> presentPaymentSheet({
     required double amount, // USD (e.g. 48.50)
     required String description,
@@ -31,8 +29,16 @@ class StripeService {
     final amountCents = (amount * 100).round();
     final secretKey = StripeConfig.secretKey;
 
+    // Guard: ensure keys are configured
+    if (!StripeConfig.isConfigured) {
+      return const StripePaymentResult(
+        success: false,
+        errorMessage: 'Stripe is not configured. Please set up your API keys.',
+      );
+    }
+
     try {
-      // Step 1: Create PaymentIntent via Stripe REST API
+      // ── Step 1: Create PaymentIntent via Stripe REST API ────────────────
       final response = await http.post(
         Uri.parse('$_stripeApiBase/payment_intents'),
         headers: {
@@ -43,8 +49,9 @@ class StripeService {
           'amount': amountCents.toString(),
           'currency': currency,
           'description': description,
-          'payment_method_types[]': 'card',
-          'automatic_payment_methods[enabled]': 'false',
+          // Use automatic_payment_methods for broad card support
+          'automatic_payment_methods[enabled]': 'true',
+          'automatic_payment_methods[allow_redirects]': 'never',
         },
       );
 
@@ -66,53 +73,79 @@ class StripeService {
         );
       }
 
-      // Step 2: Initialize the Payment Sheet
+      // ── Step 2: Initialize Payment Sheet ────────────────────────────────
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
           paymentIntentClientSecret: clientSecret,
           merchantDisplayName: 'Fandom Verse',
-          style: ThemeMode.system,
-          appearance: PaymentSheetAppearance(
-            colors: const PaymentSheetAppearanceColors(
-              primary: Color(0xFFE53935), // comicRed
+          style: ThemeMode.dark,
+          appearance: const PaymentSheetAppearance(
+            colors: PaymentSheetAppearanceColors(
+              primary: Color(0xFFE53935),
+              background: Color(0xFF0A0A1A),
+              componentBackground: Color(0xFF1A1A2E),
+              primaryText: Colors.white,
+              secondaryText: Color(0xFFAAAAAA),
+              componentText: Colors.white,
+              placeholderText: Color(0xFF666666),
+              icon: Color(0xFFE53935),
+              componentBorder: Color(0xFF333333),
+              componentDivider: Color(0xFF333333),
             ),
-            shapes: const PaymentSheetShape(
+            shapes: PaymentSheetShape(
               borderRadius: 12,
+              borderWidth: 1,
+            ),
+            primaryButton: PaymentSheetPrimaryButtonAppearance(
+              colors: PaymentSheetPrimaryButtonTheme(
+                dark: PaymentSheetPrimaryButtonThemeColors(
+                  background: Color(0xFFE53935),
+                  text: Colors.white,
+                  border: Color(0xFFE53935),
+                ),
+                light: PaymentSheetPrimaryButtonThemeColors(
+                  background: Color(0xFFE53935),
+                  text: Colors.white,
+                  border: Color(0xFFE53935),
+                ),
+              ),
             ),
           ),
         ),
       );
 
-      // Step 3: Present the Payment Sheet (Stripe's native modal)
+      // ── Step 3: Present Payment Sheet ────────────────────────────────────
       await Stripe.instance.presentPaymentSheet();
 
-      debugPrint('[StripeService] Payment Sheet succeeded: $paymentIntentId');
+      debugPrint('[StripeService] ✅ Payment succeeded: $paymentIntentId');
       return StripePaymentResult(
         success: true,
         paymentIntentId: paymentIntentId,
       );
     } on StripeException catch (e) {
       final code = e.error.code;
-      // User cancelled is not an error — just return cancelled
+      // User dismissed the sheet — not an error
       if (code == FailureCode.Canceled) {
         return const StripePaymentResult(
           success: false,
           errorMessage: 'Payment was cancelled.',
         );
       }
-      final msg = e.error.localizedMessage ?? e.error.message ?? 'Stripe payment failed.';
+      final msg = e.error.localizedMessage ??
+          e.error.message ??
+          'Stripe payment failed.';
       debugPrint('[StripeService] StripeException: $msg');
       return StripePaymentResult(success: false, errorMessage: msg);
     } catch (e) {
-      debugPrint('[StripeService] Error: $e');
+      debugPrint('[StripeService] Unexpected error: $e');
       return StripePaymentResult(
         success: false,
-        errorMessage: 'Unexpected error during payment: $e',
+        errorMessage: 'Payment error: ${e.toString()}',
       );
     }
   }
 
-  /// Convenience wrapper for ticket payments
+  /// Ticket payment
   static Future<StripePaymentResult> processTicketPayment({
     required double amount,
     required String eventTitle,
@@ -124,7 +157,7 @@ class StripeService {
     );
   }
 
-  /// Convenience wrapper for merch/store payments
+  /// Merch / store payment
   static Future<StripePaymentResult> processMerchPayment({
     required double amount,
     required String productName,

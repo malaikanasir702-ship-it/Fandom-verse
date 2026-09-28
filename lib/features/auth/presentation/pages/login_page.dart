@@ -121,49 +121,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  void _showAppleSignInUnavailable() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor:
-            isDark ? AppColors.darkSurface : Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(
-            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-          ),
-        ),
-        title: const Row(
-          children: [
-            Icon(Icons.apple, size: 24),
-            SizedBox(width: 10),
-            Text(
-              'Apple Sign-In',
-              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
-            ),
-          ],
-        ),
-        content: const Text(
-          'Apple Sign-In is available on iOS devices only. Please use Google Sign-In or Email & Password to continue on Android.',
-          style: TextStyle(fontSize: 14, height: 1.5),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text(
-              'Got it',
-              style: TextStyle(
-                color: AppColors.darkSecondary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _showGuestModeDialog() {    showDialog(
       context: context,
       builder: (ctx) => AlertDialog(

@@ -44,7 +44,7 @@ android {
 
     defaultConfig {
         applicationId = "com.fandomverse.fandom_verse"
-        minSdk = flutter.minSdkVersion
+        minSdk = 21   // flutter_stripe requires minimum SDK 21
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

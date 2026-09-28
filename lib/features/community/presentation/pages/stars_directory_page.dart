@@ -97,13 +97,10 @@ class _StarsDirectoryPageState extends State<StarsDirectoryPage> {
   }
 
   Widget _buildStarCard(BuildContext context, StarProfile star, bool isDark) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).pushNamed('/star-detail', arguments: star);
-      },
-      child: GlassContainer(
-        padding: EdgeInsets.zero,
-        child: Column(
+    return GlassContainer(
+      padding: EdgeInsets.zero,
+      onTap: () => Navigator.of(context).pushNamed('/star-detail', arguments: star),
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
@@ -207,7 +204,6 @@ class _StarsDirectoryPageState extends State<StarsDirectoryPage> {
             ),
           ],
         ),
-      ),
     );
   }
 }

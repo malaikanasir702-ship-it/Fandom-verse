@@ -65,6 +65,13 @@ class SqliteHelper {
     await _seedNotificationsIfEmpty(_db!);
     await _seedDeepDiveIfEmpty(_db!);
 
+    // One-time purge: remove seeded/fake notifications (ids notif-1..notif-5)
+    // Real notifications are only generated at runtime (ticket purchase, RSVP, etc.)
+    await _db!.delete(
+      DbConstants.tableNotifications,
+      where: "id IN ('notif-1','notif-2','notif-3','notif-4','notif-5')",
+    );
+
     debugPrint('✅ [SqliteHelper] Database ready at: $fullPath');
   }
 
@@ -1046,85 +1053,8 @@ class SqliteHelper {
   // ─────────────────────────────────────────────────────────────────────────
 
   Future<void> _seedNotificationsIfEmpty(Database db) async {
-    try {
-      final count = Sqflite.firstIntValue(
-            await db.rawQuery('SELECT COUNT(*) FROM ${DbConstants.tableNotifications}'),
-          ) ??
-          0;
-      if (count == 0) {
-        final now = DateTime.now().millisecondsSinceEpoch;
-        final sampleNotifications = [
-          AppNotificationEntity(
-            id: 'notif-1',
-            title: '🎟️ VIP Pass Confirmed!',
-            body: 'Your ticket for Comic-Con Multiverse 2025 has been confirmed. View QR code & badge details.',
-            type: 'ticket',
-            targetRoute: '/ticket-history',
-            iconName: 'ticket',
-            colorHex: '#E53935',
-            isRead: false,
-            createdAt: now - (15 * 60 * 1000), // 15 mins ago
-          ),
-          AppNotificationEntity(
-            id: 'notif-2',
-            title: '⚡ Upcoming Event Alert',
-            body: 'Anime Expo 2025 starts this weekend! Explore schedule, stage lineups, and guests.',
-            type: 'event',
-            targetRoute: '/events-calendar',
-            iconName: 'event',
-            colorHex: '#FFB300',
-            isRead: false,
-            createdAt: now - (2 * 60 * 60 * 1000), // 2 hours ago
-          ),
-          AppNotificationEntity(
-            id: 'notif-3',
-            title: '🦸 Discover Favourite Heroes',
-            body: 'Explore legendary origins, backstories, and powers of Spider-Man, Batman, and anime icons.',
-            type: 'hero',
-            targetRoute: '/favourite-heroes',
-            iconName: 'hero',
-            colorHex: '#00E676',
-            isRead: false,
-            createdAt: now - (6 * 60 * 60 * 1000), // 6 hours ago
-          ),
-          AppNotificationEntity(
-            id: 'notif-4',
-            title: '💬 New Reply in Community',
-            body: 'Fans replied to your theory on "Multiverse Secret Wars Canon". Join the discussion!',
-            type: 'community',
-            targetRoute: '/discussions',
-            iconName: 'community',
-            colorHex: '#29B6F6',
-            isRead: true,
-            createdAt: now - (20 * 60 * 60 * 1000), // 20 hours ago
-          ),
-          AppNotificationEntity(
-            id: 'notif-5',
-            title: '🏆 Achievement Unlocked: Lore Master',
-            body: 'You reached Level 5 Lore Reader! Check your newly unlocked badge on your profile.',
-            type: 'badge',
-            targetRoute: '/badges',
-            iconName: 'badge',
-            colorHex: '#FFD700',
-            isRead: true,
-            createdAt: now - (48 * 60 * 60 * 1000), // 2 days ago
-          ),
-        ];
-
-        final batch = db.batch();
-        for (final notif in sampleNotifications) {
-          batch.insert(
-            DbConstants.tableNotifications,
-            notif.toMap(),
-            conflictAlgorithm: ConflictAlgorithm.replace,
-          );
-        }
-        await batch.commit(noResult: true);
-        debugPrint('🔔 [SqliteHelper] Seeded ${sampleNotifications.length} dynamic notifications.');
-      }
-    } catch (e) {
-      debugPrint('[SqliteHelper] Error seeding notifications: $e');
-    }
+    // Seeded notifications removed — notifications are generated at runtime only
+    // (e.g. after ticket purchase, RSVP, community reply, badge unlock).
   }
 
   Future<List<AppNotificationEntity>> getNotifications() async {

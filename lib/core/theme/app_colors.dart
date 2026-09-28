@@ -17,6 +17,7 @@ class AppColors {
   // Solid Hero Ring Colors (for "YOUR FAVOURITE HEROES" avatars)
   static const Color heroRed = Color(0xFFE51924);
   static const Color heroBlue = Color(0xFF1E88E5);
+  static const Color comicBlue = Color(0xFF1E88E5);
   static const Color heroYellow = Color(0xFFFFCC00);
   static const Color heroGreen = Color(0xFF2E7D32);
   static const Color heroPurple = Color(0xFF8E24AA);

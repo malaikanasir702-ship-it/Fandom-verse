@@ -24,6 +24,7 @@ class DbConstants {
   static const String tableBehindScenes = 'behind_scenes';
   static const String tableInterviews = 'interviews';
   static const String tableTickets = 'event_tickets';
+  static const String tableNotifications = 'notifications';
 
   // Default Pre-configured Coupons
   static const Map<String, double> validCoupons = {

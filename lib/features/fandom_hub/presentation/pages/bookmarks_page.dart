@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/skeleton_loader.dart';
@@ -12,6 +13,10 @@ import '../../../events/presentation/bloc/event_bloc.dart';
 import '../../../events/presentation/bloc/event_event.dart';
 import '../../../events/presentation/bloc/event_state.dart';
 import '../../../events/domain/entities/event_entity.dart';
+import '../../../community/presentation/bloc/community_bloc.dart';
+import '../../../community/presentation/bloc/community_event.dart';
+import '../../../community/presentation/bloc/community_state.dart';
+import '../../../community/domain/entities/star_profile.dart';
 
 class BookmarksPage extends StatefulWidget {
   const BookmarksPage({super.key});
@@ -26,7 +31,7 @@ class _BookmarksPageState extends State<BookmarksPage> with SingleTickerProvider
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -58,6 +63,7 @@ class _BookmarksPageState extends State<BookmarksPage> with SingleTickerProvider
             Tab(text: 'COMICS & LORE'),
             Tab(text: 'GLOSSARY'),
             Tab(text: 'EVENTS'),
+            Tab(text: 'STARS'),
           ],
         ),
       ),
@@ -117,12 +123,19 @@ class _BookmarksPageState extends State<BookmarksPage> with SingleTickerProvider
                               children: [
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(10),
-                                  child: Image.network(
-                                    post.imageUrl,
+                                  child: CachedNetworkImage(
+                                    imageUrl: post.imageUrl,
                                     width: 74,
                                     height: 74,
                                     fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => Container(
+                                    placeholder: (_, __) => Container(
+                                      width: 74,
+                                      height: 74,
+                                      color: AppColors.comicGrayLight,
+                                      child: const Icon(Iconsax.book,
+                                          color: AppColors.comicGray),
+                                    ),
+                                    errorWidget: (_, __, ___) => Container(
                                       width: 74,
                                       height: 74,
                                       color: AppColors.comicGrayLight,
@@ -320,12 +333,19 @@ class _BookmarksPageState extends State<BookmarksPage> with SingleTickerProvider
                               // Banner thumbnail
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(10),
-                                child: Image.network(
-                                  event.bannerUrl,
+                                child: CachedNetworkImage(
+                                  imageUrl: event.bannerUrl,
                                   width: 74,
                                   height: 74,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Container(
+                                  placeholder: (_, __) => Container(
+                                    width: 74,
+                                    height: 74,
+                                    color: AppColors.comicGrayLight,
+                                    child: const Icon(Iconsax.calendar_2,
+                                        color: AppColors.comicGray),
+                                  ),
+                                  errorWidget: (_, __, ___) => Container(
                                     width: 74,
                                     height: 74,
                                     color: AppColors.comicGrayLight,
@@ -424,6 +444,164 @@ class _BookmarksPageState extends State<BookmarksPage> with SingleTickerProvider
                                     const SnackBar(
                                       content: Text(
                                           'Event removed from bookmarks.'),
+                                      backgroundColor: AppColors.comicBlack,
+                                      behavior: SnackBarBehavior.floating,
+                                      duration: Duration(seconds: 1),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+
+              // ─── TAB 4: STARS ───
+              BlocBuilder<CommunityBloc, CommunityState>(
+                builder: (context, communityState) {
+                  final bookmarkedStars = communityState is CommunityLoaded
+                      ? communityState.starProfiles
+                          .where((s) => s.isBookmarked)
+                          .toList()
+                      : <StarProfile>[];
+
+                  if (bookmarkedStars.isEmpty) {
+                    return const _EmptyBookmark(
+                      icon: Iconsax.profile_circle,
+                      title: 'No Stars Bookmarked',
+                      subtitle:
+                          'Go to Stars Directory to bookmark your favourite voice actors, directors & idols!',
+                    );
+                  }
+
+                  return ListView.separated(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: bookmarkedStars.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, i) {
+                      final star = bookmarkedStars[i];
+                      return GestureDetector(
+                        onTap: () => Navigator.of(context)
+                            .pushNamed('/star-detail', arguments: star),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: isDark ? AppColors.darkSurface : Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: isDark
+                                  ? AppColors.darkBorder
+                                  : AppColors.comicBorderColor,
+                              width: 1.2,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              // Circular avatar with CachedNetworkImage
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(32),
+                                child: CachedNetworkImage(
+                                  imageUrl: star.avatarUrl,
+                                  width: 64,
+                                  height: 64,
+                                  fit: BoxFit.cover,
+                                  placeholder: (_, __) => Container(
+                                    width: 64,
+                                    height: 64,
+                                    color: AppColors.comicGrayLight,
+                                    child: const Icon(Iconsax.profile_circle,
+                                        color: AppColors.comicGray),
+                                  ),
+                                  errorWidget: (_, __, ___) => Container(
+                                    width: 64,
+                                    height: 64,
+                                    color: AppColors.comicGrayLight,
+                                    child: const Icon(Iconsax.profile_circle,
+                                        color: AppColors.comicGray),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.darkSecondary
+                                            .withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        star.category.toUpperCase(),
+                                        style: const TextStyle(
+                                          color: AppColors.darkSecondary,
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      star.name,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 14,
+                                        color: isDark
+                                            ? Colors.white
+                                            : AppColors.comicBlack,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      star.role,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: isDark
+                                            ? AppColors.darkTextSecondary
+                                            : AppColors.comicGray,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        const Icon(Iconsax.wifi_square,
+                                            size: 10,
+                                            color: AppColors.success),
+                                        const SizedBox(width: 3),
+                                        const Text(
+                                          'OFFLINE',
+                                          style: TextStyle(
+                                            color: AppColors.success,
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Iconsax.bookmark,
+                                    color: AppColors.darkAccentGold, size: 20),
+                                tooltip: 'Remove bookmark',
+                                onPressed: () {
+                                  context.read<CommunityBloc>().add(
+                                        ToggleStarBookmarkEvent(star.id),
+                                      );
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                          'Star removed from bookmarks.'),
                                       backgroundColor: AppColors.comicBlack,
                                       behavior: SnackBarBehavior.floating,
                                       duration: Duration(seconds: 1),

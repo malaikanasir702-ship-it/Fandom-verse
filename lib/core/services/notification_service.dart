@@ -1,6 +1,8 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
+import '../database/sqlite_helper.dart';
+import '../../features/profile/domain/entities/app_notification_entity.dart';
 
 /// Handles local push notifications for Fandom Verse.
 /// Covers: event reminders, order confirmations, price drops, community replies.
@@ -9,6 +11,7 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   static bool _initialized = false;
+  static final ValueNotifier<int> unreadCountNotifier = ValueNotifier<int>(0);
 
   // Notification channel IDs
   static const String _channelGeneral = 'fandom_general';
@@ -73,7 +76,18 @@ class NotificationService {
     );
 
     _initialized = true;
+    await refreshUnreadCount();
     debugPrint('✅ [NotificationService] Initialized successfully.');
+  }
+
+  /// Refresh unread notifications count from SQLite and notify all listeners
+  static Future<void> refreshUnreadCount() async {
+    try {
+      final count = await SqliteHelper.instance.getUnreadNotificationsCount();
+      unreadCountNotifier.value = count;
+    } catch (e) {
+      debugPrint('[NotificationService] Error refreshing unread count: $e');
+    }
   }
 
   static Future<void> _createChannel({
@@ -103,10 +117,13 @@ class NotificationService {
   // PUBLIC API
   // ─────────────────────────────────────────────────────────────────
 
-  /// Show a general push notification immediately.
+  /// Show a general push notification immediately and persist to SQLite.
   static Future<void> showTestNotification({
     required String title,
     required String body,
+    String? targetRoute,
+    String? iconName,
+    String? colorHex,
   }) async {
     await _show(
       id: 0,
@@ -114,6 +131,22 @@ class NotificationService {
       body: body,
       channelId: _channelGeneral,
     );
+
+    try {
+      final notif = AppNotificationEntity(
+        id: 'notif-${DateTime.now().millisecondsSinceEpoch}',
+        title: title,
+        body: body,
+        type: 'general',
+        targetRoute: targetRoute,
+        iconName: iconName ?? 'bell',
+        colorHex: colorHex ?? '#00E676',
+        isRead: false,
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+      );
+      await SqliteHelper.instance.saveNotification(notif);
+      await refreshUnreadCount();
+    } catch (_) {}
   }
 
   /// Show an order confirmation notification.

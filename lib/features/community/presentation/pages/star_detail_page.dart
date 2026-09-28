@@ -1,10 +1,15 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../../../../core/widgets/skewed_button.dart';
 import '../../domain/entities/star_profile.dart';
+import '../bloc/community_bloc.dart';
+import '../bloc/community_event.dart';
+import '../bloc/community_state.dart';
 
 class StarDetailPage extends StatefulWidget {
   final StarProfile star;
@@ -22,20 +27,72 @@ class _StarDetailPageState extends State<StarDetailPage> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    return BlocBuilder<CommunityBloc, CommunityState>(
+      builder: (context, state) {
+        // Keep star in sync with live bloc state
+        StarProfile star = widget.star;
+        if (state is CommunityLoaded) {
+          final found = state.starProfiles.where((p) => p.id == widget.star.id);
+          if (found.isNotEmpty) star = found.first;
+        }
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
             expandedHeight: 300,
             pinned: true,
+            actions: [
+              // ── Bookmark toggle in appbar ──
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: CircleAvatar(
+                  backgroundColor: Colors.black.withValues(alpha: 0.45),
+                  child: IconButton(
+                    tooltip: star.isBookmarked ? 'Remove Bookmark' : 'Bookmark Profile',
+                    icon: Icon(
+                      star.isBookmarked ? Iconsax.bookmark : Iconsax.bookmark_2,
+                      color: star.isBookmarked ? AppColors.comicYellow : Colors.white,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      context.read<CommunityBloc>().add(ToggleStarBookmarkEvent(star.id));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            star.isBookmarked
+                                ? 'Removed ${star.name} from bookmarks.'
+                                : '⭐ ${star.name} bookmarked! Available offline.',
+                          ),
+                          backgroundColor: star.isBookmarked
+                              ? AppColors.comicBlack
+                              : AppColors.success,
+                          behavior: SnackBarBehavior.floating,
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ],
             flexibleSpace: FlexibleSpaceBar(
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.network(
-                    widget.star.avatarUrl,
+                  CachedNetworkImage(
+                    imageUrl: star.avatarUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(color: AppColors.darkSurface),
+                    placeholder: (_, __) => Container(
+                      color: AppColors.darkSurface,
+                      child: const Center(
+                        child: CircularProgressIndicator(color: AppColors.comicRed),
+                      ),
+                    ),
+                    errorWidget: (_, __, ___) => Container(
+                      color: AppColors.darkSurface,
+                      child: const Icon(Iconsax.profile_circle, size: 64, color: Colors.white30),
+                    ),
                   ),
                   Container(
                     decoration: BoxDecoration(
@@ -75,7 +132,7 @@ class _StarDetailPageState extends State<StarDetailPage> {
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
-                                widget.star.role.toUpperCase(),
+                                star.role.toUpperCase(),
                                 style: const TextStyle(
                                   color: AppColors.darkSecondary,
                                   fontWeight: FontWeight.w700,
@@ -85,12 +142,12 @@ class _StarDetailPageState extends State<StarDetailPage> {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              widget.star.name,
+                              star.name,
                               style: AppTextStyles.displaySmall.copyWith(fontWeight: FontWeight.w800),
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Known for: ${widget.star.knownFor}',
+                              'Known for: ${star.knownFor}',
                               style: TextStyle(
                                 color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
                                 fontSize: 13,
@@ -112,8 +169,8 @@ class _StarDetailPageState extends State<StarDetailPage> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(_isFollowing
-                                  ? '⭐ Joined ${widget.star.name}\'s Fan Club!'
-                                  : 'Unfollowed ${widget.star.name}'),
+                                  ? '⭐ Joined ${star.name}\'s Fan Club!'
+                                  : 'Unfollowed ${star.name}'),
                               behavior: SnackBarBehavior.floating,
                             ),
                           );
@@ -126,7 +183,7 @@ class _StarDetailPageState extends State<StarDetailPage> {
                   // Stats Row
                   Row(
                     children: [
-                      _buildStatBox('Fans', '${widget.star.followersCount}', Iconsax.people),
+                      _buildStatBox('Fans', '${star.followersCount}', Iconsax.people),
                       const SizedBox(width: 12),
                       _buildStatBox('Credits', '48+ Titles', Iconsax.video_play),
                       const SizedBox(width: 12),
@@ -139,7 +196,7 @@ class _StarDetailPageState extends State<StarDetailPage> {
                   Text('Biography & Career', style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w800)),
                   const SizedBox(height: 8),
                   Text(
-                    widget.star.bio,
+                    star.bio,
                     style: AppTextStyles.bodyMedium.copyWith(
                       height: 1.6,
                       color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
@@ -183,6 +240,8 @@ class _StarDetailPageState extends State<StarDetailPage> {
           ),
         ],
       ),
+    );
+      },
     );
   }
 

@@ -176,11 +176,12 @@ class SeedData {
     },
   ];
 
+  // ── FIX: Added 'category' and 'attendees_count' to all 3 seed events ──
   static const List<Map<String, dynamic>> defaultEvents = [
     {
       'event_id': 'evt-001',
       'title': 'Tokyo Anime Expo 2026',
-      'description': 'The world’s largest gathering of animators, mangaka, voice actors, and global otaku fans at Big Sight.',
+      'description': 'The worlds largest gathering of animators, mangaka, voice actors, and global otaku fans at Big Sight.',
       'city_name': 'Tokyo',
       'venue_name': 'Tokyo Big Sight Exhibition Center',
       'latitude': 35.6298,
@@ -189,6 +190,8 @@ class SeedData {
       'ticket_link': 'https://anime-expo.tokyo/tickets',
       'banner_url': 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=800',
       'is_bookmarked': 1,
+      'category': 'Anime & Manga',
+      'attendees_count': 48000,
     },
     {
       'event_id': 'evt-002',
@@ -202,6 +205,8 @@ class SeedData {
       'ticket_link': 'https://comic-con.org/register',
       'banner_url': 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800',
       'is_bookmarked': 1,
+      'category': 'Marvel & DC Comics',
+      'attendees_count': 135000,
     },
     {
       'event_id': 'evt-003',
@@ -215,6 +220,8 @@ class SeedData {
       'ticket_link': 'https://seoul-esports.kr/tickets',
       'banner_url': 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800',
       'is_bookmarked': 0,
+      'category': 'Gaming & Esports',
+      'attendees_count': 22000,
     },
   ];
 

@@ -371,6 +371,55 @@ class _EventDetailPageState extends State<EventDetailPage> {
                       ),
                     ],
                   ),
+                  // ─── Official Ticket Link ───
+                  if (widget.event.ticketLink.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    GestureDetector(
+                      onTap: () async {
+                        final uri = Uri.parse(widget.event.ticketLink);
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(uri,
+                              mode: LaunchMode.externalApplication);
+                        }
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 14, horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppColors.darkSurface
+                              : Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isDark
+                                ? AppColors.darkBorder
+                                : AppColors.comicBorderColor,
+                            width: 1.2,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Iconsax.link,
+                                size: 16, color: AppColors.darkSecondary),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Official Ticket Site',
+                              style: TextStyle(
+                                color: AppColors.darkSecondary,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(Iconsax.export_2,
+                                size: 12, color: AppColors.darkSecondary),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 60),
                 ],
               ),

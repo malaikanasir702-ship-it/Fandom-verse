@@ -49,8 +49,13 @@ class _SplashPageState extends State<SplashPage>
     // Safety fallback timer: guarantees splash NEVER gets stuck on slow or offline devices
     _fallbackTimer = Timer(const Duration(milliseconds: 2400), () async {
       if (_hasNavigated || !mounted) return;
-      debugPrint('⏱️ [SplashPage] Safety timeout reached, navigating to fallback route.');
-      await _navigateUnauthenticated();
+      debugPrint('⏱️ [SplashPage] Safety timeout reached, resolving destination.');
+      final current = authBloc.state;
+      if (current is FanAuthenticated || current is AdminAuthenticated) {
+        _handleAuthState(current);
+      } else {
+        await _navigateUnauthenticated();
+      }
     });
 
     // Check if state is already resolved
@@ -136,6 +141,20 @@ class _SplashPageState extends State<SplashPage>
                             width: 160,
                             height: 160,
                             fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) => Container(
+                              width: 160,
+                              height: 160,
+                              alignment: Alignment.center,
+                              child: Text(
+                                'FV',
+                                style: TextStyle(
+                                  fontSize: 72,
+                                  fontWeight: FontWeight.w900,
+                                  fontStyle: FontStyle.italic,
+                                  color: isDark ? Colors.white : AppColors.comicBlack,
+                                ),
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 24),
 

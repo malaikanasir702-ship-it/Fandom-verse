@@ -20,18 +20,14 @@ class StripeTicketCheckoutPage extends StatefulWidget {
   const StripeTicketCheckoutPage({super.key, required this.event});
 
   @override
-  State<StripeTicketCheckoutPage> createState() => _StripeTicketCheckoutPageState();
+  State<StripeTicketCheckoutPage> createState() =>
+      _StripeTicketCheckoutPageState();
 }
 
 class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
   int _quantity = 1;
   int _selectedTierIndex = 0;
   bool _isProcessing = false;
-
-  final _cardNumberController = TextEditingController(text: '4242 •••• •••• 4242');
-  final _expiryController = TextEditingController(text: '12/28');
-  final _cvcController = TextEditingController(text: '888');
-  final _nameController = TextEditingController(text: 'Alex Mercer');
 
   final List<Map<String, dynamic>> _ticketTiers = [
     {
@@ -54,45 +50,12 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
     },
   ];
 
-  @override
-  void dispose() {
-    _cardNumberController.dispose();
-    _expiryController.dispose();
-    _cvcController.dispose();
-    _nameController.dispose();
-    super.dispose();
-  }
-
   double get _unitPrice => _ticketTiers[_selectedTierIndex]['price'] as double;
   double get _subtotal => _unitPrice * _quantity;
   double get _fee => 3.50;
   double get _total => _subtotal + _fee;
 
-  void _processStripePayment() async {
-    final cardNumber = _cardNumberController.text.trim();
-    final expiry = _expiryController.text.trim();
-    final cvc = _cvcController.text.trim();
-    final name = _nameController.text.trim();
-
-    if (cardNumber.replaceAll(RegExp(r'\s+'), '').length < 14) {
-      AppSnackbar.showError(context, 'Please enter a valid card number');
-      return;
-    }
-
-    final expiryParts = expiry.split('/');
-    if (expiryParts.length != 2) {
-      AppSnackbar.showError(context, 'Expiry must be in MM/YY format');
-      return;
-    }
-
-    final expMonth = expiryParts[0].trim();
-    final expYear = expiryParts[1].trim();
-
-    if (cvc.length < 3) {
-      AppSnackbar.showError(context, 'Please enter a valid 3 or 4-digit CVC');
-      return;
-    }
-
+  void _launchStripePayment() async {
     setState(() => _isProcessing = true);
 
     final tier = _ticketTiers[_selectedTierIndex];
@@ -100,11 +63,6 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
 
     final result = await StripeService.processTicketPayment(
       amount: _total,
-      cardNumber: cardNumber,
-      expMonth: expMonth,
-      expYear: expYear,
-      cvc: cvc,
-      cardholderName: name,
       eventTitle: widget.event.title,
       tierTitle: tierTitle,
     );
@@ -113,18 +71,24 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
     setState(() => _isProcessing = false);
 
     if (!result.success) {
+      if (result.errorMessage != null &&
+          result.errorMessage!.contains('cancelled')) {
+        // User dismissed the sheet — no error snackbar
+        return;
+      }
       AppSnackbar.showError(
         context,
-        result.errorMessage ?? 'Payment failed. Please check your card details.',
+        result.errorMessage ?? 'Payment failed. Please try again.',
       );
       return;
     }
 
-    // Payment succeeded! Build and persist TicketEntity
-    final ticketId = 'FV-TKT-${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
+    // Payment succeeded — build & persist ticket
+    final ticketId =
+        'FV-TKT-${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
     final user = context.read<AuthBloc>().currentUser;
     final userId = user?.id ?? 'guest_user';
-    final attendeeName = name.isNotEmpty ? name : (user?.name ?? 'Valued Fan');
+    final attendeeName = user?.name ?? 'Valued Fan';
 
     final qrPayload = TicketEntity.generateQrPayload(
       ticketId: ticketId,
@@ -152,7 +116,7 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
       fee: _fee,
       totalAmount: _total,
       attendeeName: attendeeName,
-      paymentMethod: 'Stripe Card',
+      paymentMethod: 'Stripe',
       paymentIntentId: result.paymentIntentId,
       qrData: qrPayload,
       purchasedAt: DateTime.now().millisecondsSinceEpoch,
@@ -198,7 +162,8 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
               Text(
                 'Your ticket for ${ticket.eventTitle} is confirmed via Stripe!',
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 13, color: AppColors.comicBlack, height: 1.4),
+                style: const TextStyle(
+                    fontSize: 13, color: AppColors.comicBlack, height: 1.4),
               ),
               const SizedBox(height: 14),
               Container(
@@ -213,10 +178,15 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Booking ID:', style: TextStyle(fontSize: 11, color: AppColors.comicGray)),
+                        const Text('Booking ID:',
+                            style: TextStyle(
+                                fontSize: 11, color: AppColors.comicGray)),
                         Text(
                           ticket.ticketId,
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.comicRed),
+                          style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.comicRed),
                         ),
                       ],
                     ),
@@ -224,10 +194,13 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Pass Tier:', style: TextStyle(fontSize: 11, color: AppColors.comicGray)),
+                        const Text('Pass Tier:',
+                            style: TextStyle(
+                                fontSize: 11, color: AppColors.comicGray)),
                         Text(
                           '${ticket.quantity}x ${ticket.tierTitle}',
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                              fontSize: 11, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -235,33 +208,37 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Total Paid:', style: TextStyle(fontSize: 11, color: AppColors.comicGray)),
+                        const Text('Total Paid:',
+                            style: TextStyle(
+                                fontSize: 11, color: AppColors.comicGray)),
                         Text(
                           '\$${ticket.totalAmount.toStringAsFixed(2)}',
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: AppColors.comicRed),
+                          style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.comicRed),
                         ),
                       ],
                     ),
                     const SizedBox(height: 12),
-                    // Real Live QR Code
-                    TicketQrCodeWidget(
-                      qrData: ticket.qrData,
-                      size: 130,
-                    ),
+                    TicketQrCodeWidget(qrData: ticket.qrData, size: 130),
                     const SizedBox(height: 8),
                     const Text(
-                      'Scan this real QR code at venue check-in',
-                      style: TextStyle(fontSize: 10, color: AppColors.comicGray, fontWeight: FontWeight.w600),
+                      'Scan this QR code at venue check-in',
+                      style: TextStyle(
+                          fontSize: 10,
+                          color: AppColors.comicGray,
+                          fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 14),
-              // View Ticket Template Button
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
-                  icon: const Icon(Iconsax.eye, size: 16, color: AppColors.comicBlack),
+                  icon: const Icon(Iconsax.eye,
+                      size: 16, color: AppColors.comicBlack),
                   label: const Text(
                     'VIEW TICKET PASS TEMPLATE',
                     style: TextStyle(
@@ -272,8 +249,10 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
                     ),
                   ),
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppColors.comicBlack, width: 1.5),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    side: const BorderSide(
+                        color: AppColors.comicBlack, width: 1.5),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                   onPressed: () {
@@ -296,7 +275,7 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
             backgroundColor: AppColors.comicRed,
             icon: Iconsax.tick_circle,
             onPressed: () {
-              Navigator.of(ctx).pop(); // pop dialog
+              Navigator.of(ctx).pop();
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
                   builder: (_) => const TicketHistoryPage(),
@@ -314,13 +293,18 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      backgroundColor:
+          isDark ? AppColors.darkBackground : AppColors.lightBackground,
       appBar: AppBar(
-        backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+        backgroundColor:
+            isDark ? AppColors.darkBackground : AppColors.lightBackground,
         elevation: 0,
         title: const Text(
-          'STRIPE CHECKOUT',
-          style: TextStyle(fontWeight: FontWeight.w900, fontStyle: FontStyle.italic, fontSize: 18),
+          'BUY TICKET',
+          style: TextStyle(
+              fontWeight: FontWeight.w900,
+              fontStyle: FontStyle.italic,
+              fontSize: 18),
         ),
         centerTitle: true,
       ),
@@ -336,7 +320,9 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
                 color: isDark ? AppColors.darkSurface : Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: isDark ? AppColors.darkBorder : AppColors.comicBorderColor,
+                  color: isDark
+                      ? AppColors.darkBorder
+                      : AppColors.comicBorderColor,
                   width: 1.2,
                 ),
               ),
@@ -353,7 +339,8 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
                         width: 72,
                         height: 72,
                         color: AppColors.comicGrayLight,
-                        child: const Icon(Iconsax.calendar, color: AppColors.comicGray),
+                        child: const Icon(Iconsax.calendar,
+                            color: AppColors.comicGray),
                       ),
                     ),
                   ),
@@ -363,20 +350,25 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: AppColors.comicYellow,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             widget.event.category.toUpperCase(),
-                            style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: AppColors.comicBlack),
+                            style: const TextStyle(
+                                fontSize: 8,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.comicBlack),
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           widget.event.title,
-                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w800, fontSize: 14),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -385,7 +377,9 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
                           '${widget.event.cityName} • ${widget.event.venueName}',
                           style: TextStyle(
                             fontSize: 11,
-                            color: isDark ? AppColors.darkTextSecondary : AppColors.comicGray,
+                            color: isDark
+                                ? AppColors.darkTextSecondary
+                                : AppColors.comicGray,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -420,15 +414,23 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
                     color: isDark ? AppColors.darkSurface : Colors.white,
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: isSelected ? AppColors.comicRed : (isDark ? AppColors.darkBorder : AppColors.comicBorderColor),
+                      color: isSelected
+                          ? AppColors.comicRed
+                          : (isDark
+                              ? AppColors.darkBorder
+                              : AppColors.comicBorderColor),
                       width: isSelected ? 2 : 1.2,
                     ),
                   ),
                   child: Row(
                     children: [
                       Icon(
-                        isSelected ? Iconsax.tick_circle : Iconsax.record_circle,
-                        color: isSelected ? AppColors.comicRed : AppColors.comicGray,
+                        isSelected
+                            ? Iconsax.tick_circle
+                            : Iconsax.record_circle,
+                        color: isSelected
+                            ? AppColors.comicRed
+                            : AppColors.comicGray,
                         size: 20,
                       ),
                       const SizedBox(width: 12),
@@ -440,13 +442,18 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
                               children: [
                                 Text(
                                   tier['title'] as String,
-                                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 13),
                                 ),
                                 const SizedBox(width: 8),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
                                   decoration: BoxDecoration(
-                                    color: isSelected ? AppColors.comicRed : AppColors.comicGrayLight,
+                                    color: isSelected
+                                        ? AppColors.comicRed
+                                        : AppColors.comicGrayLight,
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
@@ -454,7 +461,9 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
                                     style: TextStyle(
                                       fontSize: 8,
                                       fontWeight: FontWeight.bold,
-                                      color: isSelected ? Colors.white : AppColors.comicBlack,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : AppColors.comicBlack,
                                     ),
                                   ),
                                 ),
@@ -465,7 +474,9 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
                               tier['desc'] as String,
                               style: TextStyle(
                                 fontSize: 11,
-                                color: isDark ? AppColors.darkTextSecondary : AppColors.comicGray,
+                                color: isDark
+                                    ? AppColors.darkTextSecondary
+                                    : AppColors.comicGray,
                               ),
                             ),
                           ],
@@ -473,7 +484,8 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
                       ),
                       Text(
                         '\$${(tier['price'] as double).toStringAsFixed(0)}',
-                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w900, fontSize: 16),
                       ),
                     ],
                   ),
@@ -485,142 +497,43 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
 
             // Quantity Stepper
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: isDark ? AppColors.darkSurface : Colors.white,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: isDark ? AppColors.darkBorder : AppColors.comicBorderColor,
+                  color:
+                      isDark ? AppColors.darkBorder : AppColors.comicBorderColor,
                   width: 1.2,
                 ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Number of Tickets', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                  const Text('Number of Tickets',
+                      style:
+                          TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
                   Row(
                     children: [
                       IconButton(
                         icon: const Icon(Iconsax.minus_cirlce, size: 22),
-                        onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
+                        onPressed: _quantity > 1
+                            ? () => setState(() => _quantity--)
+                            : null,
                       ),
                       Text(
                         '$_quantity',
-                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w900, fontSize: 16),
                       ),
                       IconButton(
-                        icon: const Icon(Iconsax.add_circle, size: 22, color: AppColors.comicRed),
-                        onPressed: _quantity < 10 ? () => setState(() => _quantity++) : null,
+                        icon: const Icon(Iconsax.add_circle,
+                            size: 22, color: AppColors.comicRed),
+                        onPressed: _quantity < 10
+                            ? () => setState(() => _quantity++)
+                            : null,
                       ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Stripe Payment Section
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'STRIPE SECURE PAYMENT',
-                  style: AppTextStyles.comicSectionHeader.copyWith(
-                    fontSize: 14,
-                    color: isDark ? Colors.white : AppColors.comicBlack,
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF635BFF), // Stripe signature purple
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Text(
-                    'stripe',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 11,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.darkSurface : Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: isDark ? AppColors.darkBorder : AppColors.comicBorderColor,
-                  width: 1.2,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Card Information', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _cardNumberController,
-                    decoration: InputDecoration(
-                      prefixIcon: const Icon(Iconsax.card, color: AppColors.comicRed),
-                      suffixIcon: const Padding(
-                        padding: EdgeInsets.all(10),
-                        child: Text('VISA', style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF1A1F71))),
-                      ),
-                      hintText: 'Card Number',
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _expiryController,
-                          decoration: InputDecoration(
-                            hintText: 'MM/YY',
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: TextField(
-                          controller: _cvcController,
-                          decoration: InputDecoration(
-                            hintText: 'CVC',
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      hintText: 'Cardholder Name',
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  const Row(
-                    children: [
-                      Icon(Iconsax.lock, size: 14, color: AppColors.success),
-                      SizedBox(width: 6),
-                      Text('256-bit SSL encrypted • Stripe Certified Gateway',
-                          style: TextStyle(fontSize: 10, color: AppColors.comicGray)),
                     ],
                   ),
                 ],
@@ -644,27 +557,36 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Tickets Subtotal ($_quantity x \$${_unitPrice.toStringAsFixed(0)})',
+                      Text(
+                          'Tickets ($_quantity x \$${_unitPrice.toStringAsFixed(0)})',
                           style: const TextStyle(fontSize: 12)),
-                      Text('\$${_subtotal.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w700)),
+                      Text('\$${_subtotal.toStringAsFixed(2)}',
+                          style: const TextStyle(fontWeight: FontWeight.w700)),
                     ],
                   ),
                   const SizedBox(height: 6),
                   const Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Stripe Processing Fee', style: TextStyle(fontSize: 12)),
-                      Text('\$3.50', style: TextStyle(fontWeight: FontWeight.w700)),
+                      Text('Stripe Processing Fee',
+                          style: TextStyle(fontSize: 12)),
+                      Text('\$3.50',
+                          style: TextStyle(fontWeight: FontWeight.w700)),
                     ],
                   ),
                   const Divider(height: 18),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Total Amount', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+                      const Text('Total Amount',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w900, fontSize: 14)),
                       Text(
                         '\$${_total.toStringAsFixed(2)}',
-                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: AppColors.comicRed),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 18,
+                            color: AppColors.comicRed),
                       ),
                     ],
                   ),
@@ -672,19 +594,78 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
-            // Pay Button
+            // Stripe info box
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkSurface : const Color(0xFFF7F7FF),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFF635BFF).withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF635BFF),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      'stripe',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: Text(
+                      'Tap the button below to open Stripe\'s secure payment sheet. Your card details never touch our servers.',
+                      style: TextStyle(fontSize: 11, height: 1.4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Pay Button — opens Stripe Payment Sheet
             SkewedButton(
               text: _isProcessing
-                  ? 'PROCESSING PAYMENT...'
+                  ? 'OPENING STRIPE...'
                   : 'PAY \$${_total.toStringAsFixed(2)} VIA STRIPE',
               icon: _isProcessing ? null : Iconsax.lock,
               height: 54,
               fontSize: 14,
               backgroundColor: AppColors.comicRed,
-              onPressed: _isProcessing ? null : _processStripePayment,
+              onPressed: _isProcessing ? null : _launchStripePayment,
             ),
+
+            const SizedBox(height: 8),
+            const Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Iconsax.lock, size: 13, color: AppColors.success),
+                  SizedBox(width: 5),
+                  Text(
+                    '256-bit SSL • PCI-DSS Compliant via Stripe',
+                    style: TextStyle(
+                        fontSize: 10,
+                        color: AppColors.comicGray,
+                        fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
+            ),
+
             const SizedBox(height: 40),
           ],
         ),
@@ -692,4 +673,3 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
     );
   }
 }
-

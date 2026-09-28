@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../../../../core/widgets/skewed_button.dart';
@@ -13,6 +14,8 @@ import '../../../fandom_hub/presentation/bloc/fandom_hub_bloc.dart';
 import '../../../fandom_hub/presentation/bloc/fandom_hub_state.dart';
 import '../../../events/presentation/bloc/event_bloc.dart';
 import '../../../events/presentation/bloc/event_state.dart';
+import '../../../community/presentation/bloc/community_bloc.dart';
+import '../../../community/presentation/bloc/community_state.dart';
 
 class OfflineContentPage extends StatefulWidget {
   const OfflineContentPage({super.key});
@@ -28,7 +31,7 @@ class _OfflineContentPageState extends State<OfflineContentPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     // Reload profile stats when entering this page
     final userId = context.read<AuthBloc>().currentUser?.id;
     if (userId != null && userId.isNotEmpty) {
@@ -66,6 +69,7 @@ class _OfflineContentPageState extends State<OfflineContentPage>
             Tab(icon: Icon(Iconsax.book, size: 18), text: 'Articles'),
             Tab(icon: Icon(Iconsax.calendar_2, size: 18), text: 'Events'),
             Tab(icon: Icon(Iconsax.book_1, size: 18), text: 'Glossary'),
+            Tab(icon: Icon(Iconsax.profile_circle, size: 18), text: 'Stars'),
           ],
         ),
       ),
@@ -152,6 +156,7 @@ class _OfflineContentPageState extends State<OfflineContentPage>
                 _ArticlesOfflineTab(isDark: isDark),
                 _EventsOfflineTab(isDark: isDark),
                 _GlossaryOfflineTab(isDark: isDark),
+                _StarsOfflineTab(isDark: isDark),
               ],
             ),
           ),
@@ -280,12 +285,19 @@ class _ArticlesOfflineTab extends StatelessWidget {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(10),
-                      child: Image.network(
-                        post.imageUrl,
+                      child: CachedNetworkImage(
+                        imageUrl: post.imageUrl,
                         width: 66,
                         height: 66,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
+                        placeholder: (_, __) => Container(
+                          width: 66,
+                          height: 66,
+                          color: AppColors.comicGrayLight,
+                          child: const Icon(Iconsax.book,
+                              color: AppColors.comicGray),
+                        ),
+                        errorWidget: (_, __, ___) => Container(
                           width: 66,
                           height: 66,
                           color: AppColors.comicGrayLight,
@@ -427,12 +439,19 @@ class _EventsOfflineTab extends StatelessWidget {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(10),
-                      child: Image.network(
-                        event.bannerUrl,
+                      child: CachedNetworkImage(
+                        imageUrl: event.bannerUrl,
                         width: 66,
                         height: 66,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
+                        placeholder: (_, __) => Container(
+                          width: 66,
+                          height: 66,
+                          color: AppColors.comicGrayLight,
+                          child: const Icon(Iconsax.calendar_2,
+                              color: AppColors.comicGray),
+                        ),
+                        errorWidget: (_, __, ___) => Container(
                           width: 66,
                           height: 66,
                           color: AppColors.comicGrayLight,
@@ -635,6 +654,155 @@ class _GlossaryOfflineTab extends StatelessWidget {
                     ],
                   ),
                 ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+// ── Stars Offline Tab ──────────────────────────────────────────────────────
+class _StarsOfflineTab extends StatelessWidget {
+  final bool isDark;
+  const _StarsOfflineTab({required this.isDark});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<CommunityBloc, CommunityState>(
+      builder: (context, state) {
+        if (state is! CommunityLoaded) {
+          return const Center(
+              child: CircularProgressIndicator(color: AppColors.comicRed));
+        }
+
+        final stars = state.starProfiles;
+
+        if (stars.isEmpty) {
+          return _EmptyOffline(
+            icon: Iconsax.profile_circle,
+            title: 'No Star Profiles Cached',
+            subtitle:
+                'Visit Community → Stars Directory to cache star profiles offline.',
+            isDark: isDark,
+          );
+        }
+
+        return ListView.separated(
+          padding: const EdgeInsets.all(16),
+          itemCount: stars.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 10),
+          itemBuilder: (context, i) {
+            final star = stars[i];
+            return GestureDetector(
+              onTap: () =>
+                  Navigator.of(context).pushNamed('/star-detail', arguments: star),
+              child: GlassContainer(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(28),
+                      child: CachedNetworkImage(
+                        imageUrl: star.avatarUrl,
+                        width: 56,
+                        height: 56,
+                        fit: BoxFit.cover,
+                        placeholder: (_, __) => Container(
+                          width: 56,
+                          height: 56,
+                          color: AppColors.comicGrayLight,
+                          child: const Icon(Iconsax.profile_circle,
+                              color: AppColors.comicGray),
+                        ),
+                        errorWidget: (_, __, ___) => Container(
+                          width: 56,
+                          height: 56,
+                          color: AppColors.comicGrayLight,
+                          child: const Icon(Iconsax.profile_circle,
+                              color: AppColors.comicGray),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: AppColors.darkSecondary
+                                      .withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  star.category.toUpperCase(),
+                                  style: const TextStyle(
+                                      color: AppColors.darkSecondary,
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.w900),
+                                ),
+                              ),
+                              if (star.isBookmarked) ...[
+                                const SizedBox(width: 6),
+                                const Icon(Iconsax.bookmark,
+                                    size: 12,
+                                    color: AppColors.comicYellow),
+                              ],
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            star.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                              color: isDark
+                                  ? Colors.white
+                                  : AppColors.comicBlack,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            star.role,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: isDark
+                                  ? AppColors.darkTextSecondary
+                                  : AppColors.comicGray,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(Iconsax.wifi_square,
+                                  size: 9, color: AppColors.success),
+                              const SizedBox(width: 3),
+                              const Text(
+                                'OFFLINE',
+                                style: TextStyle(
+                                    color: AppColors.success,
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Iconsax.arrow_right_3,
+                        size: 14, color: Colors.grey),
+                  ],
+                ),
               ),
             );
           },

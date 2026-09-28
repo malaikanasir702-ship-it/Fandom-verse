@@ -114,9 +114,8 @@ class _SplashPageState extends State<SplashPage>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    // Pure solid white in light mode, pure solid black in dark mode (Zero Gradients, Zero Glows)
-    final bgColor = isDark ? Colors.black : Colors.white;
+    // Always black background matching the FANDOM VERSE brand logo
+    const bgColor = Colors.black;
 
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) => _handleAuthState(state),
@@ -135,71 +134,28 @@ class _SplashPageState extends State<SplashPage>
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Center Emblem Logo (Clean, No Glow, No Gradient, No Ripple)
+                          // ── FANDOM VERSE wordmark logo ──────────────────
                           Image.asset(
-                            'assets/images/app_logo.png',
-                            width: 160,
-                            height: 160,
+                            'assets/images/splash_logo.png',
+                            width: 280,
                             fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) => Container(
-                              width: 160,
-                              height: 160,
-                              alignment: Alignment.center,
-                              child: Text(
-                                'FV',
-                                style: TextStyle(
-                                  fontSize: 72,
-                                  fontWeight: FontWeight.w900,
-                                  fontStyle: FontStyle.italic,
-                                  color: isDark ? Colors.white : AppColors.comicBlack,
-                                ),
-                              ),
-                            ),
+                            errorBuilder: (_, __, ___) {
+                              // Fallback: draw the logo in code if image missing
+                              return _FandomVerseFallbackLogo();
+                            },
                           ),
-                          const SizedBox(height: 24),
 
-                          // Title
-                          Text(
-                            AppConstants.appName.toUpperCase(),
-                            style: AppTextStyles.displayMedium.copyWith(
-                              letterSpacing: 2.0,
-                              fontWeight: FontWeight.w900,
-                              color: isDark ? Colors.white : AppColors.comicBlack,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 48),
 
-                          // Subtitle Badge
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: AppColors.comicRed,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              AppConstants.appSubtitle.toUpperCase(),
-                              style: const TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 1.2,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 36),
-
-                          // Animated loading pill (Solid, Zero Glow, Zero Gradient)
+                          // Animated loading pill
                           SizedBox(
                             width: 130,
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(6),
-                              child: LinearProgressIndicator(
+                              child: const LinearProgressIndicator(
                                 minHeight: 3.5,
-                                backgroundColor: isDark
-                                    ? const Color(0xFF2E313D)
-                                    : const Color(0xFFE5E7EB),
-                                valueColor: const AlwaysStoppedAnimation<Color>(
+                                backgroundColor: Color(0xFF2E313D),
+                                valueColor: AlwaysStoppedAnimation<Color>(
                                     AppColors.comicRed),
                               ),
                             ),
@@ -221,9 +177,7 @@ class _SplashPageState extends State<SplashPage>
                 child: Text(
                   'v${AppConstants.appVersion} • Fandom Verse Pocket Edition',
                   style: AppTextStyles.bodySmall.copyWith(
-                    color: isDark
-                        ? AppColors.darkTextSecondary
-                        : AppColors.lightTextSecondary,
+                    color: AppColors.darkTextSecondary,
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                   ),
@@ -238,3 +192,52 @@ class _SplashPageState extends State<SplashPage>
 }
 
 
+
+/// Fallback: renders the FANDOM VERSE logo purely in Flutter widgets.
+/// Used when splash_logo.png is not yet placed in assets/images/.
+class _FandomVerseFallbackLogo extends StatelessWidget {
+  const _FandomVerseFallbackLogo();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // ── "FANDOM" in red-bordered speech-bubble box ─────────────
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.comicRed, width: 3),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(4),
+              topRight: Radius.circular(4),
+              bottomLeft: Radius.circular(4),
+            ),
+          ),
+          child: const Text(
+            'FANDOM',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 52,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 4,
+              height: 1.0,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        // ── "VERSE" spaced below ─────────────────────────────────
+        const Text(
+          'V E R S E',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 28,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 10,
+            height: 1.0,
+          ),
+        ),
+      ],
+    );
+  }
+}

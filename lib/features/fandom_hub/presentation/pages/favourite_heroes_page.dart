@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../../../../core/widgets/comic_ui_widgets.dart';
+import '../../../../core/widgets/skewed_button.dart';
 import '../../../../core/database/sqlite_helper.dart';
 import '../../domain/entities/hero_story.dart';
 import 'hero_story_viewer_page.dart';
@@ -274,23 +275,13 @@ class _FavouriteHeroesPageState extends State<FavouriteHeroesPage> {
                       const SizedBox(height: 20),
 
                       // Action Button to View Stories
-                      ElevatedButton.icon(
-                        icon: const Icon(Iconsax.play_circle, color: Colors.black, size: 20),
-                        label: const Text(
-                          'WATCH HERO STORIES',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.8,
-                            fontSize: 12,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: hero.ringColor,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                          elevation: 4,
-                        ),
+                      SkewedButton(
+                        text: 'WATCH HERO STORIES',
+                        icon: Iconsax.play_circle,
+                        height: 50,
+                        fontSize: 12,
+                        backgroundColor: hero.ringColor,
+                        textColor: Colors.black,
                         onPressed: () {
                           Navigator.of(ctx).pop();
                           _openStoryForHero(hero);
@@ -618,7 +609,13 @@ class _FavouriteHeroesPageState extends State<FavouriteHeroesPage> {
                               ),
                             ),
                             const SizedBox(height: 16),
-                            ElevatedButton(
+                            SkewedButton(
+                              text: 'Reset Filters',
+                              icon: Iconsax.refresh,
+                              height: 44,
+                              fontSize: 13,
+                              backgroundColor: AppColors.comicYellow,
+                              textColor: Colors.black,
                               onPressed: () {
                                 _searchController.clear();
                                 setState(() {
@@ -627,12 +624,6 @@ class _FavouriteHeroesPageState extends State<FavouriteHeroesPage> {
                                   _favoritesOnly = false;
                                 });
                               },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.comicYellow,
-                                foregroundColor: Colors.black,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                              ),
-                              child: const Text('Reset Filters', style: TextStyle(fontWeight: FontWeight.w800)),
                             ),
                           ],
                         ),
@@ -824,47 +815,16 @@ class _FavouriteHeroesPageState extends State<FavouriteHeroesPage> {
                                           ),
 
                                           // View Story button
-                                          InkWell(
-                                            onTap: () =>
+                                          SkewedButton(
+                                            text: 'VIEW STORY',
+                                            icon: Iconsax.play,
+                                            height: 34,
+                                            fontSize: 10,
+                                            backgroundColor: hero.ringColor,
+                                            textColor: Colors.white,
+                                            skewAngle: 0.10,
+                                            onPressed: () =>
                                                 _openStoryForHero(hero),
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                            child: Container(
-                                              width: double.infinity,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      vertical: 6),
-                                              decoration: BoxDecoration(
-                                                color: hero.ringColor
-                                                    .withValues(alpha: 0.15),
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                border: Border.all(
-                                                    color: hero.ringColor
-                                                        .withValues(
-                                                            alpha: 0.4)),
-                                              ),
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Icon(Iconsax.play,
-                                                      size: 12,
-                                                      color: hero.ringColor),
-                                                  const SizedBox(width: 4),
-                                                  Text(
-                                                    'VIEW STORY',
-                                                    style: TextStyle(
-                                                      color: hero.ringColor,
-                                                      fontSize: 10,
-                                                      fontWeight:
-                                                          FontWeight.w900,
-                                                      letterSpacing: 0.5,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
                                           ),
                                         ],
                                       ),

@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'core/config/stripe_config.dart';
 import 'core/di/service_locator.dart';
 import 'core/routes/app_router.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/fcm_service.dart';
+import 'core/services/hero_story_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/bloc/theme_bloc.dart';
 import 'core/theme/bloc/theme_state.dart';
@@ -44,6 +46,14 @@ void main() async {
 
   await initDependencies();
 
+  // Load .env file with Stripe keys
+  try {
+    await dotenv.load(fileName: '.env');
+    debugPrint('[main] ✅ .env loaded');
+  } catch (e) {
+    debugPrint('[main] ⚠️ .env not found: $e');
+  }
+
   // Stripe SDK initialization — must happen before runApp
   try {
     Stripe.publishableKey = StripeConfig.publishableKey;
@@ -58,6 +68,7 @@ void main() async {
 
   WidgetsBinding.instance.addPostFrameCallback((_) {
     FCMService.initialize().catchError((_) {});
+    HeroStoryService.instance.getHeroStories().catchError((_) => <Map<String, dynamic>>[]);
   });
 
   runApp(const FandomVerseApp());
@@ -92,7 +103,7 @@ class FandomVerseAppState extends State<FandomVerseApp> {
       child: BlocBuilder<ThemeBloc, ThemeState>(
         builder: (context, themeState) {
           return MaterialApp(
-            title: 'Fandom Verse Pocket Edition',
+            title: 'FandomVerse',
             debugShowCheckedModeBanner: false,
             color: const Color(0xFF0A0A1A),
             theme: AppTheme.lightTheme,

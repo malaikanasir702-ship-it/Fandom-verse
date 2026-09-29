@@ -1,36 +1,17 @@
-import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+/// Stripe configuration loaded from .env file.
+/// Keys are never committed to git — only .env.example is committed.
 class StripeConfig {
   StripeConfig._();
 
-  static const String _defaultPkB64 =
-      'cGtfdGVzdF81MVVLTXlNUlhNTElVQXlsME5za2hMN3FjaVU5WURMeEVlUHlLTlRuQlJ6cFJORFNVQUhzTDN5Z2ZXZm5hVFlOSmY5aHVJSTI3VXRrdkowUmYxUlpQek4xaU8wMFhLSExCOG9P';
+  /// Stripe Publishable Key — loaded from .env at runtime
+  static String get publishableKey =>
+      dotenv.env['STRIPE_PUBLISHABLE_KEY'] ?? '';
 
-  static const String _defaultSkB64 =
-      'c2tfdGVzdF81MVVLTXlNUlhNTElVQXlsMGV5MHd6MmFTQzZUMGFQQ2V4ZWE2SHJkUjcwUVNqd2FwVjc3aGtYZjFTU1hWQVk1SXFwcEhaSDZGWWdDaExiY0NiRm9FbzlkcTAwaUxsUndIVzM=';
-
-  /// Stripe Publishable Key
-  static String publishableKey = _decodeKey(_defaultPkB64);
-
-  /// Stripe Secret Key
-  static String secretKey = _decodeKey(_defaultSkB64);
-
-  static String _decodeKey(String b64) {
-    try {
-      return utf8.decode(base64.decode(b64));
-    } catch (_) {
-      return '';
-    }
-  }
-
-  /// Set or override the Stripe keys dynamically at runtime
-  static void configure({
-    required String publishableKey,
-    required String secretKey,
-  }) {
-    StripeConfig.publishableKey = publishableKey;
-    StripeConfig.secretKey = secretKey;
-  }
+  /// Stripe Secret Key — loaded from .env at runtime
+  static String get secretKey =>
+      dotenv.env['STRIPE_SECRET_KEY'] ?? '';
 
   /// Whether valid keys are configured
   static bool get isConfigured =>

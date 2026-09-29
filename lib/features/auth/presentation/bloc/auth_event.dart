@@ -1,3 +1,5 @@
+import '../../domain/entities/user_entity.dart';
+
 abstract class AuthEvent {
   const AuthEvent();
 }
@@ -64,4 +66,10 @@ class UpdateUserProfileEvent extends AuthEvent {
 class GoogleSignInEvent extends AuthEvent {
   const GoogleSignInEvent();
 }
+
+class UserSuspendedEvent extends AuthEvent {
+  final UserEntity user;
+  const UserSuspendedEvent(this.user);
+}
+
 

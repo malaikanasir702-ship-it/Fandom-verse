@@ -1,10 +1,13 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/db_constants.dart';
+import '../../../../core/database/sqlite_helper.dart';
 import '../../../../core/repositories/i_cart_repository.dart';
 import '../../../../core/repositories/cart_repository_impl.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../domain/entities/cart_item_entity.dart';
 import '../../domain/entities/order_invoice_entity.dart';
 import '../../../store/domain/entities/product_entity.dart';
+import '../../../../features/profile/domain/entities/app_notification_entity.dart';
 import 'cart_event.dart';
 import 'cart_state.dart';
 
@@ -194,6 +197,33 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       );
 
       await _repository.createOrder(invoice.toDbMap());
+
+      // ── Notify user: order confirmation push + inbox entry ──
+      final itemNames = items.map((i) => i.product.name).take(2).join(', ');
+      final bodyText = items.length > 2
+          ? '$itemNames & ${items.length - 2} more — \$${total.toStringAsFixed(2)}'
+          : '$itemNames — \$${total.toStringAsFixed(2)}';
+
+      // Local push notification
+      await NotificationService.showOrderConfirmation(
+        orderId: orderId,
+        total: total,
+      );
+
+      // Persist to notification inbox (SQLite)
+      final notif = AppNotificationEntity(
+        id: 'order-$orderId',
+        title: '🛍️ Order Confirmed! #$orderId',
+        body: bodyText,
+        type: 'store',
+        targetRoute: '/order-history',
+        iconName: 'shopping_bag',
+        colorHex: '#FF9100',
+        isRead: false,
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+      );
+      await SqliteHelper.instance.saveNotification(notif);
+      await NotificationService.refreshUnreadCount();
 
       // Reset coupon
       _activeCoupon = '';

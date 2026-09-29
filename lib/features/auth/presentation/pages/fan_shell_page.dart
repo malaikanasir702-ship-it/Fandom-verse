@@ -1,8 +1,15 @@
+import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lottie/lottie.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/services/firebase_service.dart';
+import '../../../../core/services/suspension_appeal_service.dart';
 import '../bloc/auth_bloc.dart';
+import '../bloc/auth_event.dart';
+import '../bloc/auth_state.dart';
 import '../../../fandom_hub/presentation/pages/fan_feed_page.dart';
 import '../../../fandom_hub/presentation/pages/fandom_lore_hub_page.dart';
 import '../../../events/presentation/pages/events_calendar_page.dart';
@@ -25,6 +32,9 @@ class FanShellPage extends StatefulWidget {
 
 class _FanShellPageState extends State<FanShellPage> {
   int _currentIndex = 0;
+  StreamSubscription? _firestoreSub;
+  Timer? _pollTimer;
+  bool _isChatbotVisible = true;
 
   // Pill nav height + bottom padding — pages use this to avoid content overlap
   static const double _navBarHeight = 64;
@@ -50,10 +60,50 @@ class _FanShellPageState extends State<FanShellPage> {
   @override
   void initState() {
     super.initState();
-    final fandoms = context.read<AuthBloc>().currentUser?.selectedFandoms;
+    final authBloc = context.read<AuthBloc>();
+    final user = authBloc.currentUser;
+    final fandoms = user?.selectedFandoms;
     context.read<FandomHubBloc>().add(LoadFandomHubContentEvent(selectedFandoms: fandoms));
     context.read<EventCalendarBloc>().add(const LoadAllEventsEvent());
     context.read<CommunityBloc>().add(const LoadDiscussionThreadsEvent());
+
+    // ── Real-Time Suspension Watcher ──
+    if (user != null) {
+      if (FirebaseService.isInitialized) {
+        try {
+          _firestoreSub = FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.id)
+              .snapshots()
+              .listen((doc) {
+            if (doc.exists && doc.data() != null) {
+              final status = (doc.data()!['status'] ?? 'active').toString().toLowerCase();
+              if (status == 'banned' || status == 'suspended') {
+                debugPrint('🚨 [FanShellPage] Live Firestore suspension detected for ${user.email}!');
+                authBloc.add(UserSuspendedEvent(user.copyWith(status: 'banned')));
+              }
+            }
+          }, onError: (_) {});
+        } catch (_) {}
+      }
+
+      // Fallback periodic poll to detect suspension in SQLite or Firestore queries
+      _pollTimer = Timer.periodic(const Duration(seconds: 3), (_) async {
+        if (!mounted) return;
+        final isBanned = await SuspensionAppealService.instance.isUserBanned(user.id, email: user.email);
+        if (isBanned && mounted) {
+          debugPrint('🚨 [FanShellPage] Polling suspension detected for ${user.email}!');
+          authBloc.add(UserSuspendedEvent(user.copyWith(status: 'banned')));
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _firestoreSub?.cancel();
+    _pollTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -61,41 +111,99 @@ class _FanShellPageState extends State<FanShellPage> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bottomInset = MediaQuery.of(context).padding.bottom;
 
-    return Scaffold(
-      // No bottomNavigationBar — we float it over content
-      extendBody: true,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages.map((page) {
-          // Wrap each page so its ListView/content has bottom padding
-          // equal to nav height, preventing content from hiding under the pill.
-          return MediaQuery(
-            data: MediaQuery.of(context).copyWith(
-              padding: MediaQuery.of(context).padding.copyWith(
-                bottom: _totalNavSpace + bottomInset,
-              ),
-            ),
-            child: page,
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthSuspended) {
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            '/account-suspended',
+            (route) => false,
+            arguments: state.user,
           );
-        }).toList(),
-      ),
+        }
+      },
+      child: Scaffold(
+        // No bottomNavigationBar — we float it over content
+        extendBody: true,
+        body: Stack(
+          children: [
+            IndexedStack(
+              index: _currentIndex,
+              children: _pages.map((page) {
+                return MediaQuery(
+                  data: MediaQuery.of(context).copyWith(
+                    padding: MediaQuery.of(context).padding.copyWith(
+                      bottom: _totalNavSpace + bottomInset,
+                    ),
+                  ),
+                  child: page,
+                );
+              }).toList(),
+            ),
 
-      // Floating pill nav bar
-      bottomNavigationBar: Padding(
-        padding: EdgeInsets.only(
-          left: 20,
-          right: 20,
-          bottom: _navBottomPadding + bottomInset,
+            // ── Floating Chatbot SVG Button ──
+            if (_isChatbotVisible)
+              Positioned(
+                right: 24,
+                bottom: _navBarHeight + _navBottomPadding + bottomInset + 12,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Chatbot Lottie — tap to open AI Assistant
+                    GestureDetector(
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        Navigator.of(context).pushNamed('/ai-assistant');
+                      },
+                      child: const _ChatbotFloatingWidget(),
+                    ),
+
+                    // ✕ close button — top-right of the sticker
+                    Positioned(
+                      top: -6,
+                      right: -6,
+                      child: GestureDetector(
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                          setState(() => _isChatbotVisible = false);
+                        },
+                        child: Container(
+                          width: 18,
+                          height: 18,
+                          decoration: const BoxDecoration(
+                            color: Colors.black87,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.close,
+                            size: 12,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
         ),
-        child: _PillNavBar(
-          currentIndex: _currentIndex,
-          items: _navItems,
-          isDark: isDark,
-          height: _navBarHeight,
-          onTap: (i) {
-            HapticFeedback.lightImpact();
-            setState(() => _currentIndex = i);
-          },
+
+        // Floating pill nav bar
+        bottomNavigationBar: Padding(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            bottom: _navBottomPadding + bottomInset,
+          ),
+          child: _PillNavBar(
+            currentIndex: _currentIndex,
+            items: _navItems,
+            isDark: isDark,
+            height: _navBarHeight,
+            onTap: (i) {
+              HapticFeedback.lightImpact();
+              setState(() => _currentIndex = i);
+            },
+          ),
         ),
       ),
     );
@@ -229,4 +337,21 @@ class _NavItem {
   final IconData icon;
   final String label;
   const _NavItem({required this.icon, required this.label});
+}
+
+// ── Animated Lottie Chatbot Widget ──────────────────────────────────────────
+class _ChatbotFloatingWidget extends StatelessWidget {
+  const _ChatbotFloatingWidget();
+
+  @override
+  Widget build(BuildContext context) {
+    return Lottie.asset(
+      'assets/images/chatbot.lottie',
+      width: 80,
+      height: 80,
+      fit: BoxFit.contain,
+      repeat: true,
+      animate: true,
+    );
+  }
 }

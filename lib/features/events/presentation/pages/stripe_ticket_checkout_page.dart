@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/database/sqlite_helper.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/stripe_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/widgets/skewed_button.dart';
+import '../../../../features/profile/domain/entities/app_notification_entity.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/event_entity.dart';
 import '../../domain/entities/ticket_entity.dart';
@@ -124,6 +126,27 @@ class _StripeTicketCheckoutPageState extends State<StripeTicketCheckoutPage> {
     );
 
     await SqliteHelper.instance.insertTicket(newTicket);
+
+    // ── Notify user: ticket purchase push + inbox entry ──
+    await NotificationService.showEventReminder(
+      eventTitle: widget.event.title,
+      daysLeft: 'soon',
+    );
+
+    final ticketNotif = AppNotificationEntity(
+      id: 'ticket-${newTicket.ticketId}',
+      title: '🎟️ Ticket Confirmed!',
+      body:
+          '${_quantity}x ${tierTitle} for ${widget.event.title} — \$${_total.toStringAsFixed(2)} paid via Stripe.',
+      type: 'ticket',
+      targetRoute: '/ticket-history',
+      iconName: 'ticket',
+      colorHex: '#E53935',
+      isRead: false,
+      createdAt: DateTime.now().millisecondsSinceEpoch,
+    );
+    await SqliteHelper.instance.saveNotification(ticketNotif);
+    await NotificationService.refreshUnreadCount();
 
     if (!mounted) return;
     _showTicketSuccessDialog(newTicket);

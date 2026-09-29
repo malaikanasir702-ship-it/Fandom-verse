@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
+import '../../../../core/services/firebase_service.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/database/sqlite_helper.dart';
 import '../../domain/entities/app_notification_entity.dart';
@@ -18,12 +21,20 @@ class _NotificationsPageState extends State<NotificationsPage> {
   List<AppNotificationEntity> _notifications = [];
   bool _isLoading = true;
   String _selectedFilter = 'All'; // 'All', 'Unread', 'Tickets', 'Events'
+  StreamSubscription<QuerySnapshot>? _broadcastSubscription;
 
   @override
   void initState() {
     super.initState();
     _loadNotifications();
     _setupFCMListener();
+    _setupBroadcastListener();
+  }
+
+  @override
+  void dispose() {
+    _broadcastSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadNotifications() async {
@@ -63,6 +74,67 @@ class _NotificationsPageState extends State<NotificationsPage> {
         }
       }
     });
+  }
+
+  /// Listen to Firestore 'broadcasts' collection for admin-sent notifications.
+  /// New documents trigger a local inbox entry + local push.
+  void _setupBroadcastListener() {
+    if (!FirebaseService.isInitialized) return;
+    try {
+      // Only listen to broadcasts from the last 24 hours to avoid loading history
+      final since = DateTime.now()
+          .subtract(const Duration(hours: 24))
+          .millisecondsSinceEpoch;
+
+      _broadcastSubscription = FirebaseFirestore.instance
+          .collection('broadcasts')
+          .where('created_at_ms', isGreaterThan: since)
+          .orderBy('created_at_ms', descending: true)
+          .snapshots()
+          .listen((snapshot) async {
+        for (final change in snapshot.docChanges) {
+          if (change.type == DocumentChangeType.added) {
+            final data = change.doc.data();
+            if (data == null) continue;
+
+            final broadcastId = data['broadcast_id'] as String? ?? change.doc.id;
+
+            // Check if already saved to avoid duplicates
+            final existing = await SqliteHelper.instance.getNotifications();
+            final alreadySaved = existing.any((n) => n.id == broadcastId);
+            if (alreadySaved) continue;
+
+            final notif = AppNotificationEntity(
+              id: broadcastId,
+              title: (data['title'] ?? 'New Announcement').toString(),
+              body: (data['body'] ?? '').toString(),
+              type: (data['type'] ?? 'general').toString(),
+              targetRoute: data['target_route'] as String?,
+              iconName: (data['icon_name'] ?? 'bell').toString(),
+              colorHex: (data['color_hex'] ?? '#E53935').toString(),
+              isRead: false,
+              createdAt: data['created_at_ms'] is int
+                  ? data['created_at_ms'] as int
+                  : DateTime.now().millisecondsSinceEpoch,
+            );
+
+            await SqliteHelper.instance.saveNotification(notif);
+
+            // Show local push banner
+            await NotificationService.showTestNotification(
+              title: notif.title,
+              body: notif.body,
+              iconName: notif.iconName,
+              colorHex: notif.colorHex,
+            );
+
+            if (mounted) _loadNotifications();
+          }
+        }
+      });
+    } catch (e) {
+      debugPrint('[NotificationsPage] Broadcast listener error: $e');
+    }
   }
 
   Future<void> _markAllRead() async {

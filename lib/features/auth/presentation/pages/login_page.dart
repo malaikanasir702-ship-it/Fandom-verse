@@ -162,6 +162,8 @@ class _LoginPageState extends State<LoginPage> {
           }
         } else if (state is AdminAuthenticated) {
           Navigator.of(context).pushReplacementNamed('/admin-dashboard');
+        } else if (state is AuthSuspended) {
+          Navigator.of(context).pushNamed('/account-suspended', arguments: state.user);
         } else if (state is AuthFailure) {
           AppSnackbar.show(
             context,

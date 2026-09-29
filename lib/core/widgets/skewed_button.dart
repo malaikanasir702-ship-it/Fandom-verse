@@ -10,6 +10,7 @@ class SkewedButton extends StatefulWidget {
   final Color textColor;
   final double skewAngle;
   final double height;
+  final double? width;
   final double fontSize;
   final IconData? icon;
   /// Optional custom leading widget (e.g. Google logo painter, Apple icon)
@@ -25,6 +26,7 @@ class SkewedButton extends StatefulWidget {
     this.textColor = Colors.white,
     this.skewAngle = 0.18,
     this.height = 46,
+    this.width,
     this.fontSize = 13,
     this.icon,
     this.leadingWidget,
@@ -81,6 +83,51 @@ class _SkewedButtonState extends State<SkewedButton>
         ? const Color(0xFF8B0000)
         : widget.backgroundColor.withValues(alpha: 0.6);
 
+    final content = widget.isLoading
+        ? SizedBox(
+            width: widget.height * 0.44,
+            height: widget.height * 0.44,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.5,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                widget.textColor.withValues(alpha: 0.9),
+              ),
+            ),
+          )
+        : Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (widget.leadingWidget != null) ...[
+                widget.leadingWidget!,
+                const SizedBox(width: 6),
+              ] else if (widget.icon != null) ...[
+                Icon(
+                  widget.icon,
+                  size: widget.fontSize < 12 ? 13 : 14,
+                  color: widget.textColor,
+                ),
+                const SizedBox(width: 4),
+              ],
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    widget.text.toUpperCase(),
+                    maxLines: 1,
+                    style: TextStyle(
+                      color: widget.textColor,
+                      fontSize: widget.fontSize,
+                      fontWeight: FontWeight.w900,
+                      fontStyle: FontStyle.italic,
+                      letterSpacing: widget.fontSize < 12 ? 0.3 : 0.6,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+
     return AnimatedBuilder(
       animation: _scaleAnim,
       builder: (context, child) {
@@ -94,27 +141,25 @@ class _SkewedButtonState extends State<SkewedButton>
         onTapUp: (widget.onPressed != null && !widget.isLoading) ? _onTapUp : null,
         onTapCancel: (widget.onPressed != null && !widget.isLoading) ? _onTapCancel : null,
         child: SizedBox(
+          width: widget.width,
           height: widget.height,
           child: Stack(
+            fit: widget.width != null ? StackFit.expand : StackFit.loose,
             children: [
-              // ── 3D depth shadow layer ──────────────────────────────
-              Positioned(
-                left: 4,
-                top: 4,
-                right: 0,
-                bottom: 0,
-                child: ClipPath(
-                  clipper: _SkewClipper(skew: widget.skewAngle),
-                  child: Container(color: shadowColor),
+              // ── 3D depth shadow layer (positioned behind) ───────────
+              Positioned.fill(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 4, top: 4),
+                  child: ClipPath(
+                    clipper: _SkewClipper(skew: widget.skewAngle),
+                    child: Container(color: shadowColor),
+                  ),
                 ),
               ),
 
-              // ── Main button face ───────────────────────────────────
-              Positioned(
-                left: 0,
-                top: 0,
-                right: 4,
-                bottom: 4,
+              // ── Main button face (non-positioned: determines natural size!) ──
+              Padding(
+                padding: const EdgeInsets.only(right: 4, bottom: 4),
                 child: ClipPath(
                   clipper: _SkewClipper(skew: widget.skewAngle),
                   child: Material(
@@ -125,57 +170,13 @@ class _SkewedButtonState extends State<SkewedButton>
                       splashColor: Colors.white.withValues(alpha: 0.15),
                       highlightColor: Colors.white.withValues(alpha: 0.08),
                       onTap: null, // handled by GestureDetector
-                        child: Center(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: widget.fontSize < 12 ? 6 : 10,
-                          ),
-                          child: widget.isLoading
-                              ? SizedBox(
-                                  width: widget.height * 0.44,
-                                  height: widget.height * 0.44,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      widget.textColor.withValues(alpha: 0.9),
-                                    ),
-                                  ),
-                                )
-                              : Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    // Custom leading widget (e.g. Google logo)
-                                    if (widget.leadingWidget != null) ...[
-                                      widget.leadingWidget!,
-                                      const SizedBox(width: 6),
-                                    ] else if (widget.icon != null) ...[
-                                      Icon(
-                                        widget.icon,
-                                        size: widget.fontSize < 12 ? 13 : 14,
-                                        color: widget.textColor,
-                                      ),
-                                      const SizedBox(width: 4),
-                                    ],
-                                    Flexible(
-                                      child: FittedBox(
-                                        fit: BoxFit.scaleDown,
-                                        child: Text(
-                                          widget.text.toUpperCase(),
-                                          maxLines: 1,
-                                          style: TextStyle(
-                                            color: widget.textColor,
-                                            fontSize: widget.fontSize,
-                                            fontWeight: FontWeight.w900,
-                                            fontStyle: FontStyle.italic,
-                                            letterSpacing: widget.fontSize < 12 ? 0.3 : 0.6,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                      child: Container(
+                        height: widget.height - 4,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: widget.fontSize < 12 ? 10 : 14,
                         ),
+                        alignment: Alignment.center,
+                        child: content,
                       ),
                     ),
                   ),

@@ -9,6 +9,7 @@ import '../bloc/admin_event.dart';
 import '../bloc/admin_state.dart';
 import '../widgets/admin_modals.dart';
 import 'admin_product_edit_page.dart';
+import '../../../../core/widgets/skewed_button.dart';
 
 class AdminProductsPage extends StatefulWidget {
   final bool isEmbedded;
@@ -56,17 +57,28 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
                 onPressed: () => Navigator.of(context).pop(),
               ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.success,
-        icon: const Icon(Iconsax.shopping_cart, color: Colors.white),
-        label: const Text('New Product', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => const AdminProductEditPage(),
-            ),
-          );
-        },
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: SizedBox(
+          width: 200,
+          height: 48,
+          child: SkewedButton(
+            text: '+ New Product',
+            backgroundColor: AppColors.success,
+            textColor: Colors.white,
+            icon: Icons.add,
+            height: 48,
+            fontSize: 13,
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const AdminProductEditPage(),
+                ),
+              );
+            },
+          ),
+        ),
       ),
       body: BlocBuilder<AdminBloc, AdminState>(
         builder: (context, state) {
@@ -131,7 +143,7 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
                         ),
                       )
                     : ListView.separated(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
                         itemCount: filtered.length,
                         separatorBuilder: (_, __) => const SizedBox(height: 10),
                         itemBuilder: (context, index) {

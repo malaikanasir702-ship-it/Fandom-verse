@@ -97,7 +97,12 @@ class _EventsContent extends StatelessWidget {
         body: state.filteredEvents.isEmpty
             ? const Center(child: Text('No events found for this city.'))
             : ListView.separated(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  16,
+                  16,
+                  16 + MediaQuery.of(context).padding.bottom,
+                ),
                 itemCount: state.filteredEvents.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 14),
                 itemBuilder: (context, i) {

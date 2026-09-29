@@ -37,3 +37,11 @@ class SetupInProgress extends AuthState {
   final UserEntity user;
   const SetupInProgress(this.user);
 }
+
+/// Emitted when an account is suspended or banned by an administrator.
+class AuthSuspended extends AuthState {
+  final UserEntity user;
+  final String banReason;
+  const AuthSuspended({required this.user, this.banReason = 'Violation of Community Guidelines'});
+}
+

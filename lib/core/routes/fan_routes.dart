@@ -10,10 +10,13 @@ import '../../features/auth/presentation/pages/admin_login_page.dart';
 import '../../features/auth/presentation/pages/interest_setup_page.dart';
 import '../../features/auth/presentation/pages/badge_setup_page.dart';
 import '../../features/auth/presentation/pages/fan_shell_page.dart';
+import '../../features/auth/presentation/pages/account_suspended_page.dart';
+import '../../features/auth/domain/entities/user_entity.dart';
 
 // Fandom Hub Pages
 import '../../features/fandom_hub/presentation/pages/fan_feed_page.dart';
 import '../../features/fandom_hub/presentation/pages/fandom_lore_hub_page.dart';
+import '../../features/fandom_hub/presentation/pages/all_comics_page.dart';
 import '../../features/fandom_hub/presentation/pages/bookmarks_page.dart';
 import '../../features/fandom_hub/presentation/pages/news_detail_page.dart';
 import '../../features/fandom_hub/presentation/pages/search_explore_page.dart';
@@ -91,6 +94,10 @@ class FanRoutes {
       case '/badge-setup':
         return MaterialPageRoute(builder: (_) => const BadgeSetupPage());
 
+      case '/account-suspended':
+        final user = settings.arguments as UserEntity?;
+        return MaterialPageRoute(builder: (_) => AccountSuspendedPage(user: user));
+
       case '/fan-home':
       case '/fan-shell':
         return MaterialPageRoute(builder: (_) => const FanShellPage());
@@ -100,6 +107,9 @@ class FanRoutes {
 
       case '/lore-hub':
         return MaterialPageRoute(builder: (_) => const FandomLoreHubPage());
+
+      case '/all-comics':
+        return MaterialPageRoute(builder: (_) => const AllComicsPage());
 
       case '/bookmarks':
         return MaterialPageRoute(builder: (_) => const BookmarksPage());
@@ -160,6 +170,14 @@ class FanRoutes {
         return MaterialPageRoute(builder: (_) => const StarsDirectoryPage());
 
       case '/star-detail':
+        if (settings.arguments is! StarProfile) {
+          return MaterialPageRoute(
+            builder: (_) => Scaffold(
+              appBar: AppBar(title: const Text('Star Profile')),
+              body: const Center(child: Text('Profile not found')),
+            ),
+          );
+        }
         final star = settings.arguments as StarProfile;
         return MaterialPageRoute(builder: (_) => StarDetailPage(star: star));
 

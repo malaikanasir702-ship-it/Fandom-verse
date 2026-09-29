@@ -8,7 +8,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/comic_ui_widgets.dart';
 import '../../../../core/widgets/skewed_button.dart';
 import '../../../../core/widgets/skeleton_loader.dart';
-import '../../../../core/database/sqlite_helper.dart';
+import '../../../../core/services/hero_story_service.dart';
 import '../bloc/fandom_hub_bloc.dart';
 import '../bloc/fandom_hub_state.dart';
 import '../../domain/entities/fandom_post.dart';
@@ -18,6 +18,7 @@ import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../community/presentation/widgets/filter_badge_chip.dart';
 import '../bloc/fandom_hub_event.dart';
 import '../widgets/hero_story_ring.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'hero_story_viewer_page.dart';
 import '../../../../core/widgets/app_user_avatar.dart';
 import '../../../../core/services/notification_service.dart';
@@ -102,7 +103,7 @@ class _FanFeedContentState extends State<_FanFeedContent> {
 
   Future<void> _loadHeroStories() async {
     try {
-      final rows = await SqliteHelper.instance.getHeroStories();
+      final rows = await HeroStoryService.instance.getHeroStories();
       final stories = rows.map((r) => HeroStory.fromMap(r)).toList();
       if (mounted) {
         setState(() {
@@ -160,28 +161,11 @@ class _FanFeedContentState extends State<_FanFeedContent> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Comic Brand Title
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'POCKET EDITION',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1.5,
-                            color: isDark ? AppColors.comicYellow : AppColors.comicRed,
-                          ),
-                        ),
-                        Text(
-                          'FANDOM VERSE',
-                          style: AppTextStyles.comicSectionHeader.copyWith(
-                            fontSize: 22,
-                            color: isDark ? Colors.white : AppColors.comicBlack,
-                          ),
-                        ),
-                      ],
+                    // SVG Horizontal Brand Logo
+                    SvgPicture.asset(
+                      'assets/images/fandomverse-horizontal.svg',
+                      height: 32,
+                      fit: BoxFit.contain,
                     ),
                     // Action Icons: Search, Notifications & Profile
                     Row(
@@ -323,17 +307,34 @@ class _FanFeedContentState extends State<_FanFeedContent> {
                           ),
                         ),
                       )
-                    : ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        itemCount: _stories.length,
-                        itemBuilder: (context, index) {
-                          return HeroStoryRing(
-                            story: _stories[index],
-                            onTap: () => _openStory(index),
-                          );
-                        },
-                      ),
+                    : _stories.isEmpty
+                        ? Center(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Iconsax.star_1, size: 16, color: AppColors.comicYellow),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Tap "See All" to discover heroes & lore',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: isDark ? AppColors.darkTextSecondary : Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            itemCount: _stories.length,
+                            itemBuilder: (context, index) {
+                              return HeroStoryRing(
+                                story: _stories[index],
+                                onTap: () => _openStory(index),
+                              );
+                            },
+                          ),
               ),
 
               const SizedBox(height: 16),
@@ -342,7 +343,7 @@ class _FanFeedContentState extends State<_FanFeedContent> {
               ComicSectionHeader(
                 title: 'TOP RATED COMICS',
                 actionColor: AppColors.comicYellow,
-                onActionTap: () => Navigator.of(context).pushNamed('/multimedia'),
+                onActionTap: () => Navigator.of(context).pushNamed('/all-comics'),
               ),
               const SizedBox(height: 8),
               SizedBox(
@@ -391,10 +392,10 @@ class _FanFeedContentState extends State<_FanFeedContent> {
                 child: Row(
                   children: [
                     _SolidQuickChip(
-                      icon: Iconsax.book,
-                      label: 'Beginner Hub',
+                      icon: Iconsax.video_play,
+                      label: 'Media Hub',
                       color: AppColors.comicRed,
-                      onTap: () => Navigator.of(context).pushNamed('/beginner-hub'),
+                      onTap: () => Navigator.of(context).pushNamed('/multimedia'),
                     ),
                     const SizedBox(width: 10),
                     _SolidQuickChip(
@@ -405,13 +406,6 @@ class _FanFeedContentState extends State<_FanFeedContent> {
                     ),
                     const SizedBox(width: 10),
                     _SolidQuickChip(
-                      icon: Iconsax.radar,
-                      label: 'Event Radar',
-                      color: AppColors.heroBlue,
-                      onTap: () => Navigator.of(context).pushNamed('/events-map'),
-                    ),
-                    const SizedBox(width: 10),
-                    _SolidQuickChip(
                       icon: Iconsax.lamp_on,
                       label: 'AI Assistant',
                       color: AppColors.heroGreen,
@@ -419,10 +413,24 @@ class _FanFeedContentState extends State<_FanFeedContent> {
                     ),
                     const SizedBox(width: 10),
                     _SolidQuickChip(
+                      icon: Iconsax.radar,
+                      label: 'Event Radar',
+                      color: AppColors.heroBlue,
+                      onTap: () => Navigator.of(context).pushNamed('/events-map'),
+                    ),
+                    const SizedBox(width: 10),
+                    _SolidQuickChip(
                       icon: Iconsax.shop,
                       label: 'Merch Store',
                       color: AppColors.heroPurple,
                       onTap: () => Navigator.of(context).pushNamed('/store'),
+                    ),
+                    const SizedBox(width: 10),
+                    _SolidQuickChip(
+                      icon: Iconsax.book,
+                      label: 'Beginner Hub',
+                      color: AppColors.comicRed,
+                      onTap: () => Navigator.of(context).pushNamed('/beginner-hub'),
                     ),
                   ],
                 ),
@@ -434,7 +442,7 @@ class _FanFeedContentState extends State<_FanFeedContent> {
               ComicSectionHeader(
                 title: 'LATEST LORE & ISSUES',
                 actionColor: AppColors.comicYellow,
-                onActionTap: () => Navigator.of(context).pushNamed('/multimedia'),
+                onActionTap: () => Navigator.of(context).pushNamed('/lore-hub'),
               ),
               const SizedBox(height: 8),
 

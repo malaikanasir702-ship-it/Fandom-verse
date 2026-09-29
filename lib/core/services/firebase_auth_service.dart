@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -435,11 +436,12 @@ class FirebaseAuthService {
     }
 
     try {
+      // Store as JSON so UserEntity.fromMap can parse it correctly on next login
       await SqliteHelper.instance.update(
         DbConstants.tableUsers,
         'user_id',
         uid,
-        {'selected_fandoms': fandoms.toString()},
+        {'selected_fandoms': jsonEncode(fandoms)},
       );
     } catch (_) {}
   }

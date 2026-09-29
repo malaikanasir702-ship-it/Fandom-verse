@@ -140,28 +140,32 @@ class BadgesAchievementsPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Level $level — ${authUser?.name ?? 'Fan'} Explorer',
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.w800, fontSize: 16),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '$xpInLevel / 1000 XP to Level ${level + 1}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: isDark
-                                    ? AppColors.darkTextSecondary
-                                    : AppColors.lightTextSecondary,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Level $level — ${authUser?.name ?? 'Fan'} Explorer',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w800, fontSize: 16),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 2),
+                              Text(
+                                '$xpInLevel / 1000 XP to Level ${level + 1}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDark
+                                      ? AppColors.darkTextSecondary
+                                      : AppColors.lightTextSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
+                        const SizedBox(width: 8),
                         GlowingBadge(
                           label: 'Tier $level',
                           color: AppColors.comicYellow,

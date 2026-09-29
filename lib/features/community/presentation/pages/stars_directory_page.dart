@@ -109,25 +109,30 @@ class _StarsDirectoryPageState extends State<StarsDirectoryPage> {
                 children: [
                   ClipRRect(
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                    child: CachedNetworkImage(
-                      imageUrl: star.avatarUrl,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      height: double.infinity,
-                      placeholder: (_, __) => Container(
-                        color: AppColors.darkSurfaceElevated,
-                        child: const Center(
-                          child: CircularProgressIndicator(
-                            color: AppColors.comicRed,
-                            strokeWidth: 2,
+                    child: (star.avatarUrl.trim().isNotEmpty && (star.avatarUrl.startsWith('http://') || star.avatarUrl.startsWith('https://')))
+                        ? CachedNetworkImage(
+                            imageUrl: star.avatarUrl.trim(),
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
+                            placeholder: (_, __) => Container(
+                              color: isDark ? AppColors.darkSurfaceElevated : AppColors.comicGrayLight,
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  color: AppColors.comicRed,
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            ),
+                            errorWidget: (_, __, ___) => Container(
+                              color: isDark ? AppColors.darkSurfaceElevated : AppColors.comicGrayLight,
+                              child: const Icon(Iconsax.profile_circle, size: 48),
+                            ),
+                          )
+                        : Container(
+                            color: isDark ? AppColors.darkSurfaceElevated : AppColors.comicGrayLight,
+                            child: const Center(child: Icon(Iconsax.profile_circle, size: 48, color: Colors.grey)),
                           ),
-                        ),
-                      ),
-                      errorWidget: (_, __, ___) => Container(
-                        color: AppColors.darkSurfaceElevated,
-                        child: const Icon(Iconsax.profile_circle, size: 48),
-                      ),
-                    ),
                   ),
                   Positioned(
                     top: 8,

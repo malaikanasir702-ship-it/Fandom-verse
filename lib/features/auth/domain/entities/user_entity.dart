@@ -38,12 +38,19 @@ class UserEntity extends Equatable {
       if (value == null) return [];
       if (value is List) return value.map((e) => e.toString()).toList();
       if (value is String && value.isNotEmpty) {
+        // Try JSON array first: ["Anime & Manga", "Gaming & Esports"]
         try {
           final decoded = jsonDecode(value);
           if (decoded is List) return decoded.map((e) => e.toString()).toList();
-        } catch (_) {
-          return [value];
+        } catch (_) {}
+        // Try Dart List.toString() format: [Anime & Manga, Gaming & Esports]
+        if (value.startsWith('[') && value.endsWith(']')) {
+          final inner = value.substring(1, value.length - 1).trim();
+          if (inner.isEmpty) return [];
+          return inner.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
         }
+        // Single value string
+        return [value];
       }
       return [];
     }

@@ -88,7 +88,7 @@ class _AdminMultimediaPageState extends State<AdminMultimediaPage> {
               setState(() {});
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Syncing multimedia with Cloudinary & Firestore...'),
+                  content: Text('Syncing multimedia...'),
                   duration: Duration(seconds: 1),
                   backgroundColor: AppColors.comicRed,
                 ),
@@ -252,7 +252,7 @@ class _AdminMultimediaPageState extends State<AdminMultimediaPage> {
                         const Icon(Iconsax.cloud, size: 14, color: AppColors.comicRed),
                         const SizedBox(width: 4),
                         const Text(
-                          'Cloudinary CDN Hosted',
+                          '☁ Cloud Hosted',
                           style: TextStyle(color: AppColors.comicRed, fontSize: 11, fontWeight: FontWeight.bold),
                         ),
                       ],
@@ -509,7 +509,7 @@ class _AdminMultimediaPageState extends State<AdminMultimediaPage> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      isCloudinary ? 'Cloudinary CDN' : 'Web URL',
+                      isCloudinary ? '☁ Cloud Hosted' : 'Web URL',
                       style: TextStyle(
                         color: isCloudinary ? AppColors.comicRed : const Color(0xFF6B7280),
                         fontSize: 10,

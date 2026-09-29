@@ -4,9 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
-import '../../../../core/widgets/comic_ui_widgets.dart';
 import '../../../../core/widgets/skewed_button.dart';
-import '../../../../core/database/sqlite_helper.dart';
+import '../../../../core/services/hero_story_service.dart';
 import '../../domain/entities/hero_story.dart';
 import 'hero_story_viewer_page.dart';
 
@@ -46,7 +45,7 @@ class _FavouriteHeroesPageState extends State<FavouriteHeroesPage> {
       final savedFavs = prefs.getStringList(_favPrefsKey) ?? ['story-spiderman', 'story-batman'];
       _favoriteHeroIds.addAll(savedFavs);
 
-      final rows = await SqliteHelper.instance.getHeroStories();
+      final rows = await HeroStoryService.instance.getHeroStories();
       final heroes = rows.map((r) => HeroStory.fromMap(r)).toList();
 
       if (mounted) {

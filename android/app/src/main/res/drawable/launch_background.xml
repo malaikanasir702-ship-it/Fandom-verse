@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Native Android launch screen — shown before Flutter engine starts -->
+<!-- Native Android launch screen — plain dark background only, no logo -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Black background matching FANDOM VERSE logo -->
     <item android:drawable="@color/splash_background" />
 </layer-list>

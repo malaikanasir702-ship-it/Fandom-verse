@@ -157,7 +157,7 @@ class _InAppVideoPlayerModalState extends State<InAppVideoPlayerModal> {
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
-    final maxHeight = mediaQuery.size.height * 0.88;
+    final maxHeight = mediaQuery.size.height * 0.88 - mediaQuery.padding.bottom;
 
     return Container(
       constraints: BoxConstraints(maxHeight: maxHeight),
@@ -167,9 +167,12 @@ class _InAppVideoPlayerModalState extends State<InAppVideoPlayerModal> {
       ),
       child: SafeArea(
         top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        bottom: false,
+        child: SingleChildScrollView(
+          physics: const NeverScrollableScrollPhysics(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Handle bar
             Center(
@@ -392,7 +395,7 @@ class _InAppVideoPlayerModalState extends State<InAppVideoPlayerModal> {
 
             // Video Details Footer
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 6, 16, 20),
+              padding: EdgeInsets.fromLTRB(16, 6, 16, 16 + mediaQuery.padding.bottom),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -429,6 +432,7 @@ class _InAppVideoPlayerModalState extends State<InAppVideoPlayerModal> {
             ),
           ],
         ),
+        ), // SingleChildScrollView
       ),
     );
   }

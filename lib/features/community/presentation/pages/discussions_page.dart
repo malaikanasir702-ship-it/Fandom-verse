@@ -21,7 +21,7 @@ class DiscussionsPage extends StatelessWidget {
           return Scaffold(
             appBar: AppBar(title: const Text('Community', style: TextStyle(fontWeight: FontWeight.w800))),
             body: ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
               itemCount: 5,
               itemBuilder: (_, __) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
@@ -36,7 +36,7 @@ class DiscussionsPage extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(title: const Text('Community', style: TextStyle(fontWeight: FontWeight.w800))),
           body: ListView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
             itemCount: 5,
             itemBuilder: (_, __) => Padding(
               padding: const EdgeInsets.only(bottom: 12),
@@ -116,7 +116,12 @@ class _DiscussionsContent extends StatelessWidget {
           // Threads
           Expanded(
             child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: EdgeInsets.fromLTRB(
+                16,
+                8,
+                16,
+                8 + MediaQuery.of(context).padding.bottom,
+              ),
               itemCount: state.filteredThreads.length,
               separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (context, i) {

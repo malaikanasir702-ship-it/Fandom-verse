@@ -59,11 +59,7 @@ class SqliteHelper {
     // await _db!.execute(DatabaseTables.createNotificationsTable);  // Already created in migrations
     // await _db!.execute(DatabaseTables.createAdvancedLoreTable);  // Already created in migrations
     // await _db!.execute(DatabaseTables.createBehindScenesTable);  // Already created in migrations
-    // await _db!.execute(DatabaseTables.createInterviewsTable);  // Already created in migrations
-    // await _db!.execute(DatabaseTables.createDeepDiveTriviaTable);  // Already created in migrations
-    // await _seedHeroStoriesIfEmpty(_db!);  // Temporarily disabled for faster startup
-    // await _seedNotificationsIfEmpty(_db!);  // Temporarily disabled for faster startup
-    // await _seedDeepDiveIfEmpty(_db!);  // Temporarily disabled for faster startup
+    await _db!.execute(DatabaseTables.createSuspensionAppealsTable);
 
     // One-time purge: remove seeded/fake notifications (ids notif-1..notif-5)
     // Real notifications are only generated at runtime (ticket purchase, RSVP, etc.)
@@ -899,10 +895,18 @@ class SqliteHelper {
 
   Future<List<Map<String, dynamic>>> getHeroStories() async {
     await initDatabase();
-    return _database.query(
+    final rows = await _database.query(
       DbConstants.tableHeroStories,
       orderBy: 'created_at ASC',
     );
+    if (rows.isEmpty) {
+      await _seedHeroStoriesIfEmpty(_database);
+      return _database.query(
+        DbConstants.tableHeroStories,
+        orderBy: 'created_at ASC',
+      );
+    }
+    return rows;
   }
 
   Future<void> saveHeroStory(Map<String, dynamic> storyMap) async {

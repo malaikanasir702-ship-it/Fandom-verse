@@ -63,6 +63,15 @@ class _AdminStoriesPageState extends State<AdminStoriesPage> {
           icon: const Icon(Iconsax.arrow_left, color: AppColors.adminLightTextPrimary, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Iconsax.refresh, color: AppColors.adminLightTextPrimary, size: 20),
+            tooltip: 'Refresh from Firestore',
+            onPressed: () {
+              context.read<AdminBloc>().add(const LoadAdminDashboardStatsEvent());
+            },
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.comicRed,
@@ -162,25 +171,39 @@ class _AdminStoriesPageState extends State<AdminStoriesPage> {
 
               // Stories List
               Expanded(
-                child: filtered.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    context.read<AdminBloc>().add(const LoadAdminDashboardStatsEvent());
+                    await Future.delayed(const Duration(milliseconds: 600));
+                  },
+                  child: filtered.isEmpty
+                      ? ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
                           children: [
-                            Icon(Iconsax.story, size: 48, color: Colors.grey.shade400),
-                            const SizedBox(height: 12),
-                            Text(
-                              query.isEmpty ? 'No hero stories registered yet' : 'No heroes match your search',
-                              style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                            SizedBox(
+                              height: MediaQuery.of(context).size.height * 0.4,
+                              child: Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Iconsax.story, size: 48, color: Colors.grey.shade400),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      query.isEmpty ? 'No hero stories registered yet' : 'No heroes match your search',
+                                      style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ],
-                        ),
-                      )
-                    : ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
-                        itemCount: filtered.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
+                        )
+                      : ListView.separated(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
+                          itemCount: filtered.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: 12),
+                          itemBuilder: (context, index) {
                           final story = filtered[index];
                           final ringColor = _parseHex(story['ring_color_hex']);
                           final heroName = (story['hero_name'] ?? 'Unnamed Hero').toString();
@@ -397,6 +420,7 @@ class _AdminStoriesPageState extends State<AdminStoriesPage> {
                           );
                         },
                       ),
+                ),
               ),
             ],
           );

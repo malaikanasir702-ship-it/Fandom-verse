@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 
 class StarProfile extends Equatable {
@@ -25,7 +26,7 @@ class StarProfile extends Equatable {
 
   String get avatarUrl => imageUrl;
   String get role => roleTitle;
-  String get knownFor => famousWorks.join(', ');
+  String get knownFor => famousWorks.isNotEmpty ? famousWorks.join(', ') : (roleTitle.isNotEmpty ? roleTitle : category);
   int get followersCount => 12500;
 
   StarProfile copyWith({
@@ -63,6 +64,21 @@ class StarProfile extends Equatable {
       socialHandle: (map['social_handle'] ?? '').toString(),
       famousWorks: const [],
       isBookmarked: (map['is_bookmarked'] as num?)?.toInt() == 1,
+    );
+  }
+
+  factory StarProfile.fromFirestore(DocumentSnapshot doc) {
+    final map = doc.data() as Map<String, dynamic>? ?? {};
+    return StarProfile(
+      id: (map['star_id'] ?? doc.id).toString(),
+      name: (map['name'] ?? '').toString(),
+      category: (map['fandomCategory'] ?? map['fandom_category'] ?? 'General').toString(),
+      roleTitle: (map['roleTitle'] ?? map['role_title'] ?? '').toString(),
+      bio: (map['bio'] ?? '').toString(),
+      imageUrl: (map['imageUrl'] ?? map['image_url'] ?? '').toString(),
+      socialHandle: (map['socialHandle'] ?? map['social_handle'] ?? '').toString(),
+      famousWorks: List<String>.from(map['famousWorks'] ?? []),
+      isBookmarked: (map['isBookmarked'] ?? map['is_bookmarked'] ?? false) == true,
     );
   }
 

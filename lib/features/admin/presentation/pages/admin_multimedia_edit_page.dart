@@ -223,7 +223,7 @@ class _AdminMultimediaEditPageState extends State<AdminMultimediaEditPage> {
   }
 
   Future<void> _pickAndUploadPodcastAudio() async {
-    final result = await FilePicker.pickFiles(
+    final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['mp3', 'aac', 'm4a', 'wav', 'ogg', 'flac'],
     );
@@ -256,7 +256,7 @@ class _AdminMultimediaEditPageState extends State<AdminMultimediaEditPage> {
   }
 
   Future<void> _pickAndUploadVideo() async {
-    final result = await FilePicker.pickFiles(
+    final result = await FilePicker.platform.pickFiles(
       type: FileType.video,
     );
     if (result == null || result.files.single.path == null) return;

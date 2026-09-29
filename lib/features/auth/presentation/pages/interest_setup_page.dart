@@ -19,7 +19,22 @@ class InterestSetupPage extends StatefulWidget {
 }
 
 class _InterestSetupPageState extends State<InterestSetupPage> {
-  final Set<String> _selectedFandoms = {'Anime & Manga', 'Gaming & Esports'};
+  late Set<String> _selectedFandoms;
+  bool _initialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      // Pre-populate from the user's already-saved interests
+      final currentUser = context.read<AuthBloc>().currentUser;
+      final saved = currentUser?.selectedFandoms ?? [];
+      _selectedFandoms = saved.isNotEmpty
+          ? Set<String>.from(saved)
+          : {'Anime & Manga', 'Gaming & Esports'};
+      _initialized = true;
+    }
+  }
 
   // ── Category image assets — save these PNGs to assets/images/ ──
   // Images are placed with BlendMode.screen to remove black backgrounds.
@@ -311,9 +326,6 @@ class _CategoryImage extends StatelessWidget {
     return Image.asset(
       imagePath,
       fit: BoxFit.cover,
-      // Screen blend: white * image = image (unchanged), black * image = 0 (transparent)
-      color: Colors.white,
-      colorBlendMode: BlendMode.screen,
       errorBuilder: (_, __, ___) {
         // Fallback if PNG not yet added to assets/images/
         return Container(

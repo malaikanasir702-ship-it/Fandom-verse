@@ -170,7 +170,7 @@ class _BeginnerHubTab extends StatelessWidget {
         : (currentUser?.likedFandoms ?? <String>[]);
 
     return ListView.separated(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.of(context).padding.bottom),
       itemCount: _guides.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, i) {
@@ -221,21 +221,6 @@ class _BeginnerHubTab extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              FandomLikeButton(
-                categoryId: catId,
-                isLiked: isLiked,
-                onToggle: () {
-                  if (userId.isNotEmpty) {
-                    context.read<ProfileBloc>().add(
-                          ToggleLikeFandomEvent(
-                            userId: userId,
-                            categoryId: catId,
-                          ),
-                        );
-                  }
-                },
-              ),
-              const SizedBox(width: 6),
               Icon(Iconsax.arrow_right_3, size: 16, color: color),
             ],
           ),
@@ -264,7 +249,7 @@ class _GlossaryTabState extends State<_GlossaryTab> {
       builder: (context, state) {
         if (state is! FandomHubLoaded) {
           return ListView.builder(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.of(context).padding.bottom),
             itemCount: 6,
             itemBuilder: (_, __) => const Padding(
               padding: EdgeInsets.only(bottom: 10),
@@ -303,8 +288,12 @@ class _GlossaryTabState extends State<_GlossaryTab> {
             ),
             Expanded(
               child: ListView.separated(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  8,
+                  20,
+                  8 + MediaQuery.of(context).padding.bottom,
+                ),
                 itemCount: terms.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 10),
                 itemBuilder: (context, i) {
@@ -442,7 +431,7 @@ class _MediaTab extends StatelessWidget {
       builder: (context, state) {
         if (state is! FandomHubLoaded) {
           return GridView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               crossAxisSpacing: 10,
@@ -458,7 +447,7 @@ class _MediaTab extends StatelessWidget {
           );
         }
         return ListView(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.of(context).padding.bottom),
           children: [
             Row(
               children: [
@@ -580,7 +569,7 @@ class _DeepDiveTabState extends State<_DeepDiveTab> {
             context.read<FandomHubBloc>().add(const LoadInterviewsEvent());
           },
           child: ListView(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.of(context).padding.bottom),
             physics: const AlwaysScrollableScrollPhysics(),
             children: [
               // ── Section 1: Deep Dive Trivia ──

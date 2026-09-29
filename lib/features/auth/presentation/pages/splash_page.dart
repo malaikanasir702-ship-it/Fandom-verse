@@ -51,7 +51,7 @@ class _SplashPageState extends State<SplashPage>
       if (_hasNavigated || !mounted) return;
       debugPrint('⏱️ [SplashPage] Safety timeout reached, resolving destination.');
       final current = authBloc.state;
-      if (current is FanAuthenticated || current is AdminAuthenticated) {
+      if (current is FanAuthenticated || current is AdminAuthenticated || current is AuthSuspended) {
         _handleAuthState(current);
       } else {
         await _navigateUnauthenticated();
@@ -62,7 +62,7 @@ class _SplashPageState extends State<SplashPage>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_hasNavigated || !mounted) return;
       final currentState = authBloc.state;
-      if (currentState is FanAuthenticated || currentState is AdminAuthenticated) {
+      if (currentState is FanAuthenticated || currentState is AdminAuthenticated || currentState is AuthSuspended) {
         _handleAuthState(currentState);
       }
     });
@@ -104,6 +104,11 @@ class _SplashPageState extends State<SplashPage>
       }
     } else if (state is AdminAuthenticated) {
       _safeNavigate('/admin-dashboard');
+    } else if (state is AuthSuspended) {
+      if (_hasNavigated || !mounted) return;
+      _hasNavigated = true;
+      _fallbackTimer?.cancel();
+      Navigator.of(context).pushReplacementNamed('/account-suspended', arguments: state.user);
     } else if (state is Unauthenticated || state is AuthFailure) {
       Future.delayed(const Duration(milliseconds: 250), () {
         if (!mounted || _hasNavigated) return;
@@ -135,12 +140,11 @@ class _SplashPageState extends State<SplashPage>
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           // ── FANDOM VERSE splash logo ────────────────────
-                          Image.asset(
-                            'assets/images/splash_logo.png',
+                          // Force load with no fallback — splash_logo.png must show
+                          Image(
+                            image: const AssetImage('assets/images/splash_logo.png'),
                             width: 280,
                             fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) =>
-                                const _FandomVerseFallbackLogo(),
                           ),
 
                           const SizedBox(height: 48),
@@ -191,51 +195,89 @@ class _SplashPageState extends State<SplashPage>
 
 
 
-/// Fallback: renders the FANDOM VERSE logo purely in Flutter widgets.
-/// Used when splash_logo.png is not yet placed in assets/images/.
+/// Fallback: renders the exact FANDOM VERSE logo in Flutter widgets.
+/// Matches the splash_logo.png — black bg, red speech-bubble box for FANDOM, white VERSE below.
 class _FandomVerseFallbackLogo extends StatelessWidget {
   const _FandomVerseFallbackLogo();
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // ── "FANDOM" in red-bordered speech-bubble box ─────────────
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-          decoration: BoxDecoration(
-            border: Border.all(color: AppColors.comicRed, width: 3),
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(4),
-              topRight: Radius.circular(4),
-              bottomLeft: Radius.circular(4),
+    return SizedBox(
+      width: 280,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // ── Red speech-bubble with "FANDOM" ──────────────────────
+          CustomPaint(
+            painter: _SpeechBubblePainter(),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+              child: const Text(
+                'FANDOM',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 56,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2,
+                  height: 1.0,
+                ),
+              ),
             ),
           ),
-          child: const Text(
-            'FANDOM',
+          const SizedBox(height: 12),
+          // ── "VERSE" below ────────────────────────────────────────
+          const Text(
+            'V E R S E',
+            textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.white,
-              fontSize: 52,
+              fontSize: 30,
               fontWeight: FontWeight.w900,
-              letterSpacing: 4,
+              letterSpacing: 12,
               height: 1.0,
             ),
           ),
-        ),
-        const SizedBox(height: 8),
-        // ── "VERSE" spaced below ─────────────────────────────────
-        const Text(
-          'V E R S E',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 28,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 10,
-            height: 1.0,
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
+}
+
+class _SpeechBubblePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = const Color(0xFFE51924); // Fandom red
+    const r = 8.0; // corner radius
+    const tail = 14.0; // tail width
+    const tailH = 12.0; // tail height
+
+    final path = Path()
+      // top-left corner
+      ..moveTo(r, 0)
+      ..lineTo(size.width - r, 0)
+      // top-right
+      ..arcToPoint(Offset(size.width, r), radius: const Radius.circular(r))
+      ..lineTo(size.width, size.height - r)
+      // bottom-right
+      ..arcToPoint(Offset(size.width - r, size.height),
+          radius: const Radius.circular(r))
+      // bottom — tail on left side (like speech bubble pointing bottom-left)
+      ..lineTo(tail + r, size.height)
+      ..lineTo(0, size.height + tailH)
+      ..lineTo(0, size.height)
+      ..lineTo(r, size.height)
+      ..arcToPoint(Offset(0, size.height - r),
+          radius: const Radius.circular(r), clockwise: false)
+      ..lineTo(0, r)
+      // top-left
+      ..arcToPoint(Offset(r, 0), radius: const Radius.circular(r))
+      ..close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(_) => false;
 }

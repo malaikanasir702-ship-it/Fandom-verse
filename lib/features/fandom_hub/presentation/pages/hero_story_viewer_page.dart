@@ -79,16 +79,7 @@ class _HeroStoryViewerPageState extends State<HeroStoryViewerPage> {
         url: slide.imageUrl,
         controller: _storyController,
         duration: const Duration(seconds: 5),
-        caption: Text(
-          '${slide.tag}   ${slide.caption}',
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w700,
-            fontSize: 15,
-            height: 1.5,
-            shadows: [Shadow(color: Colors.black87, blurRadius: 10)],
-          ),
-        ),
+        // caption removed — shown in custom overlay to avoid overlap
         imageFit: BoxFit.cover,
         shown: false,
       );
@@ -126,7 +117,7 @@ class _HeroStoryViewerPageState extends State<HeroStoryViewerPage> {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _StoryPageContent extends StatelessWidget {
+class _StoryPageContent extends StatefulWidget {
   final HeroStory hero;
   final List<StoryItem> storyItems;
   final StoryController storyController;
@@ -144,23 +135,32 @@ class _StoryPageContent extends StatelessWidget {
     required this.onDismiss,
   });
 
-  void _showBackstorySheet(BuildContext context) {
-    // Pause the story
-    storyController.pause();
+  @override
+  State<_StoryPageContent> createState() => _StoryPageContentState();
+}
 
+class _StoryPageContentState extends State<_StoryPageContent> {
+  int _slideIdx = 0;
+
+  void _showBackstorySheet(BuildContext context) {
+    widget.storyController.pause();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _HeroBackstorySheet(hero: hero),
+      builder: (_) => _HeroBackstorySheet(hero: widget.hero),
     ).whenComplete(() {
-      // Resume story when sheet is closed
-      storyController.play();
+      widget.storyController.play();
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final hero = widget.hero;
+    final slides = hero.slides;
+    final currentSlide = slides.isNotEmpty && _slideIdx < slides.length
+        ? slides[_slideIdx]
+        : null;
     final hasBackstory = hero.originBackstory.isNotEmpty ||
         hero.lifeHistory.isNotEmpty ||
         hero.powersAndAbilities.isNotEmpty;
@@ -169,14 +169,19 @@ class _StoryPageContent extends StatelessWidget {
       children: [
         // ── StoryView ───────────────────────────────────────────────────────
         StoryView(
-          storyItems: storyItems,
-          controller: storyController,
+          storyItems: widget.storyItems,
+          controller: widget.storyController,
           repeat: false,
-          onComplete: onNextHero,
+          onComplete: widget.onNextHero,
           onVerticalSwipeComplete: (direction) {
-            if (direction == Direction.down) onDismiss();
+            if (direction == Direction.down) widget.onDismiss();
           },
-          onStoryShow: (storyItem, idx) {},
+          onStoryShow: (storyItem, idx) {
+            // Defer setState to avoid calling it during build phase
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) setState(() => _slideIdx = idx);
+            });
+          },
         ),
 
         // ── Top Overlay: Avatar + Hero name + Close ─────────────────────────
@@ -241,7 +246,7 @@ class _StoryPageContent extends StatelessWidget {
                   ),
                 ),
                 GestureDetector(
-                  onTap: onDismiss,
+                  onTap: widget.onDismiss,
                   child: Container(
                     width: 34,
                     height: 34,
@@ -265,52 +270,98 @@ class _StoryPageContent extends StatelessWidget {
           bottom: 100,
           width: 50,
           child: GestureDetector(
-            onTap: onPrevHero,
+            onTap: widget.onPrevHero,
             behavior: HitTestBehavior.translucent,
             child: const SizedBox.expand(),
           ),
         ),
 
-        // ── "Read Origin & Backstory" button ────────────────────────────────
+        // ── Caption text + "Read Origin & Backstory" button ───────────────
         if (hasBackstory)
           Positioned(
-            bottom: 32,
+            bottom: 30,
             left: 16,
             right: 16,
-            child: GestureDetector(
-              onTap: () => _showBackstorySheet(context),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.62),
-                  borderRadius: BorderRadius.circular(30),
-                  border: Border.all(color: hero.ringColor, width: 1.5),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      '📖',
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Read Full Origin & Backstory',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (currentSlide != null) ...[  
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: Text(
+                      currentSlide.tag,
                       style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        shadows: [
-                          Shadow(color: hero.ringColor, blurRadius: 8),
-                        ],
+                        color: hero.ringColor,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 11,
+                        letterSpacing: 1.2,
+                        shadows: const [Shadow(color: Colors.black87, blurRadius: 6)],
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    Icon(Icons.arrow_forward_ios_rounded,
-                        color: hero.ringColor, size: 14),
-                  ],
+                  ),
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 14),
+                    child: Text(
+                      currentSlide.caption,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                        height: 1.4,
+                        shadows: [Shadow(color: Colors.black87, blurRadius: 10)],
+                      ),
+                    ),
+                  ),
+                ],
+                // Skewed "Read Full Story" button — narrower width
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: FractionallySizedBox(
+                    widthFactor: 0.70,
+                    child: GestureDetector(
+                      onTap: () => _showBackstorySheet(context),
+                      child: ClipPath(
+                        clipper: _SkewedClipper(),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 18, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.65),
+                            border: Border.all(color: hero.ringColor, width: 1.5),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text('📖', style: TextStyle(fontSize: 14)),
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: Text(
+                                  'Read Full Story',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    shadows: [
+                                      Shadow(color: hero.ringColor, blurRadius: 8),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Icon(Icons.arrow_forward_ios_rounded,
+                                  color: hero.ringColor, size: 12),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
       ],
@@ -624,4 +675,22 @@ class _ExpandableSection extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Skewed (parallelogram) button shape — matches SkewedButton style
+class _SkewedClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    const skew = 10.0;
+    final path = Path()
+      ..moveTo(skew, 0)
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width - skew, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(_SkewedClipper oldClipper) => false;
 }

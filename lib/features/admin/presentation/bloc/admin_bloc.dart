@@ -1,16 +1,25 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/constants/db_constants.dart';
+import '../../../../core/database/sqlite_helper.dart';
 import '../../../../core/repositories/i_admin_repository.dart';
 import '../../../../core/repositories/admin_repository_impl.dart';
+import '../../../../core/services/firebase_auth_service.dart';
+import '../../../../core/services/firebase_service.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../../../core/utils/password_hasher.dart';
+import '../../../../features/profile/domain/entities/app_notification_entity.dart';
 import 'admin_event.dart';
 import 'admin_state.dart';
 
 class AdminBloc extends Bloc<AdminEvent, AdminState> {
   final IAdminRepository _repository;
+  final FirebaseAuthService _authService;
 
-  AdminBloc({IAdminRepository? repository})
+  AdminBloc({IAdminRepository? repository, FirebaseAuthService? authService})
       : _repository = repository ?? AdminRepositoryImpl(),
+        _authService = authService ?? FirebaseAuthService(),
         super(const AdminInitial()) {
     on<LoadAdminDashboardStatsEvent>(_onLoadDashboard);
     on<CreateOrUpdateArticleEvent>(_onCreateOrUpdateArticle);
@@ -289,8 +298,6 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
   ) async {
     try {
       final user = Map<String, dynamic>.from(event.user);
-      final userId = user['user_id'] as String? ?? 'user_${DateTime.now().millisecondsSinceEpoch}';
-      user['user_id'] = userId;
       user['role'] = user['role'] ?? 'fan';
       user['status'] = user['status'] ?? 'active';
       user['created_at'] = DateTime.now().millisecondsSinceEpoch;
@@ -300,10 +307,38 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
       final plainPassword = (event.password != null && event.password!.trim().isNotEmpty)
           ? event.password!.trim()
           : '123456';
+
+      // ── Step 1: Create Firebase Auth account so user can actually log in ──
+      String firebaseUid = user['user_id'] as String? ?? 'user_${DateTime.now().millisecondsSinceEpoch}';
+      if (FirebaseService.isInitialized) {
+        try {
+          final result = await _authService.signUp(
+            email: (user['email'] as String).trim().toLowerCase(),
+            password: plainPassword,
+            name: (user['name'] as String? ?? '').trim(),
+            role: user['role'] as String,
+          );
+          // Use the Firebase UID so SQLite/Firestore records are consistent
+          firebaseUid = (result['user_id'] ?? result['id'] ?? firebaseUid).toString();
+        } on FirebaseAuthException catch (e) {
+          if (e.code == 'email-already-in-use') {
+            // Account already exists in Firebase Auth — still update local record
+            emit(AdminError('A Firebase account with this email already exists. '
+                'Password was NOT changed — use the edit option to update it.'));
+            return;
+          }
+          rethrow;
+        }
+      }
+
+      user['user_id'] = firebaseUid;
+
+      // ── Step 2: Store hashed password for offline fallback ──
       final salt = PasswordHasher.generateSalt();
       user['password_salt'] = salt;
       user['password_hash'] = PasswordHasher.hashPassword(plainPassword, salt);
 
+      // ── Step 3: Persist to SQLite (Firestore sync handled inside signUp) ──
       await _repository.insert(DbConstants.tableUsers, user);
       await _repository.logAdminAction(
         actionType: 'CREATE',
@@ -325,9 +360,35 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
       final userId = user['user_id'] as String;
 
       if (event.newPassword != null && event.newPassword!.trim().isNotEmpty) {
+        final newPwd = event.newPassword!.trim();
+
+        // ── Step 1: Update Firebase Auth password ──
+        // Admin cannot directly update another user's Firebase Auth password
+        // without Admin SDK (server-side). Best client-side approach:
+        // send a password reset email, OR use a Cloud Function.
+        // Here we send a password reset email so the user can set their new pwd.
+        if (FirebaseService.isInitialized) {
+          try {
+            await _authService.sendPasswordResetEmail(user['email'] as String);
+          } catch (_) {
+            // Non-fatal — still update the local hash below
+          }
+
+          // ── Also attempt direct update if this is the currently signed-in user ──
+          try {
+            final currentUser = FirebaseAuth.instance.currentUser;
+            if (currentUser != null && currentUser.email?.toLowerCase() == (user['email'] as String).toLowerCase()) {
+              await currentUser.updatePassword(newPwd);
+            }
+          } catch (_) {
+            // Not the current user or requires re-auth — skip
+          }
+        }
+
+        // ── Step 2: Update local SQLite hash for offline fallback ──
         final salt = PasswordHasher.generateSalt();
         user['password_salt'] = salt;
-        user['password_hash'] = PasswordHasher.hashPassword(event.newPassword!.trim(), salt);
+        user['password_hash'] = PasswordHasher.hashPassword(newPwd, salt);
       }
 
       await _repository.update(
@@ -430,6 +491,54 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     Emitter<AdminState> emit,
   ) async {
     try {
+      // ── Step 1: Persist broadcast to Firestore 'broadcasts' collection ──
+      // Each user's NotificationsPage FCM listener will pick this up when online.
+      // The NotificationsPage also listens to Firestore for new broadcast docs.
+      final broadcastId = 'broadcast_${DateTime.now().millisecondsSinceEpoch}';
+      final broadcastData = {
+        'broadcast_id': broadcastId,
+        'title': event.title,
+        'body': event.message,
+        'type': 'general',
+        'audience': event.audience,
+        'icon_name': 'bell',
+        'color_hex': '#E53935',
+        'target_route': null,
+        'created_at': FieldValue.serverTimestamp(),
+        'created_at_ms': DateTime.now().millisecondsSinceEpoch,
+        'is_read': false,
+      };
+
+      if (FirebaseService.isInitialized) {
+        await FirebaseFirestore.instance
+            .collection('broadcasts')
+            .doc(broadcastId)
+            .set(broadcastData)
+            .timeout(const Duration(seconds: 8));
+      }
+
+      // ── Step 2: Save to local SQLite so admin device also shows it ──
+      final localNotif = AppNotificationEntity(
+        id: broadcastId,
+        title: event.title,
+        body: event.message,
+        type: 'general',
+        iconName: 'bell',
+        colorHex: '#E53935',
+        isRead: false,
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+      );
+      await SqliteHelper.instance.saveNotification(localNotif);
+      await NotificationService.refreshUnreadCount();
+
+      // ── Step 3: Show local push on admin device too ──
+      await NotificationService.showTestNotification(
+        title: event.title,
+        body: event.message,
+        iconName: 'bell',
+        colorHex: '#E53935',
+      );
+
       await _repository.logAdminAction(
         actionType: 'BROADCAST',
         entityType: 'Push Alert',

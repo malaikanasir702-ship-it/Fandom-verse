@@ -20,7 +20,7 @@ class LocalStorageService {
     final modeStr = _prefs.getString(_keyThemeMode);
     if (modeStr == ThemeMode.light.toString()) return ThemeMode.light;
     if (modeStr == ThemeMode.dark.toString()) return ThemeMode.dark;
-    return ThemeMode.dark; // Default Cyber Fandom Dark
+    return ThemeMode.light; // Default Light Theme
   }
 
   bool getNotificationsEnabled() => _prefs.getBool(_keyNotificationsEnabled) ?? true;

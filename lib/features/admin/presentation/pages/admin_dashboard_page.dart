@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/skewed_button.dart';
@@ -48,7 +49,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       },
       child: Scaffold(
         backgroundColor: const Color(0xFFF8F9FA),
-        extendBody: true,
+        extendBody: false,
         appBar: _activeNavIndex == 0 ? _buildAdminDashboardAppBar(context) : null,
         bottomNavigationBar: Padding(
           padding: EdgeInsets.only(
@@ -79,99 +80,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       surfaceTintColor: Colors.transparent,
       automaticallyImplyLeading: false,
       titleSpacing: 16,
-      title: BlocBuilder<AuthBloc, AuthState>(
-        builder: (context, authState) {
-          final adminName = authState is AdminAuthenticated
-              ? authState.admin.name
-              : 'Fandom Commander';
-          final adminEmail = authState is AdminAuthenticated
-              ? authState.admin.email
-              : 'admin@fandomverse.com';
-
-          return Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(2),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.comicRed, width: 2),
-                ),
-                child: const CircleAvatar(
-                  radius: 17,
-                  backgroundColor: Colors.white,
-                  child: Icon(Iconsax.shield_tick, size: 20, color: AppColors.comicRed),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            adminName,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Color(0xFF111216),
-                              fontSize: 15,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.2,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppColors.comicRed,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: const Text(
-                            'SUPER ADMIN',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 8.5,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.6,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Row(
-                      children: [
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: const BoxDecoration(
-                            color: AppColors.comicRed,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 5),
-                        Flexible(
-                          child: Text(
-                            adminEmail,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Color(0xFF6B7280),
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          );
-        },
+      title: SvgPicture.asset(
+        'assets/images/fandomverse-horizontal.svg',
+        height: 28,
+        fit: BoxFit.contain,
       ),
       actions: [
         IconButton(
@@ -725,6 +637,22 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     ),
                   ),
                   const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildModalActionTile(
+                      label: 'Media Hub',
+                      subtitle: 'Manage fan multimedia',
+                      icon: Iconsax.video_play,
+                      onTap: () {
+                        Navigator.of(sheetCtx).pop();
+                        Navigator.of(ctx).pushNamed('/admin/multimedia');
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
                   Expanded(
                     child: _buildModalActionTile(
                       label: 'Push Alert',

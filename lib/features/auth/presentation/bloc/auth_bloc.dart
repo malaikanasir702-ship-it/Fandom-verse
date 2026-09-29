@@ -24,6 +24,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<UpdateUserProfileEvent>(_onUpdateUserProfile);
     on<LogoutEvent>(_onLogout);
     on<GoogleSignInEvent>(_onGoogleSignIn);
+    on<UserSuspendedEvent>(_onUserSuspended);
   }
 
   UserEntity? get currentUser => _currentUser;
@@ -46,9 +47,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         if (profile != null) {
           _currentUser = UserEntity.fromMap(profile);
           if (_currentUser!.status != 'active') {
+            final suspended = _currentUser!;
             await _authService.signOut();
             _currentUser = null;
-            emit(const Unauthenticated());
+            emit(AuthSuspended(user: suspended));
             return;
           }
           if (_currentUser!.isAdmin) {
@@ -95,9 +97,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       // Authorization check — suspended accounts cannot log in
       if (_currentUser!.status != 'active') {
+        final suspended = _currentUser!;
         await _authService.signOut();
         _currentUser = null;
-        emit(const AuthFailure('Your account has been suspended by an administrator.'));
+        emit(AuthSuspended(user: suspended));
         return;
       }
 
@@ -305,15 +308,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       _currentUser = UserEntity.fromMap(userData);
 
       if (_currentUser!.status != 'active') {
+        final suspended = _currentUser!;
         await _authService.signOut();
         _currentUser = null;
-        emit(const AuthFailure('Your account has been suspended by an administrator.'));
+        emit(AuthSuspended(user: suspended));
         return;
       }
 
       if (_currentUser!.isAdmin) {
         emit(AdminAuthenticated(_currentUser!));
       } else {
+        // Save FCM token + subscribe for Google sign-in users
+        FCMService.saveTokenForUser(_currentUser!.id);
+        FCMService.subscribeToTopic('all_fans');
         emit(FanAuthenticated(_currentUser!));
       }
     } catch (e) {
@@ -357,6 +364,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
     _currentUser = null;
     emit(const Unauthenticated());
+  }
+
+  Future<void> _onUserSuspended(UserSuspendedEvent event, Emitter<AuthState> emit) async {
+    try {
+      if (_currentUser != null) {
+        await FCMService.removeTokenForUser(_currentUser!.id);
+        await FCMService.unsubscribeFromTopic('all_fans');
+      }
+      await _authService.signOut();
+    } catch (_) {}
+    _currentUser = null;
+    emit(AuthSuspended(user: event.user));
   }
 
   /// Map Firebase error codes to user-friendly messages

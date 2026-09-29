@@ -307,6 +307,20 @@ class DatabaseTables {
     );
   ''';
 
+  static const String createSuspensionAppealsTable = '''
+    CREATE TABLE IF NOT EXISTS ${DbConstants.tableSuspensionAppeals} (
+      appeal_id    TEXT PRIMARY KEY,
+      user_id      TEXT NOT NULL,
+      email        TEXT NOT NULL,
+      name         TEXT NOT NULL,
+      reason       TEXT NOT NULL,
+      status       TEXT NOT NULL DEFAULT 'pending',
+      created_at   INTEGER NOT NULL,
+      reviewed_at  INTEGER,
+      reviewed_by  TEXT
+    );
+  ''';
+
   static const List<String> allCreateStatements = [
     createUsersTable,
     createCategoriesTable,
@@ -328,5 +342,6 @@ class DatabaseTables {
     createTicketsTable,
     createNotificationsTable,
     createDeepDiveTriviaTable,
+    createSuspensionAppealsTable,
   ];
 }

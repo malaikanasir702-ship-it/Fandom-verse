@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/skewed_button.dart';
 import '../../../../core/widgets/skeleton_loader.dart';
 import '../../../../core/widgets/custom_text_field.dart';
+import '../../../../core/services/suspension_appeal_service.dart';
 import '../bloc/admin_bloc.dart';
 import '../bloc/admin_event.dart';
 import '../bloc/admin_state.dart';
@@ -23,11 +24,72 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> {
   final _searchUserCtrl = TextEditingController();
   String _selectedUserFilter = 'All';
   int _selectedTab = 0;
+  List<Map<String, dynamic>> _pendingAppeals = [];
 
   @override
   void initState() {
     super.initState();
     context.read<AdminBloc>().add(const LoadAdminDashboardStatsEvent());
+    _loadPendingAppeals();
+  }
+
+  Future<void> _loadPendingAppeals() async {
+    try {
+      final list = await SuspensionAppealService.instance.getPendingAppeals();
+      if (mounted) {
+        setState(() => _pendingAppeals = list);
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _approveAppeal(Map<String, dynamic> appeal, Map<String, dynamic> user) async {
+    final appealId = (appeal['appeal_id'] ?? appeal['id'] ?? '').toString();
+    final userId = (appeal['user_id'] ?? user['user_id'] ?? '').toString();
+    final messenger = ScaffoldMessenger.of(context);
+    final bloc = context.read<AdminBloc>();
+    try {
+      await SuspensionAppealService.instance.approveAppeal(appealId: appealId, userId: userId);
+      bloc.add(ToggleUserStatusEvent(userId, 'active'));
+      await _loadPendingAppeals();
+      if (mounted) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('Appeal approved! User "${user['name']}" is now Active.'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        messenger.showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
+        );
+      }
+    }
+  }
+
+  Future<void> _rejectAppeal(Map<String, dynamic> appeal, Map<String, dynamic> user) async {
+    final appealId = (appeal['appeal_id'] ?? appeal['id'] ?? '').toString();
+    final userId = (appeal['user_id'] ?? user['user_id'] ?? '').toString();
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await SuspensionAppealService.instance.rejectAppeal(appealId: appealId, userId: userId);
+      await _loadPendingAppeals();
+      if (mounted) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('Appeal rejected for "${user['name']}". User remains suspended.'),
+            backgroundColor: AppColors.comicRed,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
+        );
+      }
+    }
   }
 
   @override
@@ -191,13 +253,21 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> {
                     updatedUser['role'] = role;
                     updatedUser['status'] = status;
                     updatedUser['bio'] = bioCtrl.text.trim();
+                    final newPwd = passCtrl.text.trim();
                     context.read<AdminBloc>().add(UpdateUserEvent(
                           updatedUser,
-                          newPassword: passCtrl.text.trim().isNotEmpty ? passCtrl.text.trim() : null,
+                          newPassword: newPwd.isNotEmpty ? newPwd : null,
                         ));
                     Navigator.of(ctx).pop();
+                    final pwdMsg = newPwd.isNotEmpty
+                        ? ' A password reset email has been sent to $email.'
+                        : '';
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Updated user "$name"!'), backgroundColor: AppColors.success),
+                      SnackBar(
+                        content: Text('Updated user "$name"!$pwdMsg'),
+                        backgroundColor: AppColors.success,
+                        duration: const Duration(seconds: 4),
+                      ),
                     );
                   } else {
                     final newUser = {
@@ -352,20 +422,25 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> {
                       catData['name'] = name;
                       catData['description'] = descCtrl.text.trim();
                       catData['banner_url'] = bannerPathOrUrl.trim();
-                      catData['color_hex'] = colorCtrl.text.trim();
+                      catData['color_hex'] = colorCtrl.text.trim().isNotEmpty
+                          ? colorCtrl.text.trim()
+                          : (existingCategory['color_hex'] ?? '#7C4DFF');
                       context.read<AdminBloc>().add(UpdateCategoryEvent(catData));
                       Navigator.of(ctx).pop();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Updated category "$name"!'), backgroundColor: AppColors.success),
                       );
                     } else {
+                      final catId = 'cat_${DateTime.now().millisecondsSinceEpoch}';
                       final catData = {
-                        'category_id': 'cat_${name.toLowerCase().replaceAll(' ', '_')}',
+                        'category_id': catId,
                         'name': name,
                         'description': descCtrl.text.trim(),
                         'icon_name': 'auto_awesome',
                         'banner_url': bannerPathOrUrl.trim(),
-                        'color_hex': colorCtrl.text.trim(),
+                        'color_hex': colorCtrl.text.trim().isNotEmpty
+                            ? colorCtrl.text.trim()
+                            : '#7C4DFF',
                       };
                       context.read<AdminBloc>().add(CreateCategoryEvent(catData));
                       Navigator.of(ctx).pop();
@@ -460,7 +535,7 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> {
       ),
       body: BlocBuilder<AdminBloc, AdminState>(
         builder: (context, state) {
-          if (state is AdminLoading) {
+          if (state is AdminLoading || state is AdminInitial) {
             return const SkeletonAdminListPage();
           }
 
@@ -572,6 +647,13 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> {
           return status == 'active';
         case 'Suspended':
           return status == 'banned';
+        case 'Appeals':
+          final uid = (u['user_id'] ?? '').toString();
+          final uEmail = (u['email'] ?? '').toString().toLowerCase();
+          return _pendingAppeals.any((a) =>
+              ((a['user_id'] ?? '').toString() == uid ||
+               (uEmail.isNotEmpty && (a['email'] ?? '').toString().toLowerCase() == uEmail)) &&
+              a['status'] == 'pending');
         case 'Admin':
           return role == 'admin';
         case 'Fan':
@@ -588,6 +670,7 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> {
       color: AppColors.comicRed,
       onRefresh: () async {
         context.read<AdminBloc>().add(const LoadAdminDashboardStatsEvent());
+        await _loadPendingAppeals();
         await Future.delayed(const Duration(milliseconds: 600));
       },
       child: ListView(
@@ -650,6 +733,8 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> {
               const SizedBox(width: 8),
               _buildFilterChip('Suspended ($suspendedCount)', 'Suspended'),
               const SizedBox(width: 8),
+              _buildFilterChip('Appeals (${_pendingAppeals.length})', 'Appeals'),
+              const SizedBox(width: 8),
               _buildFilterChip('Admins', 'Admin'),
               const SizedBox(width: 8),
               _buildFilterChip('Fans', 'Fan'),
@@ -674,6 +759,7 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> {
               text: '+ Add User',
               icon: Iconsax.user_add,
               height: 38,
+              width: 120,
               fontSize: 11,
               backgroundColor: AppColors.comicRed,
               textColor: Colors.white,
@@ -710,6 +796,7 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> {
                   text: 'Register New User',
                   icon: Iconsax.user_add,
                   height: 36,
+                  width: 170,
                   fontSize: 11,
                   backgroundColor: AppColors.comicRed,
                   textColor: Colors.white,
@@ -723,6 +810,16 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> {
             final isBanned = u['status'] == 'banned';
             final isAdmin = u['role'] == 'admin';
             final bio = u['bio'] as String?;
+            final userId = (u['user_id'] ?? '').toString();
+            final userEmail = (u['email'] ?? '').toString().toLowerCase();
+            final appeal = _pendingAppeals.firstWhere(
+              (a) =>
+                  ((a['user_id'] ?? '').toString() == userId ||
+                   (userEmail.isNotEmpty && (a['email'] ?? '').toString().toLowerCase() == userEmail)) &&
+                  a['status'] == 'pending',
+              orElse: () => {},
+            );
+            final hasPendingAppeal = appeal.isNotEmpty;
 
             return Container(
               margin: const EdgeInsets.only(bottom: 12),
@@ -868,6 +965,117 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> {
 
                   const Divider(height: 18, color: Color(0xFFF3F4F6)),
 
+                  // ── Pending Appeal Banner ──
+                  if (hasPendingAppeal) ...[
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF59E0B).withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: const Color(0xFFF59E0B).withValues(alpha: 0.4),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Row(
+                            children: [
+                              Icon(Iconsax.message_question, size: 14, color: Color(0xFFD97706)),
+                              SizedBox(width: 6),
+                              Text(
+                                'APPEAL REVIEW PENDING',
+                                style: TextStyle(
+                                  color: Color(0xFFD97706),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.6,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            '"${(appeal['reason'] ?? 'No reason provided').toString()}"',
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 11.5,
+                              fontStyle: FontStyle.italic,
+                              color: Color(0xFF4B5563),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () => _approveAppeal(appeal, u),
+                                  borderRadius: BorderRadius.circular(6),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.success.withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: AppColors.success.withValues(alpha: 0.4)),
+                                    ),
+                                    child: const Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Iconsax.tick_circle, size: 13, color: AppColors.success),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          'Approve & Unban',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.success,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () => _rejectAppeal(appeal, u),
+                                  borderRadius: BorderRadius.circular(6),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.error.withValues(alpha: 0.08),
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                                    ),
+                                    child: const Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Iconsax.close_circle, size: 13, color: AppColors.error),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          'Reject',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.error,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Divider(height: 18, color: Color(0xFFF3F4F6)),
+                  ],
+
                   // ── Action Buttons Row ──
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -977,6 +1185,7 @@ class _AdminUsersCategoriesPageState extends State<AdminUsersCategoriesPage> {
                 text: '+ Add Pillar',
                 icon: Iconsax.add,
                 height: 40,
+                width: 125,
                 fontSize: 11,
                 backgroundColor: AppColors.comicRed,
                 textColor: Colors.white,

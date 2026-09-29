@@ -96,7 +96,7 @@ class _AdminImagePickerFieldState extends State<AdminImagePickerField> {
         widget.onImageSelected(cloudinaryUrl);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('✅ Image uploaded to Cloudinary CDN!'),
+            content: Text('✅ Image uploaded successfully!'),
             backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
           ),
@@ -146,7 +146,7 @@ class _AdminImagePickerFieldState extends State<AdminImagePickerField> {
                 ),
                 const SizedBox(height: 4),
                 const Text(
-                  'Image will be uploaded to Cloudinary CDN automatically',
+                  'Image will be uploaded automatically',
                   style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                 ),
                 const SizedBox(height: 16),
@@ -160,7 +160,7 @@ class _AdminImagePickerFieldState extends State<AdminImagePickerField> {
                     child: const Icon(Iconsax.gallery, color: AppColors.comicRed, size: 22),
                   ),
                   title: const Text('Choose from Gallery', style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF0F172A))),
-                  subtitle: const Text('Upload from device storage → Cloudinary', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                  subtitle: const Text('Upload from device storage', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
                   onTap: () { Navigator.of(ctx).pop(); _pickAndUpload(ImageSource.gallery); },
                 ),
                 const Divider(height: 1, color: Color(0xFFE2E8F0)),
@@ -253,7 +253,7 @@ class _AdminImagePickerFieldState extends State<AdminImagePickerField> {
                   CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                   SizedBox(height: 10),
                   Text(
-                    'Uploading to Cloudinary...',
+                    'Uploading...',
                     style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
                   ),
                 ],
@@ -283,7 +283,7 @@ class _AdminImagePickerFieldState extends State<AdminImagePickerField> {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    isCloudinary ? '☁ Cloudinary CDN' : (isNetwork ? 'Web URL' : 'Device'),
+                    isCloudinary ? '☁ Hosted' : (isNetwork ? 'Web URL' : 'Device'),
                     style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600),
                   ),
                 ],
@@ -371,12 +371,12 @@ class _AdminImagePickerFieldState extends State<AdminImagePickerField> {
             ),
             const SizedBox(height: 10),
             const Text(
-              'Upload Image to Cloudinary',
+              'Upload Image',
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
             ),
             const SizedBox(height: 4),
             const Text(
-              'Pick from Gallery or Camera — auto-uploaded to CDN',
+              'Pick from Gallery or Camera — auto-uploaded',
               style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
               textAlign: TextAlign.center,
             ),
@@ -388,7 +388,7 @@ class _AdminImagePickerFieldState extends State<AdminImagePickerField> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Text(
-                '☁ Powered by Cloudinary CDN',
+                '☁ Secure Cloud Storage',
                 style: TextStyle(fontSize: 10, color: Color(0xFF3448C5), fontWeight: FontWeight.w600),
               ),
             ),
@@ -442,7 +442,7 @@ class _AdminImagePickerFieldState extends State<AdminImagePickerField> {
                   controller: _urlController,
                   style: const TextStyle(fontSize: 13, color: Color(0xFF0F172A)),
                   decoration: InputDecoration(
-                    hintText: 'https://res.cloudinary.com/... or any URL',
+                    hintText: 'https://... or any image URL',
                     hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
                     filled: true,
                     fillColor: const Color(0xFFF8FAFC),

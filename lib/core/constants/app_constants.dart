@@ -1,7 +1,7 @@
 class AppConstants {
   AppConstants._();
 
-  static const String appName = 'Fandom Verse';
+  static const String appName = 'FandomVerse';
   static const String appSubtitle = 'Pocket Edition — Fandom on the Go';
   static const String appVersion = '1.0.0';
 

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../database/seed_hero_stories.dart';
 import 'firebase_service.dart';
 
 /// FirestoreSeeder — One-time seeder that populates all Firestore
@@ -42,8 +43,9 @@ class FirestoreSeeder {
       seeded += await _seedCollection('star_profiles', _starProfiles());
       seeded += await _seedCollection('orders', _orders());
       seeded += await _seedCollection('audit_logs', _auditLogs());
+      seeded += await _seedCollection('hero_stories', SeedHeroStories.defaultStories);
 
-      debugPrint('✅ [FirestoreSeeder] $seeded documents seeded across 10 collections.');
+      debugPrint('✅ [FirestoreSeeder] $seeded documents seeded across 11 collections.');
       return {
         'success': true,
         'message': '$seeded documents seeded successfully!',
@@ -122,7 +124,7 @@ class FirestoreSeeder {
     final batch = _db.batch();
 
     for (final doc in docs) {
-      final id = doc['id'] as String? ?? doc['category_id'] as String? ??
+      final id = doc['story_id'] as String? ?? doc['id'] as String? ?? doc['category_id'] as String? ??
           doc['post_id'] as String? ?? doc['term_id'] as String? ??
           doc['event_id'] as String? ?? doc['product_id'] as String? ??
           doc['thread_id'] as String? ?? doc['star_id'] as String? ??
